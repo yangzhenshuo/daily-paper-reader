@@ -1,6 +1,963 @@
 {
-  "generated_at": "2026-03-06T19:11:18.471356+00:00",
-  "updated_date": "20260306",
+  "generated_at": "2026-07-15T13:48:56.226088+00:00",
+  "updated_date": "20260616-20260715",
   "carryover_days": 9,
-  "items": []
+  "tag_states": {
+    "rmgp": {
+      "updated_date": "20260616-20260715",
+      "carryover_days": 9,
+      "items": [
+        {
+          "id": "2607.04714v1",
+          "source": "arxiv",
+          "title": "Geometry-Aware Motion Latents for Learning Robust Manipulation Policies",
+          "abstract": "Learning motion latents for robotic manipulation heavily relies on extracting motion patterns from visual sequences, yet effective action abstractions require understanding three-dimensional geometric transformations. Here, we introduce GeoMoLa (Geometry-Aware Motion Latents), which learns discrete motion latent codes by predicting how point clouds evolve during manipulation rather than reconstructing visual observations. This four-dimensional objective -- spatial geometry changing through time -- forces latent representations to encode actual physical motion rather than appearance patterns. GeoMoLa achieves state-of-the-art performance using only single-view RGB-D input, while existing methods require multi-view reconstruction, succeeding across diverse manipulation benchmarks. Our ablations reveal that geometric prediction is the key to driving performance, quantitatively validating that manipulation depends on spatial understanding. Furthermore, the learned codes exhibit effective motion abstraction: applying them to novel scenes produces physically consistent transformations regardless of visual context. Our real-world experiments also confirm this robustness capability, achieving robust manipulation with minimal demonstrations in cluttered environments where geometric reasoning determines success. Thus, we demonstrate that effective motion latents for robot control can better emerge from understanding motion through its three-dimensional effects rather than pixel-level patterns.",
+          "authors": [
+            "Yunchao Zhang",
+            "Yijia Weng",
+            "Ruizhe Liu",
+            "Ming Hu",
+            "Leonidas Guibas",
+            "Yanchao Yang"
+          ],
+          "primary_category": "cs.RO",
+          "categories": [
+            "cs.RO",
+            "cs.AI"
+          ],
+          "published": "2026-07-06T06:34:14+00:00",
+          "link": "https://arxiv.org/pdf/2607.04714v1",
+          "tags": [
+            "keyword:gen-imit",
+            "keyword:rmgp",
+            "query:gen-imit",
+            "query:rmgp"
+          ],
+          "llm_score": 8.0,
+          "llm_evidence_en": "Point cloud manipulation policy using geometry-aware motion latents",
+          "llm_evidence_cn": "基于几何感知运动潜码的3D点云操作策略",
+          "llm_evidence": "基于几何感知运动潜码的3D点云操作策略",
+          "canonical_evidence": "基于几何感知运动潜码的3D点云操作策略",
+          "llm_tldr_en": "Introduces GeoMoLa, learning discrete motion latents from point cloud evolution for robust manipulation policies.",
+          "llm_tldr_cn": "针对操作策略中运动抽象需理解三维几何的问题，提出GeoMoLa，通过预测点云演化学习离散运动潜码，仅用单视图RGB-D即可实现鲁棒操作策略。",
+          "llm_tldr": "针对操作策略中运动抽象需理解三维几何的问题，提出GeoMoLa，通过预测点云演化学习离散运动潜码，仅用单视图RGB-D即可实现鲁棒操作策略。",
+          "llm_tags": [
+            "query:rmgp"
+          ],
+          "matched_query_tag": "query:rmgp",
+          "matched_query_text": "3D point cloud policy",
+          "matched_requirement_id": "req-1",
+          "selection_source": "carryover_cache",
+          "paper_id": "2607.04714v1",
+          "carry_days": 1
+        },
+        {
+          "id": "2607.01051v1",
+          "source": "arxiv",
+          "title": "AutoSpeed: Annotation-Free Stage-Adaptive Motion Speed Learning for Robot Manipulation",
+          "abstract": "Different stages of manipulation tasks exhibit varying levels of difficulty, suggesting stage-dependent motion speeds and temporal prediction horizons. However, existing IL-based visuomotor policies typically imitate the execution speed of expert demonstrations and operate with a fixed temporal prediction horizon, limiting flexibility and overall task throughput. In this paper, we introduce AutoSpeed, a model-agnostic learning framework that enables existing visuomotor policies to predict trajectories with stage-adaptive motion speeds, without requiring speed or stage annotations. We treat future trajectories at different speeds as candidate optimization targets, evaluate each candidate using a composite cost that trades off prediction error against prediction horizon, and optimize the policy toward the minimum-cost candidate. With a fixed-length action sequence, speed modulation adjusts the effective temporal prediction horizon: simple stages are executed faster with a longer prediction horizon, whereas complex stages are executed more slowly with a shorter prediction horizon. Specifically, we implement speed modulation in the frequency domain via the discrete cosine transform (DCT), which enables smooth, non-integer speed scaling and thus preserves motion continuity. Extensive evaluations show that AutoSpeed substantially reduces task execution time while also improving success rates. Under the AutoSpeed framework, the inferred motion speeds exhibit a strong correspondence with task stages.",
+          "authors": [
+            "Qingda Hu",
+            "Ziheng Qiu",
+            "Jieru Zhao",
+            "Zhongxue Gan",
+            "Wenchao Ding"
+          ],
+          "primary_category": "cs.RO",
+          "categories": [
+            "cs.RO"
+          ],
+          "published": "2026-07-01T15:13:12+00:00",
+          "link": "https://arxiv.org/pdf/2607.01051v1",
+          "tags": [
+            "keyword:gen-imit",
+            "keyword:rmgp",
+            "query:gen-imit",
+            "query:rmgp"
+          ],
+          "llm_score": 8.0,
+          "llm_evidence_en": "stage-adaptive motion speed learning for visuomotor policies in robot manipulation",
+          "llm_evidence_cn": "阶段自适应运动速度学习，用于机器人操作视觉运动策略",
+          "llm_evidence": "阶段自适应运动速度学习，用于机器人操作视觉运动策略",
+          "canonical_evidence": "阶段自适应运动速度学习，用于机器人操作视觉运动策略",
+          "llm_tldr_en": "AutoSpeed enables visuomotor policies to adaptively vary motion speed across task stages without manual annotations, improving efficiency and success rate.",
+          "llm_tldr_cn": "针对现有模仿学习视觉运动策略固定预测时域和模仿示范速度的局限，提出AutoSpeed框架，无需标注即可根据任务阶段自适应调整运动速度和预测时域，通过评估不同速度轨迹的组合代价实现自适应选择，提高了任务平均成功率并缩短执行时间，增强了视觉运动策略的灵活性。",
+          "llm_tldr": "针对现有模仿学习视觉运动策略固定预测时域和模仿示范速度的局限，提出AutoSpeed框架，无需标注即可根据任务阶段自适应调整运动速度和预测时域，通过评估不同速度轨迹的组合代价实现自适应选择，提高了任务平均成功率并缩短执行时间，增强了视觉运动策略的灵活性。",
+          "llm_tags": [
+            "query:rmgp"
+          ],
+          "matched_query_tag": "query:rmgp",
+          "matched_query_text": "visuomotor policy",
+          "matched_requirement_id": "req-3",
+          "selection_source": "carryover_cache",
+          "paper_id": "2607.01051v1",
+          "carry_days": 1
+        },
+        {
+          "id": "2606.22480v1",
+          "source": "arxiv",
+          "title": "ARP: Enhancing Quantized Skill Abstractions via Visual Alignment and Iterative Refinement for Robotic Manipulation",
+          "abstract": "Learning visuomotor policies for long-horizon manipulation remains a fundamental challenge. Recent skill-based imitation learning methods based on discrete quantization have shown promising results by representing complex behaviors as temporally extended skills. However, most existing approaches primarily encode action trajectories into latent skills, yielding weak visual-semantic grounding and limiting the ability to leverage visual observations for skill selection. Moreover, discrete tokenization inevitably incurs precision errors during continuous action generation. To alleviate these issues, we propose Aligned Refinement Policy (ARP), a discrete-skill framework that couples semantic grounding with execution-level refinement. Specifically, ARP introduces (i) a visual--action alignment objective that contrastively aligns visual embeddings with pre-quantized action representations in a shared latent space while preserving a state-independent skill decoder, and (ii) a lightweight Iterative Residual Head (IRH) that performs a two-step refinement to recover fine-grained control for precise execution. Extensive experiments show that ARP achieves state-of-the-art performance on the LIBERO and Meta-World benchmarks. Moreover, real-robot experiments on the Kuavo 4 Pro humanoid platform further validate its effectiveness, yielding consistent performance gains over several baselines on two challenging manipulation tasks.",
+          "authors": [
+            "Yuntian Wang",
+            "Zesheng Jia",
+            "Yuhui Duan",
+            "Qibing Wang",
+            "Yang Liu",
+            "Song Wang",
+            "Siao Liu",
+            "Jin Wang"
+          ],
+          "primary_category": "cs.RO",
+          "categories": [
+            "cs.RO"
+          ],
+          "published": "2026-06-21T12:49:46+00:00",
+          "link": "https://arxiv.org/pdf/2606.22480v1",
+          "tags": [
+            "keyword:gen-imit",
+            "keyword:rmgp",
+            "query:gen-imit",
+            "query:rmgp"
+          ],
+          "llm_score": 8.0,
+          "llm_evidence_en": "Skill-based imitation learning with visual alignment and iterative refinement for long-horizon manipulation",
+          "llm_evidence_cn": "基于技能对齐与迭代细化的长程操作模仿学习",
+          "llm_evidence": "基于技能对齐与迭代细化的长程操作模仿学习",
+          "canonical_evidence": "基于技能对齐与迭代细化的长程操作模仿学习",
+          "llm_tldr_en": "Proposes Aligned Refinement Policy (ARP) that improves skill-based imitation learning by aligning skills with visual observations and iteratively refining actions for long-horizon manipulation.",
+          "llm_tldr_cn": "针对现有技能模仿学习方法视觉语义弱、离散化误差大的问题，提出ARP框架，通过视觉对齐增强技能语义，并采用迭代细化减少动作生成误差，提升长程操作性能。实验验证了其有效性。",
+          "llm_tldr": "针对现有技能模仿学习方法视觉语义弱、离散化误差大的问题，提出ARP框架，通过视觉对齐增强技能语义，并采用迭代细化减少动作生成误差，提升长程操作性能。实验验证了其有效性。",
+          "llm_tags": [
+            "query:rmgp"
+          ],
+          "matched_query_tag": "query:rmgp",
+          "matched_query_text": "Few shot, multimodal, long horizon, and robust imitation learning for robot manipulation",
+          "matched_requirement_id": "req-6",
+          "selection_source": "carryover_cache",
+          "paper_id": "2606.22480v1",
+          "carry_days": 1
+        },
+        {
+          "id": "2607.11167v1",
+          "source": "arxiv",
+          "title": "Pix2Act: Image-Space Manipulation Policies with Equivariant Augmentation",
+          "abstract": "Representing manipulation actions as 2D trajectories in the camera plane provides a compact and interpretable basis for learning complex 3D manipulation policies. However, it also creates challenges from out-of-frame trajectories and limited precision. We propose Pix2Act, an imitation learning method that addresses these challenges by generating continuous image-space keypoint trajectories in each camera plane and losslessly recovering end-effector poses via triangulation. This reformulates high-dimensional 3D control as a simpler, more learnable 2D prediction problem. Crucially, it aligns observations and actions in the same coordinate space, enabling equivariant transformations to jointly rotate individual camera images together with their image-space actions. We analyze the symmetry properties of this augmentation and design a network architecture that can fuse multiple camera views while respecting their per-view rotations. As a result, Pix2Act implicitly enlarges the support of the data distribution and learns invariant action structures across transformations, yielding improved generalization and overall performance. Across diverse simulated and real-world manipulation tasks, Pix2Act outperforms state-of-the-art baselines and remains robust under camera perturbations.",
+          "authors": [
+            "Haojie Huang",
+            "Linfeng Zhao",
+            "Haotian Liu",
+            "Zhang Ye",
+            "Si-Yuan Huang",
+            "Mingxi Jia",
+            "Boce Hu",
+            "Fangzhou Lin",
+            "Yu Qi",
+            "Dian Wang",
+            "Robin Walters",
+            "Robert Platt"
+          ],
+          "primary_category": "cs.RO",
+          "categories": [
+            "cs.RO",
+            "cs.AI",
+            "cs.LG"
+          ],
+          "published": "2026-07-13T07:03:29+00:00",
+          "link": "https://arxiv.org/pdf/2607.11167v1",
+          "tags": [
+            "keyword:gen-imit",
+            "keyword:rmgp",
+            "query:gen-imit",
+            "query:rmgp"
+          ],
+          "llm_score": 8.0,
+          "llm_evidence_en": "Visuomotor policy generating 2D image-space keypoint trajectories for 3D manipulation",
+          "llm_evidence_cn": "图像空间关键点轨迹生成与3D位姿恢复的视觉运动策略",
+          "llm_evidence": "图像空间关键点轨迹生成与3D位姿恢复的视觉运动策略",
+          "canonical_evidence": "图像空间关键点轨迹生成与3D位姿恢复的视觉运动策略",
+          "llm_tldr_en": "Proposes Pix2Act, an imitation learning method that predicts 2D keypoint trajectories in camera images and recovers 3D poses via triangulation, enabling equivariant data augmentation for visuomotor policies.",
+          "llm_tldr_cn": "针对图像空间动作表示中出界和精度不足问题，提出Pix2Act方法，通过预测各相机平面的连续关键点轨迹并三角化恢复末端执行器位姿，将高维3D控制简化为可学习的2D预测问题。利用观测与动作对齐实现等变数据增强，提升策略泛化性。",
+          "llm_tldr": "针对图像空间动作表示中出界和精度不足问题，提出Pix2Act方法，通过预测各相机平面的连续关键点轨迹并三角化恢复末端执行器位姿，将高维3D控制简化为可学习的2D预测问题。利用观测与动作对齐实现等变数据增强，提升策略泛化性。",
+          "llm_tags": [
+            "query:rmgp"
+          ],
+          "matched_query_tag": "query:rmgp",
+          "matched_query_text": "visuomotor policy",
+          "matched_requirement_id": "req-3",
+          "selection_source": "carryover_cache",
+          "paper_id": "2607.11167v1",
+          "carry_days": 1
+        },
+        {
+          "id": "2606.24403v1",
+          "source": "arxiv",
+          "title": "RE4: Transformation-aware Imitation of Object Interactions Using Manipulation Modes",
+          "abstract": "Object interaction tasks have been a focus of advances in imitation learning. End-to-end methods, dominated by diffusion and flow-based variants have shown leaps in performance while sacrificing interpretability. Object-centric and pose-informed variants have had a role in learning from demonstration in manipulation tasks. In this paper, we revisit a few modern imitation learning benchmarks for object interactions, with the aim of composing a framework that repurposes principled theories of manipulation, preserving both performance and interpretability. For image observations, lightweight training is proposed for model-free pose estimation of the target object, using self-supervision over the demonstration data available for imitation learning. This information is then used to inform a manipulation mode-aware retrieval of a demonstration, a mode-aware transformation, a replan step that connects to the retrieval point while preserving mode constraints, and finally rolling out the transformed demonstration. These compose four key steps of the proposed RE4 framework, evaluated over state-based and image-based benchmarks in Push-T and Robomimic. An adversarial benchmark that evaluates sparse data regions of image-based Push-T showcases the robustness, further bolstered by indications from low-data regime experiments. The current work shows promise in using simple interpretable building blocks to learn manipulation skills.",
+          "authors": [
+            "Arsh Chawla",
+            "Rahul Shome"
+          ],
+          "primary_category": "cs.RO",
+          "categories": [
+            "cs.RO",
+            "cs.LG"
+          ],
+          "published": "2026-06-23T10:37:50+00:00",
+          "link": "https://arxiv.org/pdf/2606.24403v1",
+          "tags": [
+            "keyword:gen-imit",
+            "keyword:rmgp",
+            "query:gen-imit",
+            "query:rmgp"
+          ],
+          "llm_score": 8.0,
+          "llm_evidence_en": "focuses on imitation learning for object interaction tasks using manipulation modes",
+          "llm_evidence_cn": "专注于使用操作模式进行物体交互的模仿学习",
+          "llm_evidence": "专注于使用操作模式进行物体交互的模仿学习",
+          "canonical_evidence": "专注于使用操作模式进行物体交互的模仿学习",
+          "llm_tldr_en": "Proposes a framework for transformation-aware imitation learning of object interactions, combining model-free pose estimation and principled manipulation theories to preserve performance and interpretability.",
+          "llm_tldr_cn": "针对端到端模仿学习方法牺牲可解释性的问题，提出了一种变换感知的物体交互模仿学习框架。该框架通过自监督的轻量级目标姿态估计，将操作模式融入学习过程，在保持性能的同时增强可解释性。实验表明，其在物体交互的基准测试上表现优异，为模仿学习提供了可解释的替代方案。",
+          "llm_tldr": "针对端到端模仿学习方法牺牲可解释性的问题，提出了一种变换感知的物体交互模仿学习框架。该框架通过自监督的轻量级目标姿态估计，将操作模式融入学习过程，在保持性能的同时增强可解释性。实验表明，其在物体交互的基准测试上表现优异，为模仿学习提供了可解释的替代方案。",
+          "llm_tags": [
+            "query:rmgp"
+          ],
+          "matched_query_tag": "query:rmgp",
+          "matched_query_text": "imitation learning",
+          "matched_requirement_id": "req-4",
+          "selection_source": "carryover_cache",
+          "paper_id": "2606.24403v1",
+          "carry_days": 1
+        },
+        {
+          "id": "2606.29028v1",
+          "source": "arxiv",
+          "title": "Keypose Exploration: Efficient Automatic Trajectory Labelling and Cross-Embodiment Policy Transfer",
+          "abstract": "Keypose-based manipulation decomposes tasks into critical waypoints to simplify policy learning for long-horizon tasks, but existing approaches rely on task-specific heuristics or manual annotation to extract keyposes from demonstrations. We present an automatic trajectory labelling pipeline for grasp-related tasks. This pipeline combines vision-language models (VLMs) for semantic event detection with classical trajectory analysis for precise temporal alignment, requiring VLM inference only on one single demo among repeating ones per task. Using the labelled data, we train a keypose-guided Diffusion Policy (DP) that exploits keypose conditioning to intervene demonstration distributions. We explore the possibility to apply this property for cross-embodiment transfer: candidate keyposes are sampled and filtered via a reachability map, steering the policy toward kinematically feasible keyposes for the target robot. As a preliminary feasibility study, experiments on two robomimic tasks show that the labelled data produces policies matching a standard DP baseline, and that reachability-filtered keypose conditioning may benefit zero-shot transfer on the multimodal insertion task when feasible candidates are available.",
+          "authors": [
+            "Yupu Lu",
+            "Hang Xu",
+            "Yizhou Chen",
+            "Jia Pan"
+          ],
+          "primary_category": "cs.RO",
+          "categories": [
+            "cs.RO"
+          ],
+          "published": "2026-06-27T17:48:39+00:00",
+          "link": "https://arxiv.org/pdf/2606.29028v1",
+          "tags": [
+            "keyword:gen-imit",
+            "keyword:rmgp",
+            "query:gen-imit",
+            "query:rmgp"
+          ],
+          "llm_score": 8.0,
+          "llm_evidence_en": "Diffusion Policy with keypose conditioning for manipulation",
+          "llm_evidence_cn": "关键姿态引导的扩散策略用于长任务机器人操作",
+          "llm_evidence": "关键姿态引导的扩散策略用于长任务机器人操作",
+          "canonical_evidence": "关键姿态引导的扩散策略用于长任务机器人操作",
+          "llm_tldr_en": "Automatically labels trajectories with keyposes and trains a keypose-guided Diffusion Policy for long-horizon tasks, enabling cross-embodiment transfer.",
+          "llm_tldr_cn": "该论文提出一种自动轨迹标注流程，结合视觉语言模型和轨迹分析提取关键姿态，并训练关键姿态引导的扩散策略，用于长任务操作及跨本体迁移。",
+          "llm_tldr": "该论文提出一种自动轨迹标注流程，结合视觉语言模型和轨迹分析提取关键姿态，并训练关键姿态引导的扩散策略，用于长任务操作及跨本体迁移。",
+          "llm_tags": [
+            "query:rmgp"
+          ],
+          "matched_query_tag": "query:rmgp",
+          "matched_query_text": "diffusion policy",
+          "matched_requirement_id": "req-2",
+          "selection_source": "carryover_cache",
+          "paper_id": "2606.29028v1",
+          "carry_days": 1
+        },
+        {
+          "id": "2607.10706v1",
+          "source": "arxiv",
+          "title": "Action Map Policy: Learning 3D Closed-loop Manipulation via Pixel Classification",
+          "abstract": "The action space poses a major challenge in robot learning, since it is often high-dimensional, can span long time horizons, and frequently admits multi-modal optimal solutions. A good choice of action representation and loss function can help to address these concerns, but there are often trade offs. We propose Action Map Policy (AMP), which casts 3D closed-loop manipulation policy learning as a classification problem in image space. While classification has been an effective formulation in generative language models, applying it to robot action learning is difficult because naively discretizing high-dimensional continuous actions explodes the token vocabulary. Our key idea is to project 3D actions onto the camera image planes and treat each pixel location as a discrete class, thus controlling dimensionality while retaining multi-modality. This method supports millimeter-level precision for high-dimensional actions without requiring a prohibitively large vocabulary, while preserving fine-grained pixel-wise visual signals. Furthermore, it can predict the entire action chunk in a single forward pass, avoiding complex noise scheduling and iterative denoising while achieving substantially faster inference than diffusion policies. Experiments on various manipulation tasks show that AMP outperforms strong baselines, achieving higher success rates, faster inference, and enhanced spatial reasoning.",
+          "authors": [
+            "Haojie Huang",
+            "Zhang Ye",
+            "Linfeng Zhao",
+            "Boce Hu",
+            "Mingxi Jia",
+            "Yu Qi",
+            "Ahmed Agha",
+            "Dian Wang",
+            "Robert Platt",
+            "Robin Walters"
+          ],
+          "primary_category": "cs.RO",
+          "categories": [
+            "cs.RO",
+            "cs.AI",
+            "cs.CV",
+            "cs.LG"
+          ],
+          "published": "2026-07-12T10:58:06+00:00",
+          "link": "https://arxiv.org/pdf/2607.10706v1",
+          "tags": [
+            "keyword:gen-imit",
+            "keyword:rmgp",
+            "query:gen-imit",
+            "query:rmgp"
+          ],
+          "llm_score": 8.0,
+          "llm_evidence_en": "3D closed-loop manipulation policy learning via pixel classification on projected actions",
+          "llm_evidence_cn": "通过投影动作的像素分类学习3D闭环操作策略",
+          "llm_evidence": "通过投影动作的像素分类学习3D闭环操作策略",
+          "canonical_evidence": "通过投影动作的像素分类学习3D闭环操作策略",
+          "llm_tldr_en": "Action Map Policy (AMP) casts 3D closed-loop manipulation as pixel classification, projecting actions onto camera planes to overcome high-dimensional and multi-modal action spaces, enabling efficient imitation learning for robotic manipulation tasks.",
+          "llm_tldr_cn": "现有机器人动作空间高维且多模态最优解，AMP将3D闭环操作策略学习转化为图像空间中的分类问题，通过将3D动作投影至相机平面来避免动作离散化带来的词组爆炸，实现了高效的模仿学习。该方法在多种操作任务上验证了其有效性，为3D点云策略提供了一种新的表示范式。",
+          "llm_tldr": "现有机器人动作空间高维且多模态最优解，AMP将3D闭环操作策略学习转化为图像空间中的分类问题，通过将3D动作投影至相机平面来避免动作离散化带来的词组爆炸，实现了高效的模仿学习。该方法在多种操作任务上验证了其有效性，为3D点云策略提供了一种新的表示范式。",
+          "llm_tags": [
+            "query:rmgp"
+          ],
+          "matched_query_tag": "query:rmgp",
+          "matched_query_text": "3D point cloud policy",
+          "matched_requirement_id": "req-1",
+          "selection_source": "carryover_cache",
+          "paper_id": "2607.10706v1",
+          "carry_days": 1
+        },
+        {
+          "id": "2606.25360v1",
+          "source": "arxiv",
+          "title": "Decoupling Semantics and Geometric Grounding: Spatial Visual Prompts for Language-Conditioned Imitation Learning",
+          "abstract": "While end-to-end Vision-Language-Action (VLA) models show promise in robotic manipulation, their monolithic paradigm inherently couples semantic reasoning and spatial control. This creates a severe alignment bottleneck, limiting precise target disambiguation in data-constrained imitation learning. To overcome this, we propose SVP-IL, a decoupled architecture that explicitly extracts spatial visual grounding from the action generation loop. By leveraging vision-language foundation models, we parse instructions into zero-shot geometric masks, translating language into explicit Spatial Visual Prompts (SVP). These priors are injected into a continuous action generator via a lightweight direct feature-level fusion mechanism. This integration provides explicit and uncorrupted spatial gradient guidance while ensuring highly stable optimization under low-data regimes. Extensive experiments demonstrate that SVP-IL significantly outperforms state-of-the-art VLAs and pure visuomotor baselines. Trained on as few as 50 to 100 demonstrations, SVP-IL improves average success rates on highly ambiguous language-conditioned tasks from 24.0% to 39.5%, achieving 67.8% on standard benchmarks. Real-world robotic experiments further validate its robustness and data efficiency in unstructured physical environments.",
+          "authors": [
+            "Yanzhe Tang",
+            "Xinyu Shao",
+            "Yuxuan Hu",
+            "Siyu Chen",
+            "Bowen Yang",
+            "Yajun Gao",
+            "Tongtong Cao",
+            "Xiu Li",
+            "Long Zeng"
+          ],
+          "primary_category": "cs.RO",
+          "categories": [
+            "cs.RO"
+          ],
+          "published": "2026-06-24T03:45:06+00:00",
+          "link": "https://arxiv.org/pdf/2606.25360v1",
+          "tags": [
+            "keyword:gen-imit",
+            "keyword:rmgp",
+            "query:gen-imit",
+            "query:rmgp"
+          ],
+          "llm_score": 8.0,
+          "llm_evidence_en": "spatial visual prompts for data-constrained language-conditioned imitation learning",
+          "llm_evidence_cn": "空间视觉提示实现数据受限的语言条件模仿学习",
+          "llm_evidence": "空间视觉提示实现数据受限的语言条件模仿学习",
+          "canonical_evidence": "空间视觉提示实现数据受限的语言条件模仿学习",
+          "llm_tldr_en": "SVP-IL decouples semantic reasoning and spatial control by extracting zero-shot geometric masks from vision-language models as Spatial Visual Prompts, improving disambiguation and precision in few-shot imitation learning for robotic manipulation.",
+          "llm_tldr_cn": "针对端到端VLA模型在数据受限时语义与空间控制耦合导致目标辨别困难的问题，SVP-IL提出解耦架构，利用视觉语言基础模型生成零样本几何掩码作为空间视觉提示，增强模仿学习的空间定位能力。在少样本操作任务中，SVP-IL显著提升了目标操纵的精确度与鲁棒性。",
+          "llm_tldr": "针对端到端VLA模型在数据受限时语义与空间控制耦合导致目标辨别困难的问题，SVP-IL提出解耦架构，利用视觉语言基础模型生成零样本几何掩码作为空间视觉提示，增强模仿学习的空间定位能力。在少样本操作任务中，SVP-IL显著提升了目标操纵的精确度与鲁棒性。",
+          "llm_tags": [
+            "query:rmgp"
+          ],
+          "matched_query_tag": "query:rmgp",
+          "matched_query_text": "Few shot, multimodal, long horizon, and robust imitation learning for robot manipulation",
+          "matched_requirement_id": "req-6",
+          "selection_source": "carryover_cache",
+          "paper_id": "2606.25360v1",
+          "carry_days": 1
+        },
+        {
+          "id": "2606.31329v2",
+          "source": "arxiv",
+          "title": "3D HAMSTER: Bridging Planning and Control in Hierarchical Vision Language Action Models through 3D Trajectory Guidance",
+          "abstract": "Hierarchical Vision-Language-Action (VLA) models decouple high-level planning from low-level control to improve generalization in robot manipulation. Recent work in this paradigm uses 2D end-effector trajectories predicted by a Vision-Language Model (VLM) as explicit guidance for a downstream policy. However, state-of-the-art low-level policies operate in 3D metric space on point clouds, and feeding them 2D guidance that lacks depth forces each waypoint to be assigned the depth of whatever scene surface lies beneath it, producing geometrically distorted trajectories. We propose 3D HAMSTER, a hierarchical framework that closes this gap by having the planner directly output metrically reliable 3D trajectories. We augment a VLM with a dedicated depth encoder and a dense depth reconstruction objective to predict 3D waypoint sequences, which are directly integrated into a pointcloudbased low-level policy. Across 3D trajectory prediction, simulation, and real-world manipulation, 3D HAMSTER consistently outperforms proprietary VLMs and 2D-guided baselines, with the largest gains under appearance-altering shifts and unseen language, spatial, and visual conditions. The project page is available at https://davian-robotics.github.io/3D_HAMSTER/.",
+          "authors": [
+            "Dongyoon Hwang",
+            "Byungkun Lee",
+            "Dongjin Kim",
+            "Hyojin Jang",
+            "Hoiyeong Jin",
+            "Jueun Mun",
+            "Minho Park",
+            "Hojoon Lee",
+            "Hyunseung Kim",
+            "Jaegul Choo"
+          ],
+          "primary_category": "cs.RO",
+          "categories": [
+            "cs.RO",
+            "cs.AI"
+          ],
+          "published": "2026-06-30T08:31:35+00:00",
+          "link": "https://arxiv.org/pdf/2606.31329v2",
+          "tags": [
+            "keyword:gen-imit",
+            "keyword:rmgp",
+            "query:gen-imit",
+            "query:rmgp"
+          ],
+          "llm_score": 8.0,
+          "llm_evidence_en": "3D trajectory outputs from VLM to guide point cloud-based low-level policies",
+          "llm_evidence_cn": "VLM输出的3D轨迹引导基于点云的低层策略",
+          "llm_evidence": "VLM输出的3D轨迹引导基于点云的低层策略",
+          "canonical_evidence": "VLM输出的3D轨迹引导基于点云的低层策略",
+          "llm_tldr_en": "3D HAMSTER proposes a hierarchical VLA framework where the planner directly outputs metrically reliable 3D trajectories for low-level point cloud policies, avoiding geometric distortion from 2D guidance and improving long-horizon manipulation precision.",
+          "llm_tldr_cn": "为解决分层VLA中2D轨迹指导导致点云策略几何失真问题，3D HAMSTER使规划器直接输出度量准确的3D轨迹，无缝对接基于点云的低层控制器。在长程操作任务中，该方法消除了深度缺失造成的扭曲，显著提升了空间引导的精度与成功率。",
+          "llm_tldr": "为解决分层VLA中2D轨迹指导导致点云策略几何失真问题，3D HAMSTER使规划器直接输出度量准确的3D轨迹，无缝对接基于点云的低层控制器。在长程操作任务中，该方法消除了深度缺失造成的扭曲，显著提升了空间引导的精度与成功率。",
+          "llm_tags": [
+            "query:rmgp"
+          ],
+          "matched_query_tag": "query:rmgp",
+          "matched_query_text": "3D point cloud policy",
+          "matched_requirement_id": "req-1",
+          "selection_source": "carryover_cache",
+          "paper_id": "2606.31329v2",
+          "carry_days": 1
+        },
+        {
+          "id": "2607.12287v1",
+          "source": "arxiv",
+          "title": "Reducing Temporal Redundancy for Efficient Vision-Language-Action Inference",
+          "abstract": "Vision-Language-Action (VLA) models exhibit strong generalization for robotic manipulation, yet their high inference latency limits real time deployment. We identify two primary sources of temporal redundancy in existing VLA pipelines: repeated visual encoding of highly similar consecutive frames and multi step iterative sampling in diffusion based policies. To address this, we propose a system level acceleration strategy that reduces computation in both perception and action generation. On the perception side, we incrementally update only tokens corresponding to dynamic scene regions instead of re-encoding entire frames. On the policy side, we compress diffusion sampling into a compact 2-step schedule through efficiency oriented training while preserving action precision. Experiments on Libero, RobotWin, and Real Robot Platforms demonstrate over 2 times speedup while maintaining high performance, achieving up to 98% success rate on general manipulation benchmarks. Our codes will be released on Github.",
+          "authors": [
+            "Yuzhou Wu",
+            "Yuxin Zheng",
+            "Muchun Niu",
+            "Yishan Yang",
+            "Tianhao Liu",
+            "hanwen kang",
+            "Jiajian Jing",
+            "Linfeng Zhang",
+            "Chuan Wen"
+          ],
+          "primary_category": "cs.RO",
+          "categories": [
+            "cs.RO"
+          ],
+          "published": "2026-07-14T02:48:31+00:00",
+          "link": "https://arxiv.org/pdf/2607.12287v1",
+          "tags": [
+            "keyword:gen-imit",
+            "keyword:rmgp",
+            "query:gen-imit",
+            "query:rmgp"
+          ],
+          "llm_score": 8.0,
+          "llm_evidence_en": "Reduces temporal redundancy in VLA models with incremental visual encoding and 2-step diffusion sampling.",
+          "llm_evidence_cn": "通过增量视觉编码与二步扩散采样减少VLA模型的时间冗余",
+          "llm_evidence": "通过增量视觉编码与二步扩散采样减少VLA模型的时间冗余",
+          "canonical_evidence": "通过增量视觉编码与二步扩散采样减少VLA模型的时间冗余",
+          "llm_tldr_en": "Proposes system-level acceleration for VLA inference by updating only dynamic tokens and compressing diffusion sampling to 2 steps.",
+          "llm_tldr_cn": "VLA模型因重复视觉编码与多步扩散采样导致高延迟。本文从感知与策略两端减少时间冗余：仅增量更新动态区域的视觉令牌，并将扩散采样压缩为紧凑的二步计划。实验表明方法在保持操作性能的同时大幅降低推理时延，推动VLA模型实时部署。",
+          "llm_tldr": "VLA模型因重复视觉编码与多步扩散采样导致高延迟。本文从感知与策略两端减少时间冗余：仅增量更新动态区域的视觉令牌，并将扩散采样压缩为紧凑的二步计划。实验表明方法在保持操作性能的同时大幅降低推理时延，推动VLA模型实时部署。",
+          "llm_tags": [
+            "query:rmgp"
+          ],
+          "matched_query_tag": "query:rmgp",
+          "matched_query_text": "diffusion policy",
+          "matched_requirement_id": "req-2",
+          "selection_source": "carryover_cache",
+          "paper_id": "2607.12287v1",
+          "carry_days": 1
+        },
+        {
+          "id": "2607.06442v1",
+          "source": "arxiv",
+          "title": "SIEVE: Structure-Aware Data Selection for Imitation Learning with VLA Models",
+          "abstract": "Vision-Language-Action (VLA) models are typically trained by imitation learning on large-scale robot demonstration datasets, but more data does not necessarily yield better policies due to redundancy, noise, and uneven coverage. Existing data selection methods often assess demonstrations at either the trajectory or state-action level, missing the reusable structures that compose long-horizon behaviors. In this paper, we propose SIEVE, a structure-aware data selection method for VLA imitation learning. SIEVE views demonstrations as compositions of reusable primitives and transition interfaces. It first discovers visuo-motor primitives from segmented trajectories, then allocates selection budgets to composition patterns by maximizing reuse-aware structural exposure under diminishing returns. Finally, it selects medoid trajectories within each composition-pattern bucket to retain central, stable, and imitation-friendly demonstrations. Experiments across multiple datasets, benchmarks, and VLA models show that SIEVE consistently outperforms competitive data selection baselines. Notably, SIEVE can surpass full-data training while using only 50% of demonstrations and 50% of training steps, suggesting that reusable structure, captured through primitives and transitions, is an important signal for efficient VLA imitation learning.",
+          "authors": [
+            "Changti Wu",
+            "Bin Yu",
+            "Zhaolong Shen",
+            "Shijie Lian",
+            "Xiaopeng Lin",
+            "Cong Huang",
+            "Zhirui Zhang",
+            "Lei Zhang",
+            "Kai Chen"
+          ],
+          "primary_category": "cs.RO",
+          "categories": [
+            "cs.RO"
+          ],
+          "published": "2026-07-07T16:10:02+00:00",
+          "link": "https://arxiv.org/pdf/2607.06442v1",
+          "tags": [
+            "keyword:gen-imit",
+            "keyword:rmgp",
+            "query:gen-imit",
+            "query:rmgp"
+          ],
+          "llm_score": 8.0,
+          "llm_evidence_en": "Structure-aware data selection for imitation learning of long-horizon behaviors, using visuo-motor primitives.",
+          "llm_evidence_cn": "结构感知数据选择，利用视觉-运动基元支持长序列行为的模仿学习。",
+          "llm_evidence": "结构感知数据选择，利用视觉-运动基元支持长序列行为的模仿学习。",
+          "canonical_evidence": "结构感知数据选择，利用视觉-运动基元支持长序列行为的模仿学习。",
+          "llm_tldr_en": "SIEVE selects demonstration data by discovering reusable visuo-motor primitives, improving long-horizon policy learning in VLA models.",
+          "llm_tldr_cn": "针对大规模演示数据中冗余与噪声阻碍长序列策略学习的问题，本文提出SIEVE结构感知数据选择方法，通过发现可复用的视觉-运动基元及过渡接口，并基于重用感知稳定性分配选择预算，实验表明该方法能有效提升VLA模型在长序列操作任务上的表现，为高效模仿学习提供了数据选取新思路。",
+          "llm_tldr": "针对大规模演示数据中冗余与噪声阻碍长序列策略学习的问题，本文提出SIEVE结构感知数据选择方法，通过发现可复用的视觉-运动基元及过渡接口，并基于重用感知稳定性分配选择预算，实验表明该方法能有效提升VLA模型在长序列操作任务上的表现，为高效模仿学习提供了数据选取新思路。",
+          "llm_tags": [
+            "query:rmgp"
+          ],
+          "matched_query_tag": "query:rmgp",
+          "matched_query_text": "Few shot, multimodal, long horizon, and robust imitation learning for robot manipulation",
+          "matched_requirement_id": "req-6",
+          "selection_source": "carryover_cache",
+          "paper_id": "2607.06442v1",
+          "carry_days": 1
+        },
+        {
+          "id": "2606.22860v1",
+          "source": "arxiv",
+          "title": "HiL-ResRL: A Model-Agnostic Finetuning Adapter via Human-in-the-loop Residual Reinforcement Learning",
+          "abstract": "Recent advancements in generative imitation learning have significantly propelled the field of robotic manipulation. However, the majority of existing models rely heavily on Behavior Cloning (BC), a paradigm that suffers from compounding errors and distributional shift. Consequently, the efficacy of these models in practical industrial deployments remains limited. To address these challenges, we introduce a novel, plug-and-play fine-tuning pipeline designed to facilitate the robust deployment of Vision-Language-Action (VLA) models in real-world environments. In contrast to contemporary reinforcement learning (RL) fine-tuning strategies, which are often constrained by specific model architectures, our proposed framework is model-agnostic and adaptable to a diverse range of VLA models. We conceptualize VLA-generated actions as a unified interface, upon which we train a residual policy. This policy is designed to rectify suboptimal actions and address the distributional shift inherent in imitation learning. Additionally, we incorporate human-in-the-loop guidance to ensure safe exploration and maximize training efficiency. We conduct experiments directly in real-world robotic settings. The results demonstrate that within only 1.5 hour of real-world online RL training, the average success rate exceeds 95% on real robots. Our work presents a practical solution for deploying behavior cloning models in industrial scenarios.",
+          "authors": [
+            "Jingyi Liu",
+            "Zhaohong Mai",
+            "ShunSen He",
+            "Hang Ren",
+            "Chao Wang",
+            "Shunbo Zhou",
+            "XiaoDong Wu",
+            "Heng Zhang"
+          ],
+          "primary_category": "cs.RO",
+          "categories": [
+            "cs.RO"
+          ],
+          "published": "2026-06-22T05:07:08+00:00",
+          "link": "https://arxiv.org/pdf/2606.22860v1",
+          "tags": [
+            "keyword:gen-imit",
+            "keyword:rmgp",
+            "query:gen-imit",
+            "query:rmgp"
+          ],
+          "llm_score": 8.0,
+          "llm_evidence_en": "Fine-tuning pipeline for generative imitation learning models in robotic manipulation, addressing distribution shift with residual RL.",
+          "llm_evidence_cn": "面向生成式模仿学习模型的微调流程，通过残差强化学习解决分布偏移。",
+          "llm_evidence": "面向生成式模仿学习模型的微调流程，通过残差强化学习解决分布偏移。",
+          "canonical_evidence": "面向生成式模仿学习模型的微调流程，通过残差强化学习解决分布偏移。",
+          "llm_tldr_en": "Proposes a model-agnostic, human-in-the-loop residual RL adapter to fine-tune VLA models for robust real-world manipulation.",
+          "llm_tldr_cn": "针对行为克隆存在累积误差和分布偏移导致真实世界部署鲁棒性不足的问题，本文提出一种模型无关的人在环路残差强化学习微调框架，通过人类干预纠正错误并利用残差RL进行策略优化，实验表明该方法能显著提升VLA模型在工业场景中的任务成功率，为模仿学习策略的实用化部署提供了即插即用的解决方案。",
+          "llm_tldr": "针对行为克隆存在累积误差和分布偏移导致真实世界部署鲁棒性不足的问题，本文提出一种模型无关的人在环路残差强化学习微调框架，通过人类干预纠正错误并利用残差RL进行策略优化，实验表明该方法能显著提升VLA模型在工业场景中的任务成功率，为模仿学习策略的实用化部署提供了即插即用的解决方案。",
+          "llm_tags": [
+            "query:rmgp"
+          ],
+          "matched_query_tag": "query:rmgp",
+          "matched_query_text": "imitation learning",
+          "matched_requirement_id": "req-4",
+          "selection_source": "carryover_cache",
+          "paper_id": "2606.22860v1",
+          "carry_days": 1
+        },
+        {
+          "id": "2606.31493v2",
+          "source": "arxiv",
+          "title": "ChronoFlow-Policy: Unifying Past-Current-Future Interaction Flow in Visuomotor Policy Learning",
+          "abstract": "Visual signals play a crucial role in policy learning by enabling models to capture object motion and interaction dynamics. Just as humans reason about actions using both past experience and anticipated outcomes, effective policies should integrate past interactions with future predictions. However, existing visuomotor policies typically model either historical context or future dynamics in isolation, lacking a unified temporal representation of interaction dynamics. In this work, we introduce ChronoFlow, a temporally unified representation that captures past, current, and future interaction dynamics through sparse 3D keypoints of both objects and the gripper. Based on this representation, we propose ChronoFlow-Policy, a diffusion-based visuomotor policy that jointly learns ChronoFlow and action sequences through a co-training objective. Experiments on 14 simulated tasks and 5 real-world manipulation tasks demonstrate that ChronoFlow-Policy consistently outperforms strong diffusion-policy baselines and improves robustness in long-horizon and non-Markovian manipulation scenarios. Our project page is available at https://the-kamisato-sii.github.io/ChronoFlow-Policy-project-page/.",
+          "authors": [
+            "Bokai Lin",
+            "Yifu Xu",
+            "Xinyu Zhan",
+            "Hongjie Fang",
+            "Jialin Tian",
+            "Fu-Cheng Zhang",
+            "Yong-Lu Li",
+            "Cewu Lu",
+            "Lixin Yang"
+          ],
+          "primary_category": "cs.RO",
+          "categories": [
+            "cs.RO"
+          ],
+          "published": "2026-06-30T11:12:45+00:00",
+          "link": "https://arxiv.org/pdf/2606.31493v2",
+          "tags": [
+            "keyword:gen-imit",
+            "keyword:rmgp",
+            "query:gen-imit",
+            "query:rmgp"
+          ],
+          "llm_score": 8.0,
+          "llm_evidence_en": "diffusion policy with 3D keypoint representation for visuomotor learning",
+          "llm_evidence_cn": "使用3D关键点表示的扩散策略用于视觉运动学习",
+          "llm_evidence": "使用3D关键点表示的扩散策略用于视觉运动学习",
+          "canonical_evidence": "使用3D关键点表示的扩散策略用于视觉运动学习",
+          "llm_tldr_en": "Introduces ChronoFlow-Policy, a diffusion policy that uses a unified temporal representation of past, current, and future interactions via sparse 3D keypoints, improving visuomotor policy learning.",
+          "llm_tldr_cn": "针对现有视觉运动策略通常孤立建模历史或未来动态的问题，提出ChronoFlow-Policy，通过稀疏3D关键点构建统一的过去-当前-未来交互流表示，并基于扩散模型生成动作。该方法在操作任务上提升了时序一致性。",
+          "llm_tldr": "针对现有视觉运动策略通常孤立建模历史或未来动态的问题，提出ChronoFlow-Policy，通过稀疏3D关键点构建统一的过去-当前-未来交互流表示，并基于扩散模型生成动作。该方法在操作任务上提升了时序一致性。",
+          "llm_tags": [
+            "query:rmgp"
+          ],
+          "matched_query_tag": "query:rmgp",
+          "matched_query_text": "3D point cloud imitation learning policies related to DP3, FlowPolicy, MP1, and Diffusion Policy3D point cloud imitation learning policies related to DP3, FlowPolicy, MP1, and Diffusion Policy",
+          "matched_requirement_id": "req-7",
+          "selection_source": "carryover_cache",
+          "paper_id": "2606.31493v2",
+          "carry_days": 1
+        },
+        {
+          "id": "2607.03163v1",
+          "source": "arxiv",
+          "title": "Beyond Point-Attached Semantics: Object-Centric Semantic Fields for Generalizable Manipulation",
+          "abstract": "Generalizable robot manipulation requires stable 3D understanding of functional object parts, such as handles, tool heads, openings, and graspable regions. Raw point clouds provide geometry but lack explicit part semantics, and their sampled points vary with viewpoint, sensor configuration, and object instance. Existing 2D feature lifting and discrete 3D point-wise features enrich point clouds with semantics, but the resulting features remain attached to observation-dependent samples. We propose an object-centric continuous semantic field that conditions on an object point cloud and reads part-aware semantic embeddings at explicit 3D query locations. The field is trained from part-annotated object models and then frozen to generate semantic point clouds as object-level conditioning for manipulation policies. Experiments on RoboTwin simulation tasks and real-world bimanual object manipulation show that our representation provides more stable functional-part cues and improves policy performance over raw point-cloud, 2D feature lifting, and 3D point-wise feature baselines. Project Page: \\href{https://zainzh.github.io/beyond-point-attached-semantics}{https://zainzh.github.io/beyond-point-attached-semantics}.",
+          "authors": [
+            "Zheng Sun",
+            "Lerong Zhang",
+            "Zhihao Li",
+            "Zhuo Li",
+            "Quentin Rouxel",
+            "Fei Chen"
+          ],
+          "primary_category": "cs.RO",
+          "categories": [
+            "cs.RO"
+          ],
+          "published": "2026-07-03T10:05:39+00:00",
+          "link": "https://arxiv.org/pdf/2607.03163v1",
+          "tags": [
+            "keyword:gen-imit",
+            "keyword:rmgp",
+            "query:gen-imit",
+            "query:rmgp"
+          ],
+          "llm_score": 8.0,
+          "llm_evidence_en": "proposes object-centric continuous semantic field for point clouds, providing part-aware embeddings for generalizable manipulation.",
+          "llm_evidence_cn": "提出以对象为中心的连续语义场，为点云提供部件感知嵌入，用于可泛化操作。",
+          "llm_evidence": "提出以对象为中心的连续语义场，为点云提供部件感知嵌入，用于可泛化操作。",
+          "canonical_evidence": "提出以对象为中心的连续语义场，为点云提供部件感知嵌入，用于可泛化操作。",
+          "llm_tldr_en": "Presents object-centric semantic fields that condition on object point clouds to provide part-aware embeddings at 3D locations, enabling generalized manipulation policies to reason about functional parts.",
+          "llm_tldr_cn": "针对现有点云语义特征仅附着在观测采样点上、缺乏对象中心表示的问题，提出对象中心连续语义场，基于对象点云在任意3D查询位置读取部件语义嵌入。该场从部件标注数据中训练后冻结，可推广到新实例，为操作策略提供稳定的3D功能部件理解，提升跨对象泛化能力。",
+          "llm_tldr": "针对现有点云语义特征仅附着在观测采样点上、缺乏对象中心表示的问题，提出对象中心连续语义场，基于对象点云在任意3D查询位置读取部件语义嵌入。该场从部件标注数据中训练后冻结，可推广到新实例，为操作策略提供稳定的3D功能部件理解，提升跨对象泛化能力。",
+          "llm_tags": [
+            "query:rmgp"
+          ],
+          "matched_query_tag": "query:rmgp",
+          "matched_query_text": "3D point cloud policy",
+          "matched_requirement_id": "req-1",
+          "selection_source": "carryover_cache",
+          "paper_id": "2607.03163v1",
+          "carry_days": 1
+        }
+      ]
+    },
+    "gen-imit": {
+      "updated_date": "20260616-20260715",
+      "carryover_days": 9,
+      "items": [
+        {
+          "id": "2606.28133v1",
+          "source": "arxiv",
+          "title": "Translation as a Bridging Action: Transferring Manipulation Skills from Humans to Robots",
+          "abstract": "We study whether we can learn novel manipulation skills from human actions to a bi-manual robot with parallel grippers. Human action data is cheap, abundant, and diverse, making it one of the most promising resources for scaling up robot learning. Yet transferring skills from humans to robots remains hard: most prior work treats humans as just another bi-manual 6DoF embodiment, where hand-pose estimates are noisy and the contact patterns of human fingers differ fundamentally from those of a parallel gripper. We argue that learning rotation-inclusive action signals from human data is therefore sub-optimal, and instead propose a bridging action representation: the relative wrist translation within the initial head-camera frame, an action space shared by humans and robots. To handle the potential absence of certain action components in different embodiments, we build a $π_0$-like vision-language-action model with interleaved action tokens and attention masking. On a suite of novel bi-manual manipulation tasks, our bridging action transfers human manipulation knowledge to robots far more effectively than noisy 6DoF human actions and scales with the amount of human data.",
+          "authors": [
+            "Sijin Chen",
+            "Kaixuan Jiang",
+            "Haixin Shi",
+            "Yanhui Wang",
+            "Weiheng Zhong",
+            "Haosheng Li",
+            "Bo Jiang",
+            "Yuxiao Liu",
+            "Xihui Liu"
+          ],
+          "primary_category": "cs.RO",
+          "categories": [
+            "cs.RO",
+            "cs.CV"
+          ],
+          "published": "2026-06-26T14:34:04+00:00",
+          "link": "https://arxiv.org/pdf/2606.28133v1",
+          "tags": [
+            "keyword:gen-imit",
+            "keyword:rmgp",
+            "query:gen-imit",
+            "query:rmgp"
+          ],
+          "llm_score": 8.0,
+          "llm_evidence_en": "Imitation learning for robot manipulation by transferring human skills via wrist translation",
+          "llm_evidence_cn": "通过手腕平移将人类技能迁移到机器人的模仿学习",
+          "llm_evidence": "通过手腕平移将人类技能迁移到机器人的模仿学习",
+          "canonical_evidence": "通过手腕平移将人类技能迁移到机器人的模仿学习",
+          "llm_tldr_en": "Proposes a translation-based action representation to transfer manipulation skills from cheap human data to bi-manual robots, avoiding rotation estimation issues.",
+          "llm_tldr_cn": "针对从人类数据向双手机器人迁移操作技能的难题，提出基于相对腕部平移的桥接动作表示，避免手部姿态估计噪声和接触模式差异，实现技能迁移。",
+          "llm_tldr": "针对从人类数据向双手机器人迁移操作技能的难题，提出基于相对腕部平移的桥接动作表示，避免手部姿态估计噪声和接触模式差异，实现技能迁移。",
+          "llm_tags": [
+            "query:gen-imit"
+          ],
+          "matched_query_tag": "query:gen-imit",
+          "matched_query_text": "robot imitation learning from demonstrations",
+          "matched_requirement_id": "req-9",
+          "selection_source": "carryover_cache",
+          "paper_id": "2606.28133v1",
+          "carry_days": 1
+        },
+        {
+          "id": "2607.06323v1",
+          "source": "arxiv",
+          "title": "LAMP: Latent Motion Prior-Guided Real-World Learning for Dexterous Hand Manipulation",
+          "abstract": "Real-world learning for dexterous hands remains brittle because high-dimensional hand actions amplify imitation errors and make reinforcement-learning exploration prone to contact-breaking motion. While combining imitation learning (IL) with online reinforcement learning (RL) can reduce manual supervision, unconstrained exploration in raw hand-action spaces is sample-inefficient and risky for physical hardware. We introduce a latent motion prior module (\\prior{}) that maps recent hand-action histories to a compact, history-conditioned latent prior and decodes continuous latent commands into executable high-dimensional hand targets. Built on this prior, \\method{} is a three-stage real-world dexterous learning framework: it pretrains \\prior{} from demonstrations, trains a visuomotor policy that predicts native arm commands and latent hand-action offsets, and improves the policy with online residual RL in the same latent hand-action space. This shared, decodable interface lets residual exploration make local corrections near demonstrated, contact-consistent hand motions rather than perturbing every finger joint independently. We evaluate \\method{} on four real-robot dexterous manipulation tasks against raw, linear, and discrete hand-action interfaces. Starting from small task-specific demonstration sets, \\method{} achieves a 56.25\\% average IL success rate and raises it to 98.75\\% after online RL, reaching 100\\% final success on three tasks and 95\\% on the remaining task.",
+          "authors": [
+            "Xinye Yang",
+            "Zhiyuan Ma",
+            "Hongze Yu",
+            "Yuanpei Chen",
+            "Yaodong Yang",
+            "Xiaojie Chai",
+            "Xinlei Chen",
+            "Chao Yu"
+          ],
+          "primary_category": "cs.RO",
+          "categories": [
+            "cs.RO"
+          ],
+          "published": "2026-07-07T14:22:31+00:00",
+          "link": "https://arxiv.org/pdf/2607.06323v1",
+          "tags": [
+            "keyword:gen-imit",
+            "keyword:rmgp",
+            "query:gen-imit",
+            "query:rmgp"
+          ],
+          "llm_score": 8.0,
+          "llm_evidence_en": "latent motion prior-guided imitation and reinforcement learning for dexterous hand manipulation",
+          "llm_evidence_cn": "隐式运动先验引导的示教学习与强化学习用于灵巧手操作",
+          "llm_evidence": "隐式运动先验引导的示教学习与强化学习用于灵巧手操作",
+          "canonical_evidence": "隐式运动先验引导的示教学习与强化学习用于灵巧手操作",
+          "llm_tldr_en": "This paper proposes a latent motion prior module to guide imitation and reinforcement learning for dexterous hand manipulation, improving sample efficiency and safety in real-world learning.",
+          "llm_tldr_cn": "针对灵巧手操作中高维动作导致的模仿误差和探索风险，提出结合隐式运动先验的IL+RL框架，先验模块压缩历史动作至隐空间并解码为高维目标，使探索更安全高效，在真实世界灵巧操作任务中显著提升学习效率和安全性。",
+          "llm_tldr": "针对灵巧手操作中高维动作导致的模仿误差和探索风险，提出结合隐式运动先验的IL+RL框架，先验模块压缩历史动作至隐空间并解码为高维目标，使探索更安全高效，在真实世界灵巧操作任务中显著提升学习效率和安全性。",
+          "llm_tags": [
+            "query:gen-imit"
+          ],
+          "matched_query_tag": "query:gen-imit",
+          "matched_query_text": "robot imitation learning from demonstrations",
+          "matched_requirement_id": "req-9",
+          "selection_source": "carryover_cache",
+          "paper_id": "2607.06323v1",
+          "carry_days": 1
+        },
+        {
+          "id": "2607.09648v1",
+          "source": "arxiv",
+          "title": "B-spline Policy: Accelerating Manipulation Policies via B-spline Action Representations",
+          "abstract": "In this work, we present B-spline Policy (BSP), an action representation designed for accelerating robot manipulation policies. Rather than predicting discrete-time action chunks, BSP parameterizes actions as continuous B-spline curves defined by a set of knots and control points. This representation yields smooth, time-continuous trajectories that can be temporally scaled and executed by low-level controllers at higher frequencies and speeds. We show that B-spline-parameterized actions can be seamlessly integrated into standard policy learning pipelines by directly predicting B-spline parameters. Experiments on simulated and real-world tasks demonstrate that BSP significantly reduces task completion time, achieving substantial improvements over baseline methods while maintaining strong success rates. More results: https://b-spline-policy.github.io",
+          "authors": [
+            "Xiaoshen Han",
+            "Haoyu Xiong",
+            "Haonan Chen",
+            "Chaoqi Liu",
+            "Antonio Torralba",
+            "Yuke Zhu",
+            "Yilun Du"
+          ],
+          "primary_category": "cs.RO",
+          "categories": [
+            "cs.RO"
+          ],
+          "published": "2026-07-10T17:46:32+00:00",
+          "link": "https://arxiv.org/pdf/2607.09648v1",
+          "tags": [
+            "keyword:gen-imit",
+            "keyword:rmgp",
+            "query:gen-imit",
+            "query:rmgp"
+          ],
+          "llm_score": 8.0,
+          "llm_evidence_en": "B-spline action parameterization accelerates robot manipulation policies",
+          "llm_evidence_cn": "B样条动作参数化加速机器人操作策略",
+          "llm_evidence": "B样条动作参数化加速机器人操作策略",
+          "canonical_evidence": "B样条动作参数化加速机器人操作策略",
+          "llm_tldr_en": "Proposes B-spline Policy (BSP) that parameterizes actions as continuous B-spline curves, enabling smooth, time-scalable trajectories and faster task completion in robot manipulation.",
+          "llm_tldr_cn": "针对离散时间动作块预测导致运动不平滑和速度受限的问题，提出B样条策略（BSP），将动作参数化为连续B样条曲线，生成可缩放的平滑轨迹，显著缩短任务完成时间。实验在仿真和真实任务中验证了其加速效果。",
+          "llm_tldr": "针对离散时间动作块预测导致运动不平滑和速度受限的问题，提出B样条策略（BSP），将动作参数化为连续B样条曲线，生成可缩放的平滑轨迹，显著缩短任务完成时间。实验在仿真和真实任务中验证了其加速效果。",
+          "llm_tags": [
+            "query:gen-imit"
+          ],
+          "matched_query_tag": "query:gen-imit",
+          "matched_query_text": "robotic manipulation policy learning",
+          "matched_requirement_id": "req-11",
+          "selection_source": "carryover_cache",
+          "paper_id": "2607.09648v1",
+          "carry_days": 1
+        },
+        {
+          "id": "2607.06978v2",
+          "source": "arxiv",
+          "title": "SPECTRA: Context-Conditioned Spectral Movement Primitives for Robot Skill Generalization",
+          "abstract": "Robot imitation learning for manipulation should preserve demonstrated task geometry while producing dynamically admissible robot motions. Existing pipelines often learn task-dependent trajectories and impose execution limits afterward through filtering, smoothing, clipping, or time scaling, which may distort task-critical end-effector paths.   We propose the Spectral Movement Primitive (SMP), a frequency-domain imitation learning framework that couples task-space skill generation with joint-space execution regulation. Demonstrations are represented by truncated finite-horizon Fourier coefficients. An empirically selected low-frequency task band captures the dominant motion geometry, while higher harmonics contribute disproportionately to derivative growth. A frame-aware context-conditioned GMM/GMR prior predicts the task-band coefficients in a canonical task frame, and the resulting Cartesian trajectory is mapped to joint space through sequential inverse kinematics. A phase-coupled regulator then limits the requested phase progression without modifying the spectral coefficients, thereby enforcing joint velocity and acceleration limits while preserving the represented path.   Experiments evaluate task-band reconstruction, robustness to composite demonstration corruption, out-of-distribution cross-board generalization, joint-space dynamic admissibility, end-effector path preservation, and deployment on a Franka Panda robot. Results show compact geometric reconstruction, consistent transfer across unseen task frames, substantial reductions in dynamic violations and jerk, and preservation of the intended end-effector path during phase regulation.",
+          "authors": [
+            "Boxuan Zhang",
+            "Sheng Liu",
+            "Chenlin Ming",
+            "Ahmed Abdelrahman"
+          ],
+          "primary_category": "cs.RO",
+          "categories": [
+            "cs.RO"
+          ],
+          "published": "2026-07-08T04:02:19+00:00",
+          "link": "https://arxiv.org/pdf/2607.06978v2",
+          "tags": [
+            "keyword:gen-imit",
+            "keyword:rmgp",
+            "query:gen-imit",
+            "query:rmgp"
+          ],
+          "llm_score": 8.0,
+          "llm_evidence_en": "Frequency-domain imitation learning for robot manipulation",
+          "llm_evidence_cn": "频域模仿学习保留任务几何",
+          "llm_evidence": "频域模仿学习保留任务几何",
+          "canonical_evidence": "频域模仿学习保留任务几何",
+          "llm_tldr_en": "Proposes Spectral Movement Primitive (SMP) framework that represents robot demonstrations in frequency domain for skill generalization.",
+          "llm_tldr_cn": "该论文提出频域模仿学习框架SMP，用截断傅里叶系数表示示范，分离低频任务几何与高频执行细节，生成动力学可行的机器人运动。",
+          "llm_tldr": "该论文提出频域模仿学习框架SMP，用截断傅里叶系数表示示范，分离低频任务几何与高频执行细节，生成动力学可行的机器人运动。",
+          "llm_tags": [
+            "query:gen-imit"
+          ],
+          "matched_query_tag": "query:gen-imit",
+          "matched_query_text": "robot imitation learning from demonstrations",
+          "matched_requirement_id": "req-9",
+          "selection_source": "carryover_cache",
+          "paper_id": "2607.06978v2",
+          "carry_days": 1
+        },
+        {
+          "id": "2606.31846v1",
+          "source": "arxiv",
+          "title": "Z-1: Efficient Reinforcement Learning for Vision-Language-Action Models",
+          "abstract": "Vision-Language-Action (VLA) models offer a promising framework for robotic manipulation by connecting language instructions, visual observations, and continuous control. However, most existing policies remain limited by behavior cloning or supervised fine-tuning (SFT) from fixed demonstrations, which provides limited opportunity to improve from the policy's own failures. In this paper, we present Z-1, a reinforcement learning (RL) post-training framework for flow-based VLA models. Built on top of $π_{0.5}$, Z-1 uses only publicly released RoboCasa demonstrations for SFT and then applies a task-wise Group Relative Policy Optimization (GRPO) strategy across $24$ standard RoboCasa tasks. To improve the efficiency and stability of online optimization, Z-1 combines shared-prefix rollout construction, tree-structured trajectory branching, completion-aware reward calibration, and selective joint training of VLM and Action Expert. Across all $24$ RoboCasa tasks, Z-1 achieves an average success rate of $80.6\\%$, improving over its SFT initialization by $13.2\\%$ points and outperforms the published sota models. These results show that systematic GRPO post-training can substantially improve flow-based VLA policies without additional private demonstrations.",
+          "authors": [
+            "Lang Cao",
+            "Renhong Chen",
+            "Luyi Li",
+            "Peng Wang",
+            "Mofan Peng",
+            "Yitong Li"
+          ],
+          "primary_category": "cs.RO",
+          "categories": [
+            "cs.RO",
+            "cs.AI"
+          ],
+          "published": "2026-06-30T15:46:57+00:00",
+          "link": "https://arxiv.org/pdf/2606.31846v1",
+          "tags": [
+            "keyword:gen-imit",
+            "keyword:rmgp",
+            "query:gen-imit",
+            "query:rmgp"
+          ],
+          "llm_score": 8.0,
+          "llm_evidence_en": "RL post-training of flow-based VLA policies for robotic manipulation",
+          "llm_evidence_cn": "基于流的VLA策略的强化学习后训练用于机器人操作",
+          "llm_evidence": "基于流的VLA策略的强化学习后训练用于机器人操作",
+          "canonical_evidence": "基于流的VLA策略的强化学习后训练用于机器人操作",
+          "llm_tldr_en": "Z-1 proposes an RL post-training framework for flow-based VLA models, using task-wise Group Relative Policy Optimization to improve efficiency and stability, enabling continuous self-improvement beyond behavior cloning on standard manipulation tasks.",
+          "llm_tldr_cn": "针对流匹配VLA模型仅依赖行为克隆性能受限的问题，Z-1提出基于GRPO的强化学习后训练框架，在仅使用公开演示数据进行SFT后，通过在线优化持续提升策略表现，并在多个标准操作任务中验证了其在效率和稳定性上的优势。",
+          "llm_tldr": "针对流匹配VLA模型仅依赖行为克隆性能受限的问题，Z-1提出基于GRPO的强化学习后训练框架，在仅使用公开演示数据进行SFT后，通过在线优化持续提升策略表现，并在多个标准操作任务中验证了其在效率和稳定性上的优势。",
+          "llm_tags": [
+            "query:gen-imit"
+          ],
+          "matched_query_tag": "query:gen-imit",
+          "matched_query_text": "flow matching generative models for robotics",
+          "matched_requirement_id": "req-12",
+          "selection_source": "carryover_cache",
+          "paper_id": "2606.31846v1",
+          "carry_days": 1
+        },
+        {
+          "id": "2606.24633v1",
+          "source": "arxiv",
+          "title": "Beyond Monotonic Progress: Retry-Supervised Value Learning for Robot Imitation",
+          "abstract": "Human demonstrations for robot imitation learning often contain mistakes and corrective behaviors, such as imprecise grasps, object misalignment, unstable contact, and repeated attempts. While these segments are commonly treated as noisy or suboptimal data, they provide valuable evidence about when execution deviates from a desirable path and how task feasibility can be restored. However, existing reward and value models often rely on monotonic progress assumptions, which capture coarse task advancement but may overlook local execution errors and corrective behaviors in imperfect demonstrations. In this work, we propose ReTVL (ReTry-Supervised Value Learning), a framework for learning mistake-sensitive value functions from mixed-quality robot demonstrations by leveraging retry events as sparse supervision. ReTVL captures the local degradation-and-recovery structure around mistakes by combining global progress calibration with local pairwise preference learning induced by sparsely annotated retry keypoints. The learned value model is then used to reweight demonstration chunks for downstream behavior cloning, reducing the influence of harmful execution errors while preserving useful corrective behaviors. Experiments on real-robot manipulation tasks show that ReTVL produces more fine-grained value estimates than progress-based baselines and improves imitation learning from imperfect demonstrations.",
+          "authors": [
+            "Xinyao Qin",
+            "Junjie Lu",
+            "Kaixin Wang",
+            "Chuheng Zhang",
+            "Sinjae Kang",
+            "Kimin Lee",
+            "Min Xu",
+            "Bin Liang",
+            "Jun Yang",
+            "Li Zhao"
+          ],
+          "primary_category": "cs.RO",
+          "categories": [
+            "cs.RO"
+          ],
+          "published": "2026-06-23T14:27:10+00:00",
+          "link": "https://arxiv.org/pdf/2606.24633v1",
+          "tags": [
+            "keyword:gen-imit",
+            "keyword:rmgp",
+            "query:gen-imit",
+            "query:rmgp"
+          ],
+          "llm_score": 8.0,
+          "llm_evidence_en": "robot imitation learning from demonstrations with corrective behaviors",
+          "llm_evidence_cn": "从含有纠正行为的示教中进行机器人模仿学习",
+          "llm_evidence": "从含有纠正行为的示教中进行机器人模仿学习",
+          "canonical_evidence": "从含有纠正行为的示教中进行机器人模仿学习",
+          "llm_tldr_en": "Proposes ReTVL, a framework for learning mistake-sensitive value functions from mixed-quality human demonstrations to improve robot imitation learning by avoiding monotonic progress assumptions.",
+          "llm_tldr_cn": "针对人类示教常包含错误和纠正行为的问题，提出ReTVL框架，通过重试监督学习对错误敏感的值函数，避免单调进度假设，从而提升机器人在不完美示教下的模仿学习效果。该方法能更好地利用示教中的纠正性信息，改善任务执行。",
+          "llm_tldr": "针对人类示教常包含错误和纠正行为的问题，提出ReTVL框架，通过重试监督学习对错误敏感的值函数，避免单调进度假设，从而提升机器人在不完美示教下的模仿学习效果。该方法能更好地利用示教中的纠正性信息，改善任务执行。",
+          "llm_tags": [
+            "query:gen-imit"
+          ],
+          "matched_query_tag": "query:gen-imit",
+          "matched_query_text": "robot imitation learning from demonstrations",
+          "matched_requirement_id": "req-9",
+          "selection_source": "carryover_cache",
+          "paper_id": "2606.24633v1",
+          "carry_days": 1
+        },
+        {
+          "id": "2607.06262v1",
+          "source": "arxiv",
+          "title": "Optimal Transport Q-Learning for Flow Policy Steering and Acceleration",
+          "abstract": "Diffusion and flow policies have recently demonstrated remarkable performance in robotic applications by accurately capturing multimodal robot trajectory distributions, especially in the context of vision language action (VLA) models. However, high quality policy performance also requires fast inference and high quality demonstrations, which are often hard to get. Lack of these leads to suboptimal policy behaviors and failure under distribution shifts. In this work we address the problem of fine-tuning and accelerating suboptimal flow-based policies using the robot's experience through RL post-training. We introduce Optimal Transport Q-Learning (OTQL), a new method for finetuning flow policies using advantage weighted conditional optimal transport flow matching. OTQL can finetune and accelerate flows with an interaction budget of 50-60 episodes while avoiding computationally expensive distillation in simulation and real-world robot tasks. Our results show that OTQL post-trains flow policies using the robot's own experience, increasing average success percentage of single-task policies from 36% to 86% and of a pre-trained VLA from 38% to 76% while reducing the number of inference steps per action generation by 70%.",
+          "authors": [
+            "Andreas Sochopoulos",
+            "Esmeralda S. Whitammer",
+            "Nikolaos Tsagkas",
+            "João Moura",
+            "Michael Gienger",
+            "Sethu Vijayakumar"
+          ],
+          "primary_category": "cs.RO",
+          "categories": [
+            "cs.RO"
+          ],
+          "published": "2026-07-07T13:29:35+00:00",
+          "link": "https://arxiv.org/pdf/2607.06262v1",
+          "tags": [
+            "keyword:gen-imit",
+            "keyword:rmgp",
+            "query:gen-imit",
+            "query:rmgp"
+          ],
+          "llm_score": 8.0,
+          "llm_evidence_en": "finetuning flow-based policies with optimal transport and RL",
+          "llm_evidence_cn": "用最优传输和强化学习微调流策略",
+          "llm_evidence": "用最优传输和强化学习微调流策略",
+          "canonical_evidence": "用最优传输和强化学习微调流策略",
+          "llm_tldr_en": "Introduces OTQL, a method for finetuning suboptimal flow-based policies using advantage-weighted conditional optimal transport flow matching, improving performance and accelerating inference.",
+          "llm_tldr_cn": "针对流式策略在次优示教下表现不佳的问题，提出最优传输Q学习OTQL，利用机器人自身经验通过强化学习微调流策略，在加速推理的同时提升策略质量。该方法将最优传输与优势加权相结合，适用于视觉语言动作模型等场景。",
+          "llm_tldr": "针对流式策略在次优示教下表现不佳的问题，提出最优传输Q学习OTQL，利用机器人自身经验通过强化学习微调流策略，在加速推理的同时提升策略质量。该方法将最优传输与优势加权相结合，适用于视觉语言动作模型等场景。",
+          "llm_tags": [
+            "query:gen-imit"
+          ],
+          "matched_query_tag": "query:gen-imit",
+          "matched_query_text": "flow matching generative models for robotics",
+          "matched_requirement_id": "req-12",
+          "selection_source": "carryover_cache",
+          "paper_id": "2607.06262v1",
+          "carry_days": 1
+        }
+      ]
+    }
+  }
 }
