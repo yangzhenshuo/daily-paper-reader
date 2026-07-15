@@ -25,3 +25,332 @@ subscriptions:
     stage: A
     diff_threshold_pct: 15
   keyword_recall_mode: or
+  intent_profiles:
+    - tag: rmgp
+      description: 机器人操作模仿学习、三维视觉策略及扩散、Flow Matching和MeanFlow动作生成方法。
+      enabled: true
+      paper_sources:
+        - arxiv
+      keywords:
+        - keyword: 3D point cloud policy
+          keyword_cn: ''
+          query: 3D point cloud policy
+        - keyword: diffusion policy
+          keyword_cn: ''
+          query: diffusion policy
+        - keyword: visuomotor policy
+          keyword_cn: ''
+          query: visuomotor policy
+        - keyword: imitation learning
+          keyword_cn: ''
+          query: imitation learning
+        - keyword: robotic manipulation
+          keyword_cn: ''
+          query: robotic manipulation
+      intent_queries:
+        - query: Few shot, multimodal, long horizon, and robust imitation learning for robot manipulation
+          query_cn: ''
+          enabled: true
+          source: manual
+          note: ''
+        - query: >-
+            3D point cloud imitation learning policies related to DP3, FlowPolicy, MP1, and Diffusion Policy3D point
+            cloud imitation learning policies related to DP3, FlowPolicy, MP1, and Diffusion Policy
+          query_cn: ''
+          enabled: true
+          source: manual
+          note: ''
+        - query: >-
+            Recent generative visuomotor policies for robotic manipulation based on diffusion, flow matching,
+            consistency flow matching, or MeanFlow
+          query_cn: ''
+          enabled: true
+          source: manual
+          note: ''
+      updated_at: '2026-07-15T13:19:27.537Z'
+    - tag: gen-imit
+      description: 机器人操作模仿学习与生成式动作策略
+      enabled: true
+      paper_sources:
+        - arxiv
+      keywords:
+        - keyword: imitation learning
+          keyword_cn: 模仿学习
+          query: robot imitation learning from demonstrations
+        - keyword: diffusion models
+          keyword_cn: 扩散模型
+          query: diffusion probabilistic models for robot action generation
+        - keyword: robot manipulation
+          keyword_cn: 机器人操作
+          query: robotic manipulation policy learning
+        - keyword: flow matching
+          keyword_cn: 流匹配
+          query: flow matching generative models for robotics
+        - keyword: action chunks
+          keyword_cn: 动作块
+          query: learning to predict action sequences in robotics
+        - keyword: diffusion policy
+          keyword_cn: 扩散策略
+          query: Diffusion Policy for robot behavior generation
+      intent_queries:
+        - query: robot imitation learning using diffusion models for continuous action prediction
+          query_cn: 使用扩散模型进行连续动作预测的机器人模仿学习
+          enabled: true
+          source: manual
+          note: ''
+        - query: point cloud based generative policies for robotic manipulation
+          query_cn: 基于点云的生成式策略用于机器人操作
+          enabled: true
+          source: manual
+          note: ''
+        - query: flow matching and consistency models for robot action generation
+          query_cn: 流匹配和一致性模型用于机器人动作生成
+          enabled: true
+          source: manual
+          note: ''
+      updated_at: '2026-07-15T13:24:09.763Z'
+    - tag: world-model
+      description: 检索用于机器人学习和操作的世界模型论文，重点关注动作条件预测、规划与策略学习。
+      enabled: true
+      paper_sources:
+        - arxiv
+      keywords:
+        - keyword: robot world model
+          keyword_cn: 机器人世界模型
+          query: world model for robot learning and manipulation predicting future states
+        - keyword: joint embedding predictive architecture
+          keyword_cn: 联合嵌入预测架构
+          query: self-supervised predictive representation learning via joint embedding
+        - keyword: world model imitation learning
+          keyword_cn: 世界模型模仿学习
+          query: combining world model with imitation learning for policy training
+        - keyword: diffusion policy world model
+          keyword_cn: 扩散策略世界模型
+          query: integrating diffusion policy with world model for robot manipulation
+        - keyword: flow policy world model
+          keyword_cn: 流策略世界模型
+          query: world model guided flow-based policy for robotic tasks
+        - keyword: long horizon manipulation planning
+          keyword_cn: 长时序操作规划
+          query: world model for extended sequence planning and closed-loop replanning
+      intent_queries:
+        - query: >-
+            Latest advances in action conditioned world models for robot manipulation that predict future video frames
+            or object states.
+          query_cn: 面向机器人操作的动作条件世界模型最新进展，可预测未来视频帧或物体状态。
+          enabled: true
+          source: manual
+          note: ''
+        - query: Self supervised joint embedding predictive architectures for learning world representations in robotics.
+          query_cn: 用于学习机器人世界表示的自监督联合嵌入预测架构。
+          enabled: true
+          source: manual
+          note: ''
+        - query: Combining world models with diffusion or flow based policies for sample efficient robot learning.
+          query_cn: 将世界模型与扩散或流基策略结合，实现样本高效的机器人学习。
+          enabled: true
+          source: manual
+          note: ''
+        - query: Using world models for closed loop replanning and policy improvement in long horizon tasks.
+          query_cn: 在长时序任务中使用世界模型进行闭环重规划和策略改进。
+          enabled: true
+          source: manual
+          note: ''
+      updated_at: '2026-07-15T13:25:18.552Z'
+    - tag: VLA-WM
+      description: 检索视觉-语言-动作模型与世界动作模型统一建模的机器人基础模型相关论文
+      enabled: true
+      paper_sources:
+        - arxiv
+      keywords:
+        - keyword: vision-language-action model
+          keyword_cn: 视觉-语言-动作模型
+          query: vision-language-action model for robot control
+        - keyword: world action model
+          keyword_cn: 世界动作模型
+          query: world action model predicting future states and actions
+        - keyword: latent action model
+          keyword_cn: 潜在动作模型
+          query: latent action model for robot learning
+        - keyword: robotic flow matching
+          keyword_cn: 机器人流匹配
+          query: flow matching action generation continuous robot control
+        - keyword: action chunk prediction
+          keyword_cn: 动作块预测
+          query: action chunk prediction for robot manipulation
+        - keyword: long-horizon planning robot
+          keyword_cn: 长时序任务规划
+          query: long-horizon task planning with vision-language models
+      intent_queries:
+        - query: Unified robot foundation model predicting actions and future world states from vision and language
+          query_cn: 统一的机器人基础模型，从视觉和语言预测动作和未来世界状态
+          enabled: true
+          source: manual
+          note: ''
+        - query: Vision language action models with world prediction and flow matching for generalist robots
+          query_cn: 结合世界预测和流匹配的通用机器人视觉 语言 动作模型
+          enabled: true
+          source: manual
+          note: ''
+        - query: Real time multi embodiment VLA models with action chunking and world dynamics forecasting
+          query_cn: 具有动作分块和世界动态预测的实时多本体VLA模型
+          enabled: true
+          source: manual
+          note: ''
+      updated_at: '2026-07-15T13:27:12.913Z'
+    - tag: gen-models
+      description: 生成式模型基础理论与方法
+      enabled: true
+      paper_sources:
+        - arxiv
+      keywords:
+        - keyword: diffusion models
+          keyword_cn: 扩散模型
+          query: fundamental theory and latest methods of diffusion models
+        - keyword: score-based model
+          keyword_cn: 分数模型
+          query: score matching and Langevin dynamics for score-based generative models
+        - keyword: flow matching
+          keyword_cn: 流匹配
+          query: flow matching conditional flow matching and optimal transport path
+        - keyword: consistency model
+          keyword_cn: 一致性模型
+          query: consistency training and distillation for producing high quality samples in few steps
+        - keyword: classifier-free guidance
+          keyword_cn: 无分类器引导
+          query: classifier-free guidance technique for conditional diffusion sampling
+        - keyword: few-step generation
+          keyword_cn: 少步生成
+          query: reducing NFE acceleration methods such as distillation and trajectory optimization for diffusion models
+      intent_queries:
+        - query: How do DDPM and DDIM relate and what is deterministic sampling in diffusion models?
+          query_cn: DDPM和DDIM的关系以及扩散模型中的确定性采样是什么？
+          enabled: true
+          source: manual
+          note: ''
+        - query: What is the unified theory connecting diffusion models, probability flow ODE, and flow matching?
+          query_cn: 连接扩散模型、概率流ODE和流匹配的统一理论是什么？
+          enabled: true
+          source: manual
+          note: ''
+        - query: Methods for few step fast generation using consistency models, distillation, and accelerated sampling.
+          query_cn: 使用一致性模型、蒸馏和加速采样实现少步快速生成的方法。
+          enabled: true
+          source: manual
+          note: ''
+        - query: Applications of generative models in image restoration, inverse problems, and robot motion generation.
+          query_cn: 生成模型在图像恢复、逆问题和机器人动作生成中的应用。
+          enabled: true
+          source: manual
+          note: ''
+      updated_at: '2026-07-15T13:29:46.677Z'
+    - tag: FewStepGen
+      description: 单步和极少步生成模型，重点检索MeanFlow和Drifting Model的最新论文
+      enabled: true
+      paper_sources:
+        - arxiv
+      keywords:
+        - keyword: MeanFlow model
+          keyword_cn: MeanFlow模型
+          query: MeanFlow generative model with average velocity field
+        - keyword: Improved MeanFlow
+          keyword_cn: 改进的MeanFlow
+          query: Improved MeanFlow training stability and CFG
+        - keyword: Drifting Model
+          keyword_cn: 漂移模型
+          query: Drifting Model drifting field and distribution matching
+        - keyword: Consistency Flow Matching
+          keyword_cn: 一致性流匹配
+          query: Consistency Flow Matching for few-step generation
+        - keyword: single-step generation
+          keyword_cn: 单步生成
+          query: single-step generative model without distillation
+        - keyword: optimal transport
+          keyword_cn: 最优传输
+          query: optimal transport in single-step generative models
+      intent_queries:
+        - query: >-
+            Retrieve papers on the mean velocity field, Jacobian vector product, and identity in MeanFlow single step
+            generative models.
+          query_cn: 检索关于MeanFlow单步生成模型中平均速度场、雅可比向量积和恒等性的论文
+          enabled: true
+          source: manual
+          note: ''
+        - query: >-
+            Find research comparing native single step training and knowledge distillation for generative models
+            including MeanFlow and consistency models.
+          query_cn: 查找比较原生单步训练与知识蒸馏在生成模型（包括MeanFlow和一致性模型）中的研究
+          enabled: true
+          source: manual
+          note: ''
+        - query: >-
+            Search for studies applying single step generative models like MeanFlow or Drifting Model to image
+            restoration, robot policy learning, and 3D generation.
+          query_cn: 搜索将MeanFlow或漂移模型等单步生成模型应用于图像恢复、机器人策略学习及三维生成的研究
+          enabled: true
+          source: manual
+          note: ''
+        - query: >-
+            Locate works on the theoretical link between Drifting Model, score matching, kernel methods, and optimal
+            transport.
+          query_cn: 查找关于漂移模型与得分匹配、核方法及最优传输之间理论联系的工作
+          enabled: true
+          source: manual
+          note: ''
+      updated_at: '2026-07-15T13:30:50.075Z'
+    - tag: pol-vision
+      description: 检索偏振视觉、偏振图像恢复、偏振图像增强和偏振图像生成相关论文，重点关注使用深度学习、扩散模型、Flow Matching及物理先验处理偏振图像的方法。
+      enabled: true
+      paper_sources:
+        - arxiv
+      keywords:
+        - keyword: polarimetric image restoration
+          keyword_cn: 偏振图像恢复
+          query: deep learning methods for polarimetric image restoration including denoising deblurring dehazing
+        - keyword: polarimetric image enhancement
+          keyword_cn: 偏振图像增强
+          query: polarimetric image enhancement low-light enhancement and super-resolution techniques
+        - keyword: polarimetric physical prior
+          keyword_cn: 偏振物理先验
+          query: physical constraints from Stokes parameters AoLP DoLP Mueller matrix in polarimetric recovery
+        - keyword: polarimetric image generation
+          keyword_cn: 偏振图像生成
+          query: generation and synthesis of polarimetric images using generative models
+        - keyword: diffusion model polarimetric
+          keyword_cn: 扩散模型偏振
+          query: diffusion models applied to polarimetric image restoration and enhancement
+        - keyword: flow matching polarimetric
+          keyword_cn: 流匹配偏振
+          query: flow matching and MeanFlow methods for polarimetric vision tasks
+      intent_queries:
+        - query: polarimetric image denoising and deblurring using deep learning
+          query_cn: 使用深度学习的偏振图像去噪和去模糊
+          enabled: true
+          source: manual
+          note: ''
+        - query: diffusion and flow matching generative models for polarimetric image synthesis
+          query_cn: 用于偏振图像合成的扩散和流匹配生成模型
+          enabled: true
+          source: manual
+          note: ''
+        - query: unsupervised DoFP demosaicking with physical priors from Stokes parameters
+          query_cn: 结合Stokes参数物理先验的无监督DoFP去马赛克
+          enabled: true
+          source: manual
+          note: ''
+      updated_at: '2026-07-15T13:32:05.721Z'
+source_backends:
+  arxiv:
+    papers_table: arxiv_papers
+    use_vector_rpc: true
+    vector_rpc: match_arxiv_papers
+    vector_rpc_exact: match_arxiv_papers_exact
+    use_bm25_rpc: true
+    bm25_rpc: match_arxiv_papers_bm25
+    sync_table: arxiv_sync_status
+    sync_success_value: success
+    schema: public
+    kind: supabase
+    enabled: true
+    url: https://lyucdwgefyfbmaiopjbk.supabase.co
+    anon_key: sb_publishable_lX-oi64Uxyd7SIVv3_w2Uw_MTOojeKq
