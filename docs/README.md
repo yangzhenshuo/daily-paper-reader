@@ -6,196 +6,152 @@
 </div>
 
 ## 每次日报
-- 最新运行日期：2026-06-16 ~ 2026-07-15
-- 运行时间：2026-07-15 14:27:19 UTC
+- 最新运行日期：2026-09-09
+- 运行时间：2026-09-09 23:02:51 UTC
 - 运行状态：成功
-- 本次总论文数：58
-- 精读区：46
-- 速读区：12
+- 本次总论文数：44
+- 精读区：27
+- 速读区：17
 
 ### 今日简报（AI）
-本期精读58篇前沿论文，聚焦扩散策略与流匹配如何让机器人动作更平滑、更连贯。  
-最值得关注的是延迟感知异步扩散实现无碰撞操控，以及频率感知流匹配带来的连续一致动作生成。  
-想上手可先试试将扩散模型用于避障规划，或在训练中引入频率特征来提升动作连贯性。
-- 详情：[/20260616-20260715/README](/20260616-20260715/README)
+今日共读44篇论文，精读27篇、速读17篇，聚焦视觉-语言-动作与扩散模型前沿。最值得关注两篇9.0分精读：VLA内部交叉注意力实现自适应动作分块，以及扩散模型无配对数据求解逆问题。若时间有限，可优先浏览三篇8.0分速读，涵盖文本驱动人形控制、跨域修补与VLA动作程序库学习。
+- 详情：[/202609/09/README](/202609/09/README)
 
 ### 精读区论文标签
-1. [LAGO Policy: Latency-Aware Asynchronous Diffusion Policies with Goal-Directed Collision-Free Planning for Smooth Manipulation](/20260616-20260715/2606.17982v1-lago-policy-latency-aware-asynchronous-diffusion-policies-with-goal-directed-collision-free-planning-for-smooth-manipulation)  
-   标签：评分：10.0/10、query:rmgp
-   evidence：基于扩散的视觉运动策略，结合轨迹优化实现平滑操作
-2. [Frequency-Aware Flow Matching for Continuous and Consistent Robotic Action Generation](/20260616-20260715/2606.20135v1-frequency-aware-flow-matching-for-continuous-and-consistent-robotic-action-generation)  
-   标签：评分：10.0/10、query:gen-imit
-   evidence：提出频率感知流匹配（FAFM），用于连续且时间一致的机器人动作生成，解决异构控制频率问题。
-3. [FOCA: Future-Oriented Conditioning for Data-Efficient Vision-Language-Action Adaptation](/20260616-20260715/2606.20867v1-foca-future-oriented-conditioning-for-data-efficient-vision-language-action-adaptation)  
-   标签：评分：10.0/10、query:rmgp
-   evidence：未来导向的条件化方法实现数据高效的少样本VLA适配
-4. [FlowDPG: Deterministic Policy Gradient on Flow Matching Policies for Real-World Manipulation](/20260616-20260715/2606.22303v1-flowdpg-deterministic-policy-gradient-on-flow-matching-policies-for-real-world-manipulation)  
-   标签：评分：10.0/10、query:gen-imit
-   evidence：面向机器人操作中流匹配策略的确定性策略梯度
-5. [RoamFlow: Reinforcement-Aligned One-Step Action MeanFlow Policy for Image-Goal Navigation](/20260616-20260715/2606.29934v1-roamflow-reinforcement-aligned-one-step-action-meanflow-policy-for-image-goal-navigation)  
-   标签：评分：10.0/10、query:fewstepgen
-   evidence：基于MeanFlow的单步动作生成策略用于图像目标导航
-6. [Guided Action Flow: Q-Guided Inference for Flow-Matching Vision-Language-Action Policies](/20260616-20260715/2607.02092v1-guided-action-flow-q-guided-inference-for-flow-matching-vision-language-action-policies)  
-   标签：评分：10.0/10、query:gen-imit
-   evidence：利用学习到的批评器为流匹配视觉-语言-动作策略提供测试时引导
-7. [RynnWorld-Teleop: An Action-Conditioned World Model for Digital Teleoperation](/20260616-20260715/2607.06558v2-rynnworld-teleop-an-action-conditioned-world-model-for-digital-teleoperation)  
-   标签：评分：10.0/10、query:world-model
-   evidence：动作条件世界模型用于数字遥操作，生成视频作为模仿学习数据。
-8. [Invertible Neural Network Adapter for One-Step Flow Matching in Robot Manipulation](/20260616-20260715/2606.19194v1-invertible-neural-network-adapter-for-one-step-flow-matching-in-robot-manipulation)  
-   标签：评分：9.0/10、query:rmgp
-   evidence：基于可逆神经网络的单步流匹配机器人操作策略
-9. [DiffusionVS: A Generative Framework for Robust Visual Servoing Based on Diffusion Policy](/20260616-20260715/2606.19397v1-diffusionvs-a-generative-framework-for-robust-visual-servoing-based-on-diffusion-policy)  
-   标签：评分：9.0/10、query:gen-imit
-   evidence：基于扩散策略，通过条件去噪生成相机速度，实现鲁棒视觉伺服。
-10. [MirrorDuo: Reflection-Consistent Visuomotor Learning from Mirrored Demonstration Pairs](/20260616-20260715/2606.20048v1-mirrorduo-reflection-consistent-visuomotor-learning-from-mirrored-demonstration-pairs)  
-   标签：评分：9.0/10、query:gen-imit
-   evidence：基于反射的公式，为每个原始演示生成镜像副本，可应用于扩散策略或行为克隆。
-11. [BayesFP: Posterior Estimation for Flow-Based Policies via Feynman-Kac Sampling](/20260616-20260715/2606.21014v1-bayesfp-posterior-estimation-for-flow-based-policies-via-feynman-kac-sampling)  
-   标签：评分：9.0/10、query:gen-imit
-   evidence：通过后验采样实现流匹配策略的约束生成
-12. [VQActFlow: Vector-Quantized Action Mode Steering for Multi-Task Robot Manipulation](/20260616-20260715/2606.21600v1-vqactflow-vector-quantized-action-mode-steering-for-multi-task-robot-manipulation)  
-   标签：评分：9.0/10、query:rmgp
-   evidence：基于变分流匹配的多任务机器人操作策略
-13. [CoRDE: Concept-Prior Routed Diffusion Experts for Structural Generalization in Robot Manipulation](/20260616-20260715/2606.21935v1-corde-concept-prior-routed-diffusion-experts-for-structural-generalization-in-robot-manipulation)  
-   标签：评分：9.0/10、query:rmgp
-   evidence：利用概念先验的扩散专家网络实现长程操作中的结构泛化
-14. [Scalable Maximum Entropy Reinforcement Learning for Diffusion Policies via Adjoint Matching](/20260616-20260715/2606.22630v1-scalable-maximum-entropy-reinforcement-learning-for-diffusion-policies-via-adjoint-matching)  
-   标签：评分：9.0/10、query:rmgp
-   evidence：通过伴随匹配优化扩散策略的强化学习
-15. [Temporal Logic Guidance for Action-Only Diffusion Policies with World Models](/20260616-20260715/2606.22729v1-temporal-logic-guidance-for-action-only-diffusion-policies-with-world-models)  
-   标签：评分：9.0/10、query:world-model
-   evidence：将扩散策略与学习的世界模型结合，实现时序逻辑引导的动作生成
-16. [Improving Robotic Imitation Learning via Trajectory Standardization](/20260616-20260715/2606.22907v1-improving-robotic-imitation-learning-via-trajectory-standardization)  
-   标签：评分：9.0/10、query:gen-imit
-   evidence：轨迹标准化改进机器人模仿学习
-17. [Flowing With Purpose: Latent Action Guided Flow Matching Policies For Robotic Manipulation](/20260616-20260715/2606.23420v1-flowing-with-purpose-latent-action-guided-flow-matching-policies-for-robotic-manipulation)  
-   标签：评分：9.0/10、query:gen-imit
-   evidence：潜在动作引导的流匹配策略用于机器人操作
-18. [dVLA-RL: Reinforcement Learning over Denoising Trajectories for Discrete Diffusion Vision-Language-Action Models](/20260616-20260715/2606.23623v1-dvla-rl-reinforcement-learning-over-denoising-trajectories-for-discrete-diffusion-vision-language-action-models)  
-   标签：评分：9.0/10、query:gen-imit
-   evidence：离散扩散VLA模型通过掩码生成建模（扩散策略）用于机器人操作动作生成。
-19. [Learning to See While Learning to Act: Diffusion Models for Active Perception in Robot Imitation](/20260616-20260715/2606.23625v1-learning-to-see-while-learning-to-act-diffusion-models-for-active-perception-in-robot-imitation)  
-   标签：评分：9.0/10、query:gen-imit
-   evidence：扩散模型用于机器人模仿中的主动感知
-20. [Grounding Generative Policies in Physics: Optimization-Guided Diffusion for Robot Control](/20260616-20260715/2606.24208v1-grounding-generative-policies-in-physics-optimization-guided-diffusion-for-robot-control)  
-   标签：评分：9.0/10、query:rmgp
-   evidence：优化引导扩散模型实现物理可行的机器人控制
-21. [World Action Models Enable Continual Imitation Learning with Recurrent Generative Replays](/20260616-20260715/2606.27374v1-world-action-models-enable-continual-imitation-learning-with-recurrent-generative-replays)  
-   标签：评分：9.0/10、query:world-model
-   evidence：利用世界动作模型生成伪回放以进行持续模仿学习
-22. [Learning Transferable Dynamics Priors from Action to World Modeling](/20260616-20260715/2606.29501v1-learning-transferable-dynamics-priors-from-action-to-world-modeling)  
-   标签：评分：9.0/10、query:world-model
-   evidence：在机器人操作数据上预训练扩散世界模型以获得可迁移动力学先验
-23. [CORE: Common Outcome Regularities from Action-Free Visual Demonstrations for Robot Manipulation](/20260616-20260715/2606.29517v1-core-common-outcome-regularities-from-action-free-visual-demonstrations-for-robot-manipulation)  
-   标签：评分：9.0/10、query:gen-imit
-   evidence：从无动作视觉演示中通过结果规律性进行模仿学习
-24. [OpenSPM: An Environment-Transferable Robotic Key Spatial Pose Memory and Closed-Loop High-Frequency Flow-Matching Action Generation Model](/20260616-20260715/2606.29936v1-openspm-an-environment-transferable-robotic-key-spatial-pose-memory-and-closed-loop-high-frequency-flow-matching-action-generation-model)  
-   标签：评分：9.0/10、query:rmgp
-   evidence：用于闭环机器人操作的流匹配动作生成模型
-25. [Efficient Sim-to-Real Transfer of World-Action Models from Synthetic Priors](/20260616-20260715/2606.31101v1-efficient-sim-to-real-transfer-of-world-action-models-from-synthetic-priors)  
-   标签：评分：9.0/10、query:world-model
-   evidence：世界-动作模型从仿真到真实机器人的迁移
-26. [ELASTIC: Efficiently Learning to Adaptively Scale Test-Time Compute for Generative Control Policies](/20260616-20260715/2606.31132v1-elastic-efficiently-learning-to-adaptively-scale-test-time-compute-for-generative-control-policies)  
-   标签：评分：9.0/10、query:rmgp
-   evidence：为扩散策略和流基VLA自适应分配测试时计算
-27. [ABot-M0.5: Unified Mobility-and-Manipulation World Action Model](/20260616-20260715/2607.00678v2-abot-m05-unified-mobility-and-manipulation-world-action-model)  
-   标签：评分：9.0/10、query:world-model
-   evidence：提出用于移动操作的世界动作模型，预测未来状态与动作
-28. [WorldSample: Closed-loop Real-robot RL with World Modelling](/20260616-20260715/2607.02431v1-worldsample-closed-loop-real-robot-rl-with-world-modelling)  
-   标签：评分：9.0/10、query:world-model
-   evidence：世界模型用于真实机器人强化学习的数据增强
-29. [High-Fidelity One-Step Generative Visuomotor Policy via Recursive Correction, Frequency Consistency, and Contrastive Flow Matching](/20260616-20260715/2607.03865v1-high-fidelity-one-step-generative-visuomotor-policy-via-recursive-correction-frequency-consistency-and-contrastive-flow-matching)  
-   标签：评分：9.0/10、query:rmgp
-   evidence：使用对比流匹配与递归校正的单步生成式视觉运动策略
-30. [XS-VLA: Coupling Coarse-grained Spatial Distillation with Latent Flow Matching for Lightweight Robotic Control](/20260616-20260715/2607.04171v1-xs-vla-coupling-coarse-grained-spatial-distillation-with-latent-flow-matching-for-lightweight-robotic-control)  
-   标签：评分：9.0/10、query:rmgp
-   evidence：结合粗粒度空间蒸馏与潜在流匹配的轻量级VLA机器人控制
-31. [Simple-to-Complex Structured Demonstrations for Vision-Language-Action Learning](/20260616-20260715/2607.04591v1-simple-to-complex-structured-demonstrations-for-vision-language-action-learning)  
-   标签：评分：9.0/10、query:gen-imit
-   evidence：由简到繁的示范组织提升机器人模仿学习
-32. [KAM-WM: Kinematic Affordance Maps from Latent World Models for Robot Manipulation](/20260616-20260715/2607.04652v1-kam-wm-kinematic-affordance-maps-from-latent-world-models-for-robot-manipulation)  
-   标签：评分：9.0/10、query:world-model
-   evidence：利用流匹配潜在世界模型提取运动供给图，条件扩散策略实现少样本操作
-33. [Spatial Attention: Adapting Execution Horizons for Diffusion Policies via Observation Sensitivity](/20260616-20260715/2607.04739v1-spatial-attention-adapting-execution-horizons-for-diffusion-policies-via-observation-sensitivity)  
-   标签：评分：9.0/10、query:rmgp
-   evidence：基于空间注意力与观测敏感性的扩散策略自适应执行时域
-34. [DSWAM: A Dual-System World Action Foundation Model for Fine-Grained Robot Manipulation](/20260616-20260715/2607.04927v1-dswam-a-dual-system-world-action-foundation-model-for-fine-grained-robot-manipulation)  
-   标签：评分：9.0/10、query:world-model
-   evidence：世界动作基础模型用于精细操作
-35. [Learning 4D Geometric Priors for Inference-Efficient World Action Models](/20260616-20260715/2607.05468v1-learning-4d-geometric-priors-for-inference-efficient-world-action-models)  
-   标签：评分：9.0/10、query:world-model
-   evidence：具有4D几何先验的世界动作模型用于高效操作
-36. [RynnWorld-4D: 4D Embodied World Models for Robotic Manipulation](/20260616-20260715/2607.06559v1-rynnworld-4d-4d-embodied-world-models-for-robotic-manipulation)  
-   标签：评分：9.0/10、query:world-model
-   evidence：预测RGB、深度和光流的4D世界模型用于机器人操作
-37. [PriGo: Test-Time Primitive Guidance to Diffusion and Flow Policies for Adaptive Robotic Manipulation](/20260616-20260715/2607.07076v1-prigo-test-time-primitive-guidance-to-diffusion-and-flow-policies-for-adaptive-robotic-manipulation)  
-   标签：评分：9.0/10、query:rmgp
-   evidence：基元引导的扩散与流策略测试时自适应
-38. [Expressivity and Statistical Trade-offs in Diffusion Policy Learning](/20260616-20260715/2607.07967v1-expressivity-and-statistical-trade-offs-in-diffusion-policy-learning)  
-   标签：评分：9.0/10、query:rmgp
-   evidence：通过漂移Lipschitz预算分析扩散策略的表达性
-39. [An exact information theory of generalization phase transitions in Bayesian diffusion models](/20260616-20260715/2607.08041v1-an-exact-information-theory-of-generalization-phase-transitions-in-bayesian-diffusion-models)  
+1. [Knowing When to Stop: Adaptive Action Chunking via Internal Cross-Attention Dynamics in VLAs](/202609/09/2609.00908v1-knowing-when-to-stop-adaptive-action-chunking-via-internal-cross-attention-dynamics-in-vlas)  
+   标签：评分：9.0/10、query:vla-wm
+   evidence：基于动作专家内部交叉注意力熵的VLA自适应动作分块
+2. [Diffusion Based Unpaired Data Learning for Inverse Problems](/202609/09/2609.01370v1-diffusion-based-unpaired-data-learning-for-inverse-problems)  
    标签：评分：9.0/10、query:gen-models
-   evidence：贝叶斯扩散模型泛化相变的精确信息理论
-40. [SkillPlug: Unsupervised Skill Mining for Few-Shot Adaptation in Robotic Manipulation](/20260616-20260715/2607.08354v1-skillplug-unsupervised-skill-mining-for-few-shot-adaptation-in-robotic-manipulation)  
+   evidence：扩散模型应用于无配对数据的逆问题求解
+3. [Facet-0: A Robotic Foundation Model for Contact-Rich Precise Manipulation](/202609/09/2609.01596v1-facet-0-a-robotic-foundation-model-for-contact-rich-precise-manipulation)  
    标签：评分：9.0/10、query:rmgp
-   evidence：无监督技能挖掘实现少样本视觉运动策略适配
-41. [FlowDAgger: Human-in-the-Loop Adaptation of Generative Robot Policies in Latent Space](/20260616-20260715/2607.08877v1-flowdagger-human-in-the-loop-adaptation-of-generative-robot-policies-in-latent-space)  
+   evidence：基于流匹配生成动作块的机器人接触丰富操作基础模型，直接命中生成式视触运动策略
+4. [World-Coherent Decoding: Self-Verifying Test-Time Planning for World Action Models](/202609/09/2609.02159v1-world-coherent-decoding-self-verifying-test-time-planning-for-world-action-models)  
+   标签：评分：9.0/10、query:vla-wm
+   evidence：面向世界动作模型提出自我验证测试时规划,用于生成视觉未来并解码机器人动作
+5. [Spatially Aware World Action Model via Geometric Latent Diffusion](/202609/09/2609.02531v1-spatially-aware-world-action-model-via-geometric-latent-diffusion)  
+   标签：评分：9.0/10、query:vla-wm
+   evidence：联合预测未来状态与动作并融合三维深度信息的空间感知世界动作模型
+6. [HINT: Human-Intent Inception for Long-Horizon Robot Manipulation](/202609/09/2609.02653v2-hint-human-intent-inception-for-long-horizon-robot-manipulation)  
+   标签：评分：9.0/10、query:vla-wm
+   evidence：面向长时程机器人操作的VLA策略，用人类意图注入避免视觉捷径
+7. [RoboTok: An Internet-Scale Data Engine for Human Demonstration Retrieval and Dexterous Manipulation Learning](/202609/09/2609.03199v1-robotok-an-internet-scale-data-engine-for-human-demonstration-retrieval-and-dexterous-manipulation-learning)  
    标签：评分：9.0/10、query:gen-imit
-   evidence：人在回路中利用流匹配和扩散模型适配生成式机器人策略
-42. [Source-Lifted Flow Matching for Intervenable Multimodal Imitation](/20260616-20260715/2607.10206v1-source-lifted-flow-matching-for-intervenable-multimodal-imitation)  
+   evidence：从互联网检索人类示范视频用于机器人模仿学习
+8. [Beyond Straightness: Non-Crossing Flow Matching via Quantile AlignTree Coupling](/202609/09/2609.03443v1-beyond-straightness-non-crossing-flow-matching-via-quantile-aligntree-coupling)  
+   标签：评分：9.0/10、query:gen-models
+   evidence：通过分位数对齐树耦合实现无交叉路径的流匹配方法
+9. [Toward Physically Grounded JEPA World Models for Goal-Conditioned Robotic Planning](/202609/09/2609.03565v1-toward-physically-grounded-jepa-world-models-for-goal-conditioned-robotic-planning)  
+   标签：评分：9.0/10、query:world-model
+   evidence：提出用于机器人世界模型与目标条件规划的JEPA架构,结合逆动力学和状态对齐
+10. [WISE: World-model-guided Imagination Scheduling for Efficient Post-training of Vision-Language-Action Models](/202609/09/2609.03681v1-wise-world-model-guided-imagination-scheduling-for-efficient-post-training-of-vision-language-action-models)  
+   标签：评分：9.0/10、query:world-model
+   evidence：利用世界模型引导想象调度，对VLA策略进行高效后训练并提出可信的策略监督
+11. [Toward Unified Robot Learning: Bridging Representation, Vision-Language-Action, and World Models](/202609/09/2609.03927v1-toward-unified-robot-learning-bridging-representation-vision-language-action-and-world-models)  
+   标签：评分：9.0/10、query:vla-wm
+   evidence：综述统一表示学习、VLA模型与世界模型，是VLA-世界模型统一机器人基础模型主题的中心文献
+12. [Dressing in Motion: A Human Motion-Aware Diffusion Policy for Robot-Assisted Dressing](/202609/09/2609.04759v1-dressing-in-motion-a-human-motion-aware-diffusion-policy-for-robot-assisted-dressing)  
    标签：评分：9.0/10、query:rmgp
-   evidence：可通过源选择进行干预的流匹配多模态模仿策略
-43. [SUREFlow: State-space Uncertainty-aware REsidual Flow Matching for Robust Robot Manipulation](/20260616-20260715/2607.10504v1-sureflow-state-space-uncertainty-aware-residual-flow-matching-for-robust-robot-manipulation)  
+   evidence：面向机器人穿衣服务的扩散策略与视觉运动策略，使用部分点云表征
+13. [TacPAC: Tactile Prediction and Real-Time Action Correction in World-Action Models for Contact-Rich Manipulation](/202609/09/2609.05266v1-tacpac-tactile-prediction-and-real-time-action-correction-in-world-action-models-for-contact-rich-manipulation)  
+   标签：评分：9.0/10、query:vla-wm
+   evidence：世界动作模型预测未来触觉并实时修正动作，面向接触丰富操作
+14. [Towards Neuro-Symbolic Procedural Reasoning for Long-Horizon Vision-Language-Action Manipulation](/202609/09/2609.05369v1-towards-neuro-symbolic-procedural-reasoning-for-long-horizon-vision-language-action-manipulation)  
+   标签：评分：9.0/10、query:vla-wm
+   evidence：将VLA控制与显式任务图及过程记忆结合以支持长时程操控
+15. [What Matters, When? Diagnosing and Improving Conditional Visual Grounding in Visuomotor Imitation Policies](/202609/09/2609.05376v1-what-matters-when-diagnosing-and-improving-conditional-visual-grounding-in-visuomotor-imitation-policies)  
    标签：评分：9.0/10、query:rmgp
-   evidence：不确定性感知残差流匹配用于鲁棒机器人操作
-44. [A Single Diffusion-Policy Controller for Multi-Task Block Pushing with Zero-Shot Sim-to-Real Transfer](/20260616-20260715/2607.10892v1-a-single-diffusion-policy-controller-for-multi-task-block-pushing-with-zero-shot-sim-to-real-transfer)  
+   evidence：诊断并改进视觉运动模仿策略中的条件视觉接地问题
+16. [GE-Act 2.0: Pretraining and Scaling a World-Action Model for Robotic Manipulation](/202609/09/2609.05588v1-ge-act-20-pretraining-and-scaling-a-world-action-model-for-robotic-manipulation)  
+   标签：评分：9.0/10、query:vla-wm
+   evidence：从零预训练并扩展世界动作模型以预测未来状态指导机器人操作
+17. [CR-VLA-Force: Learning Control-aware Compliance VLA Model for Robust Contact-rich Robotic Manipulation](/202609/09/2609.05832v1-cr-vla-force-learning-control-aware-compliance-vla-model-for-robust-contact-rich-robotic-manipulation)  
+   标签：评分：9.0/10、query:vla-wm
+   evidence：融合力/力矩感知的控制感知VLA模型用于接触丰富操作
+18. [GloVLA: Let Geometry Move and Local VLA Interact for Robust Object-Centric Manipulation in Unstructured Environments](/202609/09/2609.06256v1-glovla-let-geometry-move-and-local-vla-interact-for-robust-object-centric-manipulation-in-unstructured-environments)  
+   标签：评分：9.0/10、query:vla-wm
+   evidence：面向视觉-语言-动作操作模型，将全局几何移动与局部接触交互解耦以提升鲁棒性
+19. [VLA-Corrector: Stage-Aware Observable State Understanding for Prompt-Based Closed-Loop Recovery of Vision-Language-Action Policies](/202609/09/2609.06508v1-vla-corrector-stage-aware-observable-state-understanding-for-prompt-based-closed-loop-recovery-of-vision-language-action-policies)  
+   标签：评分：9.0/10、query:vla-wm
+   evidence：通过阶段感知失败验证与提示修正对固定VLA策略进行闭环恢复
+20. [MemCorr-DP: Counterfactual Correspondence Conditioning for a Diffusion Policy Guided by a Reference](/202609/09/2609.06615v1-memcorr-dp-counterfactual-correspondence-conditioning-for-a-diffusion-policy-guided-by-a-reference)  
    标签：评分：9.0/10、query:rmgp
-   evidence：扩散策略用于多任务机器人块推动
-45. [SegDiff: Segmented Trajectory Diffusion for Consistent and Adaptive Robot Manipulation](/20260616-20260715/2607.11027v1-segdiff-segmented-trajectory-diffusion-for-consistent-and-adaptive-robot-manipulation)  
+   evidence：MemCorr-DP是参考轨迹引导的扩散策略，提升行为克隆视运动策略在物体和视角变化下的鲁棒性，直接相关diffusion policy与visuomotor policy。
+21. [ContextFlow: In-Context Flow Matching for Robot Manipulation](/202609/09/2609.06852v1-contextflow-in-context-flow-matching-for-robot-manipulation)  
    标签：评分：9.0/10、query:rmgp
-   evidence：分段轨迹扩散用于机器人操作的闭环视觉运动策略
-46. [Mixture of Frames Policy: Multi-Frame Action Denoising for Bimanual Mobile Manipulation](/20260616-20260715/2607.11884v1-mixture-of-frames-policy-multi-frame-action-denoising-for-bimanual-mobile-manipulation)  
+   evidence：基于条件流匹配的生成式视觉运动策略，用于机器人操作中的上下文模仿
+22. [ICI-VLA: In-Context Imitation with Spatiotemporally Aligned Demonstrations for Vision-Language-Action Models](/202609/09/2609.07581v1-ici-vla-in-context-imitation-with-spatiotemporally-aligned-demonstrations-for-vision-language-action-models)  
    标签：评分：9.0/10、query:rmgp
-   evidence：多帧动作去噪的扩散策略用于双臂操作
+   evidence：通过检索示范微片段实现VLA少样本上下文模仿，推理时无需参数更新
+23. [Dex-X: Learning Visual-Tactile Dexterous Manipulation From Human Videos with Simulated Interaction](/202609/09/2609.07747v1-dex-x-learning-visual-tactile-dexterous-manipulation-from-human-videos-with-simulated-interaction)  
+   标签：评分：9.0/10、query:gen-imit
+   evidence：从人类视频演示出发，在仿真中补全触觉并以模仿学习方式训练灵巧操作策略
+24. [WorldAgen: Unified State-Action Prediction with Test-Time World Model Training](/202609/09/2609.08162v1-worldagen-unified-state-action-prediction-with-test-time-world-model-training)  
+   标签：评分：9.0/10、query:vla-wm
+   evidence：统一的世界模型头与动作头联合预测，并在测试时训练世界模型以适应新环境动态
+25. [DeCAL: Towards Physically-Grounded Dexterous Vision-Language-Action Models via Contact-Aware Latent Co-Imagination](/202609/09/2609.09119v1-decal-towards-physically-grounded-dexterous-vision-language-action-models-via-contact-aware-latent-co-imagination)  
+   标签：评分：9.0/10、query:vla-wm
+   evidence：灵巧操作视觉-语言-动作模型,统一理解、潜在协同想象和动作生成,直接面向机器人控制
+26. [Proxy Policy Steering](/202609/09/2609.09148v1-proxy-policy-steering)  
+   标签：评分：9.0/10、query:rmgp
+   evidence：通过代理策略引导实现机器人扩散策略的少样本适配
+27. [SyncWorld: Visual Calibration Enables World Models as Zero-Shot Simulators](/202609/09/2609.09155v1-syncworld-visual-calibration-enables-world-models-as-zero-shot-simulators)  
+   标签：评分：9.0/10、query:world-model
+   evidence：SyncWorld是视觉标定的动作条件世界模型，可在未见环境零样本仿真，直接回应动作条件世界模型预测未来视觉状态的需求。
 
 ### 速读区论文标签
-1. [Where Should Action Generation Begin? A Learnable Source Prior for Generative Robot Policies](/20260616-20260715/2606.17408v1-where-should-action-generation-begin-a-learnable-source-prior-for-generative-robot-policies)  
+1. [ADAPT: Agile Diffusion Action Priors for Robust and Steerable Online Text-Driven Humanoid Control](/202609/09/2609.00677v1-adapt-agile-diffusion-action-priors-for-robust-and-steerable-online-text-driven-humanoid-control)  
    标签：评分：8.0/10、query:rmgp
-   evidence：可学习的源先验优化生成式机器人策略
-2. [Temporal Self-Imitation Learning](/20260616-20260715/2606.19752v1-temporal-self-imitation-learning)  
-   标签：评分：8.0/10、query:rmgp
-   evidence：长程机器人操作的时序自模仿学习
-3. [Semi-Supervised Vision-Language-Action Model](/20260616-20260715/2606.21493v1-semi-supervised-vision-language-action-model)  
+   evidence：面向在线文本驱动机器人控制的扩散动作先验加残差强化学习
+2. [Training-Free Inpainting Across Domains with a Frozen Text-to-Image Diffusion Model](/202609/09/2609.00862v1-training-free-inpainting-across-domains-with-a-frozen-text-to-image-diffusion-model)  
+   标签：评分：8.0/10、query:gen-models
+   evidence：冻结文本到图像扩散模型实现跨域免训练条件图像修复，是图像恢复中的生成模型应用
+3. [REFACTOR-VLA: Unsupervised Library Learning of Typed Motor Programs](/202609/09/2609.01215v1-refactor-vla-unsupervised-library-learning-of-typed-motor-programs)  
    标签：评分：8.0/10、query:vla-wm
-   evidence：利用自蒸馏进行半监督视觉-语言-动作模型适配
-4. [Rotation-Aware Point-Cloud Embeddings for Vision-Based In-Hand Reorientation](/20260616-20260715/2606.21788v1-rotation-aware-point-cloud-embeddings-for-vision-based-in-hand-reorientation)  
+   evidence：面向长时程任务的VLA模型；利用潜世界模型学习可复用运动程序
+4. [EmbodiedSkills: A Unified Framework for Orchestrating, Training, and Deploying VLA Agents](/202609/09/2609.01281v1-embodiedskills-a-unified-framework-for-orchestrating-training-and-deploying-vla-agents)  
+   标签：评分：8.0/10、query:vla-wm
+   evidence：面向长时程任务的统一VLA智能体编排框架，在执行前检查前提并验证执行结果
+5. [Does Imitation Learning Preserve Temporal Robustness in Dexterous Manipulation? An Expert-Learner Comparison Across Task Execution Speeds](/202609/09/2609.01453v1-does-imitation-learning-preserve-temporal-robustness-in-dexterous-manipulation-an-expert-learner-comparison-across-task-execution-speeds)  
    标签：评分：8.0/10、query:rmgp
-   evidence：点云目标用于手内重定向，策略从三维几何学习。
-5. [DREAM-Chunk: Reactive Action Chunking with Latent World Model](/20260616-20260715/2606.18589v1-dream-chunk-reactive-action-chunking-with-latent-world-model)  
+   evidence：研究模仿学习策略在灵巧操作任务中跨任务执行速度的时间鲁棒性，将专家与学习者进行受控对比，属于机器人模仿学习研究。
+6. [One Demonstration, Many Objects: Generalizing Manipulation via Local Contact Geometry](/202609/09/2609.01938v2-one-demonstration-many-objects-generalizing-manipulation-via-local-contact-geometry)  
+   标签：评分：8.0/10、query:rmgp
+   evidence：从单个人类演示学会操作众多新物体，利用接触点局部几何与接触中心奖励实现灵巧操作的少样本泛化。
+7. [Conditional Flow Matching for ML-Based Inverse Design Problems](/202609/09/2609.00863v1-conditional-flow-matching-for-ml-based-inverse-design-problems)  
+   标签：评分：7.0/10、query:gen-models
+   evidence：用条件流匹配生成模型求解工程逆向设计问题，与生成模型用于逆问题相关
+8. [From Truncation to Commitment: Persistent Context in Uniform Discrete Diffusion](/202609/09/2609.01043v1-from-truncation-to-commitment-persistent-context-in-uniform-discrete-diffusion)  
+   标签：评分：7.0/10、query:gen-models
+   evidence：面向均匀离散扩散模型的无训练采样方法
+9. [P-PatchDiff: Progressive Patch Diffusion Models for Low-light Image Enhancement](/202609/09/2609.01123v1-p-patchdiff-progressive-patch-diffusion-models-for-low-light-image-enhancement)  
+   标签：评分：7.0/10、query:gen-models
+   evidence：利用渐进式补丁扩散模型提升低光图像，是与图像恢复/增强相关的生成模型应用。
+10. [CAT-Flow: Curvature-Adaptive sTeps for Flow Matching](/202609/09/2609.01746v1-cat-flow-curvature-adaptive-steps-for-flow-matching)  
+   标签：评分：7.0/10、query:gen-models
+   evidence：面向流匹配采样的曲率自适应步长方法，降低神经函数评估次数
+11. [Quantum MeanFlow: single-shot generative sampling on NISQ hardware](/202609/09/2609.02186v1-quantum-meanflow-single-shot-generative-sampling-on-nisq-hardware)  
+   标签：评分：7.0/10、query:fewstepgen
+   evidence：量子MeanFlow单次生成采样方法
+12. [Latent Cluster Analysis for Vision-Language-Action Models](/202609/09/2609.02634v1-latent-cluster-analysis-for-vision-language-action-models)  
    标签：评分：7.0/10、query:vla-wm
-   evidence：世界模型增强VLA动作块选择实现反应式执行
-6. [SC3-Eval: Evaluating Robot Foundation Models via Self-Consistent Video Generation](/20260616-20260715/2606.18610v2-sc3-eval-evaluating-robot-foundation-models-via-self-consistent-video-generation)  
-   标签：评分：7.0/10、query:world-model
-   evidence：自洽视频生成，利用动作条件世界模型评估机器人策略
-7. [Inductive Generalization for Robotic Manipulation](/20260616-20260715/2606.20999v1-inductive-generalization-for-robotic-manipulation)  
-   标签：评分：7.0/10、query:rmgp
-   evidence：评估视觉运动策略的归纳泛化能力
-8. [Constrained Flow Matching via Lagrangian Dual Flows](/20260616-20260715/2607.04513v1-constrained-flow-matching-via-lagrangian-dual-flows)  
-   标签：评分：7.0/10、query:gen-imit
-   evidence：用于机器人规划与控制的约束流匹配技术
-9. [Scalable Multi-Task Data Generation via Reinforcement Learning for Language-Conditioned Bimanual Dexterous Manipulation](/20260616-20260715/2606.22471v1-scalable-multi-task-data-generation-via-reinforcement-learning-for-language-conditioned-bimanual-dexterous-manipulation)  
+   evidence：对VLA模型动作扩散解码器进行潜在空间可解释性聚类分析
+13. [Advanced Pixel Diffusion Model with Guided Sparse Global Refinement](/202609/09/2609.00798v1-advanced-pixel-diffusion-model-with-guided-sparse-global-refinement)  
+   标签：评分：6.0/10、query:gen-models
+   evidence：用于图像生成的像素空间扩散方法与稀疏全局精化机制
+14. [Denoising Diffusion Generative Models Secretly Calculate Attentions](/202609/09/2609.00885v1-denoising-diffusion-generative-models-secretly-calculate-attentions)  
+   标签：评分：6.0/10、query:gen-models
+   evidence：揭示去噪扩散模型隐式计算注意力，对扩散模型基础理论有贡献
+15. [A Study of Conditional Diffusion Models for Open-Loop Control under Dry Friction and Stiction](/202609/09/2609.01756v1-a-study-of-conditional-diffusion-models-for-open-loop-control-under-dry-friction-and-stiction)  
    标签：评分：6.0/10、query:gen-imit
-   evidence：可扩展的仿真数据生成用于双手灵巧操作策略学习
-10. [Learning Action Priors for Cross-embodiment Robot Manipulation](/20260616-20260715/2606.26095v1-learning-action-priors-for-cross-embodiment-robot-manipulation)  
-   标签：评分：6.0/10、query:gen-imit
-   evidence：为动作模块预训练运动先验，用于跨形态机器人操作策略学习。
-11. [Perceptual Flow Matching for Few-Step Generative Modeling](/20260616-20260715/2607.03524v1-perceptual-flow-matching-for-few-step-generative-modeling)  
-   标签：评分：6.0/10、query:fewstepgen
-   evidence：用于流匹配模型少步生成的感知流匹配方法
-12. [GenVid2Robot: From Video Generation to Robot Manipulation via Rigid-Geometric Consistency](/20260616-20260715/2607.09191v1-genvid2robot-from-video-generation-to-robot-manipulation-via-rigid-geometric-consistency)  
-   标签：评分：6.0/10、query:rmgp
-   evidence：通过刚性几何一致性将生成的视频运动转化为可执行机器人操作。
+   evidence：用条件扩散模型生成动作序列的Action Diffusion研究，与机器人动作生成直接相关
+16. [Act More, Decide Less: Skill-Guided Adaptive Action Chunking for Long-Horizon LLM Agents](/202609/09/2609.02042v1-act-more-decide-less-skill-guided-adaptive-action-chunking-for-long-horizon-llm-agents)  
+   标签：评分：6.0/10、query:vla-wm
+   evidence：提出技能引导的自适应动作分块训练，与机器人操作中的动作块预测直接相关
+17. [LookStep: Efficient Vision-Language Navigation with Linguistic Foresight and Event Driven Memory](/202609/09/2609.02350v2-lookstep-efficient-vision-language-navigation-with-linguistic-foresight-and-event-driven-memory)  
+   标签：评分：6.0/10、query:vla-wm
+   evidence：端到端视觉语言导航同时预测以语言编码的未来状态和下一步动作,可视为VLA与世界预测的结合
 
 
 <div class="dpr-home-promo-card">
