@@ -1,239 +1,40 @@
 {
-  "generated_at": "2026-09-10T21:30:24.327350+00:00",
-  "updated_date": "20260910",
+  "generated_at": "2026-09-11T22:16:13.016084+00:00",
+  "updated_date": "20260911",
   "carryover_days": 9,
   "tag_states": {
     "rmgp": {
-      "updated_date": "20260910",
+      "updated_date": "20260911",
       "carryover_days": 9,
       "items": []
     },
     "gen-imit": {
-      "updated_date": "20260910",
+      "updated_date": "20260911",
       "carryover_days": 9,
       "items": []
     },
     "world-model": {
-      "updated_date": "20260910",
+      "updated_date": "20260911",
       "carryover_days": 9,
-      "items": [
-        {
-          "id": "2609.09210v1",
-          "source": "arxiv",
-          "title": "Identifying Habit, Physics, and Nuisance in Robot World Models",
-          "abstract": "Teleoperated demonstrations are often multimodal even when the underlying dynamics are nearly deterministic given the executed action. We argue that this multimodality typically mixes three factors--operator habit in action selection, shared physics, and observation nuisance--and that entangled next-observation predictors absorb all three. We formalize the split with a structural causal model a=g(h,z,u), z'=f(z,a), o=r(z,c), and test it with complementary interventions: replacing or shuffling actions at fixed state sharply increases next-state error, whereas appearance and camera changes should not; habit-aware reverse scoring improves ranking of feasible pasts without rewriting the dynamics. The associated adaptation rule is to freeze a shared physics readout and update only a thin interface. On StackCube, DROID, and RH20T this rule improves low-shot transfer relative to training from scratch, retains cleaner dynamics under corrupted adaptation data, and extends from proprioception to pixel observations with multi-view and multi-step checks. We do not equate latent actions with operator habit, and we do not target large-scale video generation benchmarks.",
-          "authors": [
-            "Jinting Hang",
-            "Zhenhui Cai"
-          ],
-          "primary_category": "cs.RO",
-          "categories": [
-            "cs.RO",
-            "cs.CV"
-          ],
-          "published": "2026-09-06T00:20:22+00:00",
-          "link": "https://arxiv.org/pdf/2609.09210v1",
-          "tags": [
-            "keyword:VLA-WM",
-            "keyword:gen-imit",
-            "keyword:rmgp",
-            "keyword:world-model",
-            "query:FewStepGen",
-            "query:VLA-WM",
-            "query:gen-imit",
-            "query:gen-models",
-            "query:pol-vision",
-            "query:rmgp",
-            "query:world-model"
-          ],
-          "llm_score": 8.0,
-          "llm_evidence_en": "robot world model disentangling physics, habit, nuisance",
-          "llm_evidence_cn": "机器人世界模型分离物理、习惯与干扰",
-          "llm_evidence": "机器人世界模型分离物理、习惯与干扰",
-          "canonical_evidence": "机器人世界模型分离物理、习惯与干扰",
-          "llm_tldr_en": "Teleoperated robot demonstrations are multimodal even with near-deterministic dynamics; this work argues the multimodality entangles operator habit, shared physics, and observation nuisance, and disentangles them with a structural causal model plus interventional tests.",
-          "llm_tldr_cn": "远程示教数据往往呈现多模态，作者认为其中混合了操作者动作选择习惯、共享物理与观测干扰三种因素，而纠缠的下一观测预测器将它们一并吸收。论文用结构因果模型 a=g(h,z,u)、z'=f(z,a)、o=r(z,c) 形式化该分解，并通过替换或打乱动作等干预实验加以检验。结果表明固定状态下改变动作会显著增大下一状态误差，而外观与相机变化则不会。该工作为机器人世界模型提供了分离物理动态与干扰的判别与适应方法。",
-          "llm_tldr": "远程示教数据往往呈现多模态，作者认为其中混合了操作者动作选择习惯、共享物理与观测干扰三种因素，而纠缠的下一观测预测器将它们一并吸收。论文用结构因果模型 a=g(h,z,u)、z'=f(z,a)、o=r(z,c) 形式化该分解，并通过替换或打乱动作等干预实验加以检验。结果表明固定状态下改变动作会显著增大下一状态误差，而外观与相机变化则不会。该工作为机器人世界模型提供了分离物理动态与干扰的判别与适应方法。",
-          "llm_tags": [
-            "query:world-model"
-          ],
-          "matched_query_tag": "query:world-model",
-          "matched_query_text": "world model for robot learning and manipulation predicting future states",
-          "matched_requirement_id": "req-18",
-          "selection_source": "carryover_cache",
-          "paper_id": "2609.09210v1",
-          "carry_days": 1
-        },
-        {
-          "id": "2609.09630v1",
-          "source": "arxiv",
-          "title": "JEPA Policy: Diffusion-Free Imitation Learning via Paired Action and Future Representation Prediction",
-          "abstract": "Standard behavior cloning supervises actions without explicitly constraining the future representation paired with each demonstrated action chunk. We introduce JEPA Policy, a diffusion-free framework that uses the action chunk and its observed future representation as paired training targets. Action and future-representation tokens interact in a shared Transformer and are refined through two forward passes. Future prediction can therefore shape the representation used to generate actions. Dual-branch and gradient-routing controls attribute the gain to this shared topology rather than to an auxiliary prediction head alone. Across nine simulated tasks, JEPA Policy improves mean success over the action-only MIP baseline and outperforms Diffusion Policy under the evaluated configurations, while adding 0.29 ms to MIP's model latency. A five-task, 630-episode physical-robot study produces the same pooled ranking. Further audits find no complete representation collapse under action supervision and identify a task-conditioned failure-ranking signal in future-prediction error. These results support paired future-representation supervision as a practical approach to low-latency visuomotor imitation without iterative generative sampling.",
-          "authors": [
-            "Jie Xu",
-            "Kangjin Yu",
-            "Ziyi Jin",
-            "Junjie Gao",
-            "Liqing Chen",
-            "Yixian Li",
-            "Shuai Tian",
-            "Zhongpu Xia"
-          ],
-          "primary_category": "cs.RO",
-          "categories": [
-            "cs.RO"
-          ],
-          "published": "2026-09-09T02:42:20+00:00",
-          "link": "https://arxiv.org/pdf/2609.09630v1",
-          "tags": [
-            "keyword:VLA-WM",
-            "keyword:gen-imit",
-            "keyword:gen-models",
-            "keyword:rmgp",
-            "keyword:world-model",
-            "query:FewStepGen",
-            "query:VLA-WM",
-            "query:gen-imit",
-            "query:gen-models",
-            "query:rmgp",
-            "query:world-model"
-          ],
-          "llm_score": 8.0,
-          "llm_evidence_en": "JEPA-based imitation learning pairing action chunks with predicted future representations",
-          "llm_evidence_cn": "基于JEPA的模仿学习，将动作块与预测的未来表征配对",
-          "llm_evidence": "基于JEPA的模仿学习，将动作块与预测的未来表征配对",
-          "canonical_evidence": "基于JEPA的模仿学习，将动作块与预测的未来表征配对",
-          "llm_tldr_en": "JEPA Policy is a diffusion-free imitation learning framework that pairs each action chunk with its observed future representation as joint training targets, letting future prediction shape action generation and improving success across nine tasks.",
-          "llm_tldr_cn": "针对标准行为克隆只监督动作、未显式约束与动作块配对的未来表征的问题，本文提出JEPA Policy，一种无扩散的模仿学习框架。该方法将动作块与其观测到的未来表征作为配对训练目标，在共享Transformer中让动作与未来表征token交互，并经两次前向精炼，使未来预测塑造动作生成所用的表征。在九个仿真任务上，该方法相比仅动作基线提升了平均成功率，并通过消融验证增益来自共享拓扑而非辅助预测头。",
-          "llm_tldr": "针对标准行为克隆只监督动作、未显式约束与动作块配对的未来表征的问题，本文提出JEPA Policy，一种无扩散的模仿学习框架。该方法将动作块与其观测到的未来表征作为配对训练目标，在共享Transformer中让动作与未来表征token交互，并经两次前向精炼，使未来预测塑造动作生成所用的表征。在九个仿真任务上，该方法相比仅动作基线提升了平均成功率，并通过消融验证增益来自共享拓扑而非辅助预测头。",
-          "llm_tags": [
-            "query:world-model"
-          ],
-          "matched_query_tag": "query:world-model",
-          "matched_query_text": "combining world model with imitation learning for policy training",
-          "matched_requirement_id": "req-20",
-          "selection_source": "carryover_cache",
-          "paper_id": "2609.09630v1",
-          "carry_days": 1
-        },
-        {
-          "id": "2609.10464v1",
-          "source": "arxiv",
-          "title": "Semigroup-JEPA: Latent Dynamics Consistency for Zero-Shot Physics Generalization",
-          "abstract": "Joint-Embedding Predictive Architecture (JEPA) world models learn a compact latent representation of the world that supports prediction and planning, but their capability to learn physics and generate physically realistic dynamics remains hitherto untested. In this work, we introduce SemiGroup-JEPA (SG-JEPA), which extends the LeWorldModel framework by supplying the parameter governing the physics to the temporal model via action-conditioning and jointly training an encoder and predictor through an autoregressive latent rollout. To evaluate the model's ability to generalize out of distribution, we design dynamical tasks under different gravitational fields that, despite obeying the same physical law, exhibit qualitatively different dynamics, ranging from floating motion in weak gravitational fields to rapid bouncing in strong ones. In contrast to DINO-WM, SG-JEPA reduces open-loop prediction error by up to 2 times on two-dimensional datasets, and increases control success rate up to 2.5 times for three-dimensional robotic datasets, for which we train independent diffusion policies. To explain this advantage, we develop a linear feature model that separates local law-conditioned error from its recursive amplification under rollout. Guided by this model, we find that back-propagating the multi-step rollout loss into the representation trains the encoder to keep the features that the predictor can carry forward, and that those are the features the dynamics depend on, so most of the gain comes from the encoder learning better features rather than from the predictor learning better dynamics. See project page at https://sg-jepa.github.io.",
-          "authors": [
-            "Andy Zeyi Liu",
-            "Haoran Sun",
-            "Lucas Baker",
-            "Randall Balestriero",
-            "John Sous"
-          ],
-          "primary_category": "cs.LG",
-          "categories": [
-            "cs.LG",
-            "cs.AI",
-            "cs.CV"
-          ],
-          "published": "2026-09-09T17:08:13+00:00",
-          "link": "https://arxiv.org/pdf/2609.10464v1",
-          "tags": [
-            "keyword:FewStepGen",
-            "keyword:VLA-WM",
-            "keyword:gen-imit",
-            "keyword:gen-models",
-            "keyword:rmgp",
-            "keyword:world-model",
-            "query:FewStepGen",
-            "query:VLA-WM",
-            "query:gen-imit",
-            "query:gen-models",
-            "query:rmgp",
-            "query:world-model"
-          ],
-          "llm_score": 8.0,
-          "llm_evidence_en": "action-conditioned JEPA world model with latent dynamics",
-          "llm_evidence_cn": "动作条件JEPA世界模型与潜动力学",
-          "llm_evidence": "动作条件JEPA世界模型与潜动力学",
-          "canonical_evidence": "动作条件JEPA世界模型与潜动力学",
-          "llm_tldr_en": "Introduces Semigroup-JEPA, extending LeWorldModel by action-conditioning the physics parameter and jointly training encoder and predictor via autoregressive latent rollout, achieving zero-shot physics generalization.",
-          "llm_tldr_cn": "联合嵌入预测架构世界模型能学习紧凑的潜表示以支持预测与规划，但其学习物理规律、生成真实动力学的能力此前尚未被检验。本文提出Semigroup-JEPA，在LeWorldModel框架基础上将支配物理的参数通过动作条件注入时间模型，并以自回归潜rollout联合训练编码器与预测器。作者设计不同引力场下的动力学任务，尽管服从同一物理定律却呈现定性不同的动力学。实验表明该模型具备对分布外物理条件的零样本泛化能力，说明动作条件JEPA世界模型可有效捕捉并泛化物理动力学。",
-          "llm_tldr": "联合嵌入预测架构世界模型能学习紧凑的潜表示以支持预测与规划，但其学习物理规律、生成真实动力学的能力此前尚未被检验。本文提出Semigroup-JEPA，在LeWorldModel框架基础上将支配物理的参数通过动作条件注入时间模型，并以自回归潜rollout联合训练编码器与预测器。作者设计不同引力场下的动力学任务，尽管服从同一物理定律却呈现定性不同的动力学。实验表明该模型具备对分布外物理条件的零样本泛化能力，说明动作条件JEPA世界模型可有效捕捉并泛化物理动力学。",
-          "llm_tags": [
-            "query:world-model"
-          ],
-          "matched_query_tag": "query:world-model",
-          "matched_query_text": "Self supervised joint embedding predictive architectures for learning world representations in robotics.",
-          "matched_requirement_id": "req-25",
-          "selection_source": "carryover_cache",
-          "paper_id": "2609.10464v1",
-          "carry_days": 1
-        },
-        {
-          "id": "2609.09941v1",
-          "source": "arxiv",
-          "title": "HaWMPO: Hallucination-Aware World Model-based Policy Optimization for Generalist Robot Policy",
-          "abstract": "Generalist robot policies have demonstrated strong generalization across robotic manipulation tasks, yet their success rates remain limited in com- plex long-horizon scenarios. Recent methods improve Visual-Language-Action (VLA) policies through online reinforcement learning on real robots, but such training relies on costly physical interactions, suffers from low sample efficiency, and may introduce hardware and safety risks. World models offer a promising alternative by enabling policy optimization with imagined rollouts. However, long-horizon rollouts generated by world models often suffer from prediction hal- lucinations, producing biased state transitions that can mislead policy learning. To address this issue, we propose Hallucination-aware World Model-based Pol- icy Optimization (HaWMPO), a closed-loop reinforcement learning pipeline for VLA policy post-training with world models. Specifically, HaWMPO introduces an action-conditioned hallucination-aware model to estimate the reliability of gen- erated image sequences, and incorporates hallucination scores into group relative policy optimization through a Reward-Soft mechanism, suppressing unreliable ac- tion chunks during training. On the LIBERO benchmark, HaWMPO achieves the best average success rate, with gains of 15.0% over the base model and 2.8% over the strongest baseline; real-world experiments on a G1 robot further validate its effectiveness, raising the average success rate on two manipulation tasks from 67.5% to 80.0%.",
-          "authors": [
-            "Zengjue Chen",
-            "Peidong Liu",
-            "Jiawei Li",
-            "Qi Wang"
-          ],
-          "primary_category": "cs.RO",
-          "categories": [
-            "cs.RO"
-          ],
-          "published": "2026-09-09T09:33:25+00:00",
-          "link": "https://arxiv.org/pdf/2609.09941v1",
-          "tags": [
-            "keyword:VLA-WM",
-            "keyword:gen-imit",
-            "keyword:rmgp",
-            "keyword:world-model",
-            "query:FewStepGen",
-            "query:VLA-WM",
-            "query:gen-imit",
-            "query:gen-models",
-            "query:rmgp",
-            "query:world-model"
-          ],
-          "llm_score": 8.0,
-          "llm_evidence_en": "world-model-based policy optimization with imagined rollouts for generalist robot policies",
-          "llm_evidence_cn": "基于世界模型想象回放的通用机器人策略优化",
-          "llm_evidence": "基于世界模型想象回放的通用机器人策略优化",
-          "canonical_evidence": "基于世界模型想象回放的通用机器人策略优化",
-          "llm_tldr_en": "HaWMPO improves generalist VLA policies in long-horizon manipulation by using world models for imagined rollouts, while explicitly handling prediction hallucinations that bias state transitions, enabling sample-efficient policy optimization without costly real-robot RL.",
-          "llm_tldr_cn": "针对通用机器人策略在复杂长程任务中成功率有限、真机强化学习成本高且样本效率低的问题，本文提出HaWMPO幻觉感知的世界模型策略优化方法。该方法利用世界模型生成的想象回放进行策略优化，并显式建模与抑制长程回放中的预测幻觉，以减少偏置状态转移对策略学习的误导。实验表明该方法在长程操作任务中提升成功率与样本效率，为通用VLA策略提供无需大量真机交互的优化途径。",
-          "llm_tldr": "针对通用机器人策略在复杂长程任务中成功率有限、真机强化学习成本高且样本效率低的问题，本文提出HaWMPO幻觉感知的世界模型策略优化方法。该方法利用世界模型生成的想象回放进行策略优化，并显式建模与抑制长程回放中的预测幻觉，以减少偏置状态转移对策略学习的误导。实验表明该方法在长程操作任务中提升成功率与样本效率，为通用VLA策略提供无需大量真机交互的优化途径。",
-          "llm_tags": [
-            "query:world-model"
-          ],
-          "matched_query_tag": "query:world-model",
-          "matched_query_text": "integrating diffusion policy with world model for robot manipulation",
-          "matched_requirement_id": "req-21",
-          "selection_source": "carryover_cache",
-          "paper_id": "2609.09941v1",
-          "carry_days": 1
-        }
-      ]
+      "items": []
     },
     "VLA-WM": {
-      "updated_date": "20260910",
+      "updated_date": "20260911",
       "carryover_days": 9,
       "items": []
     },
     "gen-models": {
-      "updated_date": "20260910",
+      "updated_date": "20260911",
       "carryover_days": 9,
       "items": []
     },
     "FewStepGen": {
-      "updated_date": "20260910",
+      "updated_date": "20260911",
       "carryover_days": 9,
       "items": []
     },
     "pol-vision": {
-      "updated_date": "20260910",
+      "updated_date": "20260911",
       "carryover_days": 9,
       "items": []
     }
