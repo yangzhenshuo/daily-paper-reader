@@ -1,0 +1,330 @@
+Title: RodForesight: A World Model Enhanced Diffusion Policy for Slender Rod Insertion
+
+URL Source: https://arxiv.org/pdf/2609.12103v2
+
+Published Time: Tue, 15 Sep 2026 02:44:10 GMT
+
+Number of Pages: 8
+
+Markdown Content:
+# RodForesight: A World Model Enhanced Diffusion Policy for Slender Rod Insertion 
+
+Chuanbo Yu 1, Mingyu Yue 2, Yan Lyu 3, Chuhan Song 4, and Peng Wang 5,∗
+
+Abstract — Slender rod insertion arises in precision manufac-turing, where millimetre scale diameter and tight clearances demand accurate perception and control. Conventional peg-in-hole methods assume a rigid object whose tip pose is fixed relative to the gripper. This assumption breaks down for a high aspect ratio rod, which can bend during manipulation, making its tip motion dependent on the rod configuration, grasp, material properties, and contact. We present RodForesight , a learning framework that factorises the task into two stages: 1) coarse approaching, which uses visual servoing to map diverse initial configurations into a compact near hole hand-off region; and 2) predictive insertion, which performs fine alignment and completes the insertion. It is worth noting that the two stages can be wrapped into an end-to-end design. During insertion, a diffusion policy generates candidate action chunks, while an action conditioned world model predicts their effects on rod-hole alignment. This pre-execution evaluation enables RodForesight to select the best action chunk based on predicted tilt and radial errors before execution. Experiments investigate the performance of different stages and the end-to-end setting, where RodForesight improves the success rate from 88.9% to 96.7%, compared to baseline methods such as diffusion policy. 
+
+I. I NTRODUCTION 
+
+The insertion of slender rods requires precise control of the distal position and orientation during approach and contact. Unlike traditional rigid peg-in-hole tasks where robots insert pegs at centimetre level [1], [2], the millimetre scale diameter and high aspect ratio (length to diameter) introduce new perception and insertion challenges. Contact sensing and compliance that are widely used in rigid peg-in-hole task completion may break down in slender rods insertion because the reduced volumes make the rods prone to bend and more difficult to detect. Successful insertion of slender rods therefore needs to consider factors ranging from geometry observability, robot action dependent deformation, material response and grasp configuration [3], [4]. Fig. 1 shows some representative peg-in-hole task profiles in literature and illustrates the slender rod insertion task in this manuscript. Learning based approaches have been widely used for insertion due to variations in geometry, material properties, and contact dynamics. Reinforcement learning has been 
+
+> 1
+
+Chuanbo Yu is with SWJTU-Leeds Joint School, Southwest Jiaotong University, Chengdu, China. chara@my.swjtu.edu.cn 
+
+> 2
+
+Mingyu Yue is with the School of Mechanical Engineering, University of Leeds, Leeds LS2 9JT, United Kingdom. hlld8753@leeds.ac.uk 
+
+> 3
+
+Yan Lyu is with Southeast University, Nanjing, China. 
+
+lvyanly@seu.edu.cn 
+
+> 4
+
+Chuhan Song is with the Department of Computer Science, University of Oxford, Oxford OX1 3QD, United Kingdom. hert7886@ox.ac.uk 
+
+> 5
+
+Peng Wang is with the Centre for Vision, Speech and Signal Processing (CVSSP), University of Surrey, Guildford GU2 7XH, United Kingdom. 
+
+> ∗
+
+Corresponding author: peng.wang@surrey.ac.uk Conventional Rigid Peg-in-Hole Slender Flexible Rod Insertion  
+
+> Rod Ø4 mm Hole Ø5 mm
+> Materials:
+> AISI 304 C11000 Cu Carbon–epoxy
+> Wu et al., ICRA 2024 Peg Ø40 × 50 mm
+> Representative Rigid Peg-in-Hole Profiles
+> Yang et al., IJARS 2025 Peg Ø21.4 × 48 mm Ueda et al., RA-L 2025 Peg Ø16 × 50 mm Zhao et al., RCIM 2026 Peg Ø10.404 × 10 mm
+> Hole Ø40.05 mm† Hole Ø21.8 mm Hole Ø16.1 mm Hole Ø10.45 mm Ø4 × 100 mm
+> 6061-T6 aluminium Dry PA66
+
+Fig. 1. Task and scale contrast. Left : rigid-peg dimensions and associated hole sizes compiled from Wu et al. [5] (inferred volumes), Yang et al. [6], Ueda et al. [7], and Zhao et al. [8]. Right : a 100 mm long with 4 mm diameter slender rod enters a 5 mm diameter, 20 mm deep hole with 0.5 mm radial clearance. The training suite includes AISI 304 stainless steel, C11000 copper, and isotropic carbon-epoxy, while 6061-T6 aluminium and dry PA66 are reserved for generalisation tests. 
+
+applied to learn insertion policies through interaction, while flexibility-conditioned methods incorporate visual material estimates for deformable linear object insertion [3]. Diffusion Policy further enables multimodal action generation for complex manipulation [9]. However, sampled actions do not explicitly indicate their effect on subsequent alignment of the rod and the hole, which could cause damage of the rod or the hole. Visual predictive control mitigates the issue by evaluating candidate actions through the predicted radial and angular consequences before execution [10], [11]. While learning methods keep improving insertion success of traditional rigid peg-in-hole tasks, they cannot be readily transferred to slender rod insertion due to the perception and execution challenges induced by reduced volumes. On top of which, learning based methods are still constrained by data scarcity and poor out of distribution generalisation. These limitations are equally pertinent to slender rod insertion. To be specific, the initial pose of the robot and the rod could vary significantly, and regardless, they need to approach the hole for insertion. For a learning framework with limited demonstration data, it is impossible to enumerate all the possible initial poses. In contrast, the majority of insertion trajectories will share the near-hole area. This makes it straightforward to factorise the insertion tasks into two stages, i.e., one stage that guides the robot and the rod to a near hole hand-off area; and a second stage that carries out precise insertion. Fig. 2 shows the two-stage slender rod insertion strategy. It is worth noting that the two stages can be wrapped arXiv:2609.12103v2 [cs.RO] 14 Sep 2026 Stage 1 Stage 2 Predictive Insertion Coarse Approaching Broad Initial-State Distribution Insertion Compact Stationary Handoff Successful Insertion Primary contraction Residual refinement Fig. 2. Method overview and distribution shaping. Crosses denote distal tip locations and the green envelope denotes state coverage. Stage 1 contracts broad initial variation into a stationary hand-off; Stage 2 refines alignment while inserting. 
+
+into an end-to-end setting. We present RodForesight , a world model enhanced diffu-sion framework for vision-guided insertion of slender rods across different materials. Visual servoing first guides the robot and rod to a compact near hole hand-off region. A diffusion policy then generates candidate action chunks for fine insertion, while an action-conditioned world model predicts their consequences in terms of tilt and radial alignment errors. The selected action is executed and the resulting state is reobserved, forming an iterative predict-execute-observe process. Both learned models only rely on visual observations without requiring explicit material labels. The contributions of this work are threefold. First, we formulate millimetre-scale slender rod insertion as a vision-guided manipulation problem that explicitly accounts for deformation and material variation. Second, we introduce a two-stage framework that separates coarse approaching from predictive insertion, allowing RodForesight to focus learning on fine near-hole corrections while using a world model to evaluate their expected effects before execution. Third, we conduct a range of experiments to evaluate both individual stages and the end-to-end setting, demonstrating improved insertion success across different rod materials and generalisation to unseen materials, including rods with stiffness outside the training range. II. R ELATED WORK 
+
+A. Insertion and Assembly with Contact 
+
+In peg-in-hole assembly, contact provides both motion constraints and information about pose errors. Kim and Rodriguez [1] use tactile feedback to estimate contact and control subsequent interactions, while Chen et al. [2] use compliant motions to localise the hole and refine insertion. For a flexible object, insertion also depends on how gripper motion changes the distal shape. Geometric feedback and estimates of flexibility offer two ways to account for this dependence. Wang et al. [12] guide string and rope through narrow openings using an approximate Jacobian and a vector field, with regrasping to adjust the configuration. Li and Choi [3] estimate flexibility from visual interaction cues and condition an insertion policy on that estimate. Our task concerns slender rods, whose local alignment must be controlled across different material responses. 
+
+B. Diffusion Policies for Robotic Manipulation 
+
+Diffusion models represent a distribution over motions through iterative denoising. Diffuser [13] uses guided tra-jectory generation for planning, while Diffusion Policy [9] generates action sequences conditioned on observations and repeatedly replans after partial execution. This formulation also supports manipulation of flexible objects: Li et al. [14] combine reinforcement learning and a diffusion policy for routing deformable linear objects. In RodForesight, diffusion provides candidate corrections near the hole. A separate world model predicts their effects on distal alignment, so the controller can compare proposals from the same observation before execution. 
+
+C. World Models and Predictive Action Selection 
+
+Predictive control requires a representation of how actions change the scene. Visual foresight predicts future images for planning robot motions [10], and predictive latent rep-resentations support planning for deformable objects [11]. Object structure can also be represented explicitly: graph models propagate local interaction effects along deformable objects [4], and AdaptiGraph [15] conditions graph dynamics on estimated material properties. Differentiable rope and elastic rod models incorporate physical constraints into prediction and control [16], [17]. For insertion, RodForesight predicts the distal rod geometry relative to the hole and uses its tilt and radial errors to select an action prefix. Training branches start from the same committed Cosserat state, so their targets describe the consequences of different candidate motions under identical initial conditions. The world model therefore learns to predict the alignment quantities used by the controller. III. P ROBLEM FORMULATION 
+
+The task involves inserting a flexible rod into a cylindrical hole using vision under initial pose variation, deformation, and contact. The task is defined in a frame fixed to the hole whose positive y axis points into it. The distal rod geometry is represented by gt = [ xt, z t, d t, θ x,t , θ z,t ]⊤, where (xt, z t)
+
+is the transverse displacement, dt is insertion depth, and 
+
+(θx,t , θ z,t ) parameterises the tilt of the rod axis. The radial and tilt errors are rt = ∥[xt, z t]∥2 and ϕt = ∥[θx,t , θ z,t ]∥2,respectively. This geometry defines task progress and supplies supervision and evaluation targets. At control time t, the robot receives synchronised red–green–blue and depth (RGB-D) observations from side and wrist cameras. Semantic masks for the rod, hole, hole holder, and gripper are extracted from these observations. The action at ∈ R6 is a relative Cartesian gripper motion comprising three translations and three rotations. The control objective is to advance the distal rod along the hole while reducing rt and ϕt. The controller uses camera observations to achieve the prescribed insertion depth while accommodating deformation caused by contact. The initial approach and insertion near the hole present different control regimes. During approach, large pose errors can be corrected from explicit geometry before contact. Near the hole, smaller motions interact with rod deformation and contact, so visually plausible actions can produce different alignment outcomes. Learning both regimes from complete expert rollouts also mixes many routine forward motions with comparatively few corrective motions. This motivates a controller that first maps the broad initial set into a compact hand-off set and then makes repeated local decisions within that set. Overall success is measured from the original initial condition and therefore includes Stage 1 failures. IV. M ETHODOLOGY 
+
+A. Method Overview 
+
+RodForesight separates coarse approaching from predictive insertion, as shown in Fig. 2. Stage 1 uses visual servoing to bring diverse initial poses into a compact region in front of the hole. After a stationary handoff, Stage 2 proposes local insertion motions with a diffusion policy and uses a learned world model to predict their effects on alignment. The controller executes a prefix of the selected sequence and then reobserves before replanning. The Cosserat model provides physical transitions for data generation and evaluation, while the learned world model supplies candidate predictions during control. 
+
+B. Cosserat Rod Transition Model 
+
+The simulator follows Cosserat rod kinematics [18], rep-resenting the rod by a centreline and an orientation at each cross section along s ∈ [0 , L ], where L is the rod length. Nodal positions and rotations form the configuration q. For element e of length ℓe, the endpoint positions are re and 
+
+re+1 . The midpoint orientation frame is Ce, and φe is the logarithmic relative rotation vector between the end frames. The element strain relative to its undeformed value ξe, 0 is 
+
+ξe(q) = 
+
+C⊤ 
+
+> e
+
+(re+1 − re)/ℓ e
+
+φe/ℓ e
+
+
+
+− ξe, 0. (1) The first vector block describes shear and extension, while the second describes bending and twist. The material law relates these strains to internal forces and tangent stiffness through integration across the section. Axial and bending responses follow a bilinear elastoplastic law, while shear and torsion remain elastic. Contact with the hole is computed from the surface gap, accounting for the rod radius. A logarithmic barrier resists penetration, and a Coulomb law governs tangential friction. The grasp constrains a band of the rod while leaving the remaining portion free to deform. Each transition is integrated with backward Euler and solved by Newton iterations with line search and adaptive step reduction. Once the solver converges, the resulting deformation and contact histories are committed for the next transition. 
+
+C. Stage 1: Coarse Approaching 
+
+Stage 1 estimates alignment from the segmented rod and hole. SAM (Segment Anything) 3 [19] initialises the semantic masks, which XMem [20] then tracks across observations. Calibrated depth is used to reconstruct the hole annulus and visible rod centreline. The rod endpoint and axis provide its position and tilt relative to the hole. These estimates are propagated using commanded tilt increments, then smoothed with separate position and tilt update rates. Angular updates are bounded to limit abrupt changes in the estimate. Bounded proportional corrections reduce lateral and angular errors while moving the rod towards a target depth d∗ in front of the hole. Axial motion uses the attenuation factor 
+
+αt = exp 
+
+"
+
+−
+
+ ρt
+
+σr
+
+2
+
+−
+
+ ψt
+
+σϕ
+
+2#
+
+, (2) where ρt and ψt are the filtered radial and tilt errors, and σr
+
+and σϕ are their attenuation scales. This reduces the approach speed when alignment is poor. A tilt deadband suppresses small reversals. Once radial, depth, and tilt errors meet the prescribed tolerances, the controller commands zero motion and waits for consecutive valid observations. Stage 2 then starts from the resulting physical state and a fresh semantic history. The tolerances and control settings are given in Sec. V-A. 
+
+D. Stage 2: Predictive Insertion 
+
+At each decision, Stage 2 samples K candidate sequences of H actions. Selection compares their predicted geometry after the first He actions, matching the evaluation horizon to the prefix that will be executed. Fig. 3 shows the inference process. The diffusion policy receives a history ot of the Ho most recent valid pairs of side and wrist semantic observations. This history is updated between executed prefixes. A ResNet-18 encoder [21], shared across views and observation times, combines the masks with view and temporal embeddings to produce the visual condition cπt . A temporal U-Net [9] uses this condition and the diffusion timestep to iteratively denoise action sequences from independent Gaussian samples. The policy learns these sequences from expert insertion trajectories. Decoding converts the normalised outputs to Cartesian translation and rotation increments, with axial motion restricted to the insertion direction. The world model encodes the same semantic history with a separate mask encoder, initialised from the policy encoder and refined during training. From its visual condition cwm  
+
+> t
+
+,the source geometry head estimates the current rod geometry relative to the hole, yt, using the coordinate order of gt. The Side Wrist SAM3 + XMem 
+
+Cameras Semantics 
+
+Shared ResNet-18 Temporal U-Net  
+
+> Gaussian Noise
+
+Iterative Denoising Diffusion Policy Diffusion Timestep Visual Condition Candidate Action Chunks   
+
+> Latest two observations
+> 𝐴𝜏 𝜀𝜏 Noisy Action Noise Prediction
+
+Mask ResNet-18 Encoder Observations Source Geometry Head Visual Condition c𝑡 
+
+> wm
+> Per–step Action MLP Encoder
+
+GRU Transition Step Embedding 𝑒𝑘 
+
+World Model Geometry Delta Decoder Action Feature 𝑢𝑘 𝑖 
+
+> Source Geometry
+> Updated Hidden State
+
+…     
+
+> 𝛿𝑡 +1
+> 𝑖
+> Condition Projection Condition Feature 𝑣𝑡
+> Hidden Initialiser
+> 𝛿𝑡 +2
+> 𝑖 𝛿𝑡 +3
+> 𝑖 𝛿𝑡 +4
+> 𝑖 𝛿𝑡 +𝐻 𝑖
+> Four-Action Prediction Geometry 𝑦𝑡 +4
+> 𝑖
+
+Candidate Selection    
+
+> Predictions after Four Actions Candidates 𝑖 = 1, … , 𝐾
+
+Priority-Ordered Selection Predicted Alignment Errors   
+
+> index
+> Candidate Chunk
+> Select
+> Execute Prefix Reobserve & Replan
+> Radial Error Tilt
+
+Fig. 3. Stage 2 inference. Paired semantic histories condition the diffusion policy and world model. The policy generates eight proposals of 16 actions. Selection uses the geometry predicted after four actions, giving priority to tilt and using radial error to resolve equal tilt values. The selected prefix is executed before reobservation and replanning. Insets illustrate the alignment errors. 
+
+hidden state initialiser uses the same condition to initialise each candidate rollout. Each candidate i starts from a copy hi 
+
+> −1
+
+of the same initial hidden state. The gated recurrent unit (GRU) transition fr
+
+then processes its actions in order, with step index k starting from zero. Each update combines a projected visual condition 
+
+vt, an encoded action uik, and a learned step embedding ek:
+
+hik = fr
+
+ hik−1, uik + vt + ek
+
+ . (3) The geometry delta decoder fδ maps each hidden state to the geometry change δit+k+1 over the full prefix processed so far. Adding this change to the shared source estimate gives the predicted geometry: 
+
+δit+k+1 = fδ (hik), yit+k+1 = yt + δit+k+1 . (4) During training, candidate branches start from the same expert state, including its deformation and contact history. Each branch executes a sequence sampled by the frozen diffusion policy, and the resulting geometry changes provide supervision at every prediction step. A single world model selected by validation loss is used at inference; training details are given in Sec. V-C. At the execution horizon, the controller computes radial and tilt errors from each predicted geometry using the definitions in the problem formulation. It chooses the candidate with the smallest predicted tilt. Radial error resolves equal tilt values, followed by candidate index if both errors coincide. The policy supplies insertion motions learned from expert trajectories under the axial direction constraint, while selection prioritises angular alignment among those proposals. The robot executes the first He actions of the selected sequence, discards the remainder, and acquires a fresh observation for replanning. If an observation is invalid, it holds position and reacquires observations up to a fixed recovery budget. Insertion succeeds when the prescribed depth is reached with radial and tilt errors within tolerance. Solver nonconvergence or exhaustion of either the recovery or control budget ends the rollout in failure. V. E XPERIMENTS 
+
+Stage 1 uses bounded visual servoing. In Stage 2, expert insertions supervise the policy, while its frozen samples and matched Cosserat rollouts supervise three world model replicas. Validation loss selects one for inference. 
+
+A. Experimental Instantiation 
+
+Table I summarises the task geometry, evaluation range, and controller horizons. Training and the principal evaluations span three materials, three grasp locations, and a 4 × 2 × 4
+
+grid of hole positions. The Cosserat rod is discretised into 20 elements. Contact stiffness kc is 10 4 N/m, with static and dynamic friction coefficients of 0.20 and 0.15. Stage 1 allows 100 motions. Its position and tilt updates use gains of 0.65 and 0.35, respectively. Tilt is first propagated using the commanded rotation, and the tilt innovation vector is capped at a norm of 1◦ before applying the update gain. The servo uses a gain of 0.65, with translational and angular command components in [−1, 1] mm and [−1, 1] ◦,respectively. Axial attenuation uses scales of 12 mm and 15 ◦,while a tilt deadband of 0.5◦ suppresses small reversals. 
+
+TABLE I CORE TASK AND EVALUATION SETTINGS .                               
+
+> Setting Value Rod and hole Rod length 100 mm; rod diameter 4 mm; hole diameter 5 mm; hole depth 20 mm Initial configuration x, z ∈[−24 ,24] mm; d∈[−85 ,−60] mm;
+> θx, θ z∈[−20 ,20] ◦
+> Stage 1 hand-off d∗=−10 mm; radial/depth/tilt tolerances
+> (1 .5 mm ,1.5 mm ,3◦); five stationary frames Stage 2 planning Two semantic frames; eight proposals of 16 actions; four actions executed per decision Successful insertion Depth ≥15 mm, radial error ≤0.5mm, and tilt ≤2◦
+
+Stage 2 permits 160 controls at 50 ms intervals. Transverse, axial, and angular action components lie in [−0.5, 0.5] mm, 
+
+[0 , 0.25] mm, and [−1, 1] ◦, respectively. The policy uses an image condition of dimension 256 and a temporal U-Net with 256 channels. Diffusion training uses 100 timesteps, whereas inference uses 20 reverse steps. The world model uses an action embedding of dimension 128 and a GRU with 256 units. 
+
+B. Expert Data and Diffusion Policy Training 
+
+A geometry expert generates 300 successful Stage 2 trajectories. Processing these trajectories with the same SAM 3 and XMem pipeline used during execution yields 6,654 training and evaluation samples. Each sample contains two semantic frames and a target sequence of 16 actions. The data are split by disjoint hole position cells, with 623 states held out. For sampling during training, phase labels group the examples into transition, insertion, and terminal strata. Let da denote the action dimension and A ∈ [−1, 1] H×da
+
+an encoded expert action chunk. The timestep τ is sampled uniformly from the diffusion times T . For Gaussian noise 
+
+ϵ ∼ N (0, I), let cτ and sτ denote the signal and noise coefficients obtained from the cumulative squared cosine schedule. The noisy chunk is Aτ = cτ A + sτ ϵ. The policy learns to recover the sampled noise from this chunk and the visual condition: 
+
+Lπ = E
+
+h
+
+∥ϵθ (Aτ , cπt , τ ) − ϵ∥22
+
+i
+
+. (5) Here, cπt is the encoded policy condition with history length 
+
+Ho.The policy is trained for 80 epochs using AdamW with batch size 64, learning rate 10 −4, and mixed precision. Its weights are then frozen for branch generation. 
+
+C. Matched Branches and World Model Training 
+
+At each expert state, the frozen policy generates eight proposals of 16 actions. Each proposal is rolled out from the same observation and committed Cosserat state, producing 53,232 matched branches. Because the source state is held fixed, differences in the outcomes reflect the candidate actions. These branches provide the world model with supervision for comparing candidate motions before execution. Training branches originate from expert states, whereas the controller may visit different states during execution. Prediction accuracy is therefore also evaluated on states reached by the controller in Sec. V-E.2. Each world model replica receives two mask frames and all eight action chunks, with source geometry and changes supervised at all 16 prediction steps. Let K index the H
+
+prediction steps, starting from zero; δK and ∆gK denote the predicted changes and their simulated targets, respectively. The coordinate scales sg and sδ are [2 .5, 2.5, 15 , 10 , 10] and 
+
+[1 , 1, 4, 8, 8] , respectively, with position in millimetres and angle in degrees. With coordinate division ⊘, the objective is 
+
+Lm = λg SmoothL1( yt ⊘ sg , gt ⊘ sg )+ λδ SmoothL1( δK ⊘ sδ , ∆gK ⊘ sδ ) . (6) The loss weights λg and λδ are 0.5 and 1, respectively. Each replica is trained for 40 epochs with batch size 32 and an AdamW learning rate of 3×10 −4. Sampling is balanced across phase and candidate diversity, and the mask encoder is refined 
+
+TABLE II SUCCESS RATES (%) FOR CONTROLLER ABLATIONS AND GENERALISATION TESTS . S TAGE 2 RATES ARE CONDITIONAL ON SUCCESSFUL STAGE 1
+
+> HANDOFFS
+
+; OVERALL RATES INCLUDE ALL INITIAL CASES . D ASHES MARK ONE STAGE CONTROLLERS EVALUATED AS A SINGLE PROCESS .                                                          
+
+> Structure Action policy World model Stage 1(%) Stage 2(%) Overall(%)
+> Evaluation within the training distribution
+> One stage Deterministic Transformer No ––0.0 One stage Temporal U-Net diffusion No ––1.1 Two stages Temporal U-Net diffusion No 100.0 88.9 88.9 Two stages Temporal U-Net diffusion Transformer 100.0 93.3 93.3 Two stages Temporal U-Net diffusion GRU (RodForesight) 100.0 96.7 96.7
+> Generalisation to hole positions and initial rod poses
+> Two stages Temporal U-Net diffusion GRU (RodForesight) 95.7 91.4 87.5
+> Generalisation to unseen rod diameters: trained at 2, 4, and 6 mm
+> Two stages, test: 3 mm Temporal U-Net diffusion GRU 97.8 70.5 68.9 Two stages, test: 5 mm Temporal U-Net diffusion GRU 100.0 86.7 86.7
+> Generalisation to unseen materials: no retraining
+> Two stages, 6061-T6 aluminium Temporal U-Net diffusion GRU 100.0 93.3 93.3 Two stages, dry PA66 Temporal U-Net diffusion GRU 100.0 93.3 93.3 Stage 1 Stage 2 Initial Coarse alignment Handoff Early insertion Deep insertion Success
+> AISI 304
+> C11000 copper
+> Carbon epoxy
+> 6061-T6 aluminium
+> Dry PA66 Fig. 4. Representative successful executions across five materials. The first three rows test unseen hole positions and initial rod poses, while the last two show 6061-T6 aluminium and dry PA66. Columns show the initial state, Stage 1 coarse approaching and handoff, Stage 2 insertion, and success. Colours identify materials for display.
+
+from its diffusion initialisation. The replicas share architecture and hyperparameters but use independent initialisation and data order. Only the replica with the lowest validation loss is retained for inference. 
+
+D. Evaluation Protocol 
+
+Direct and staged controllers are compared on 90 fixed initial configurations within the training distribution. These comprise 29 AISI 304, 31 C11000 copper, and 30 carbon epoxy cases. For these paired comparisons, direct policies start from the initial poses, whereas staged variants restore the corresponding Stage 1 handoffs. Both direct baselines use 300 expert trajectories with phase sampling and validation selection over three runs. They generate sequences of 16 actions and execute four per decision. All variants acquire fresh observations and share physical states and diffusion seeds where applicable. Test cases are fixed before execution, and every failure remains in the overall denominator. Generalisation is evaluated on 256 cases with unseen hole positions and a broader range of initial rod positions and orientations. The material counts are 88 for AISI 304, 87 for C11000 copper, and 81 for carbon epoxy. Each diameter test uses the same 90 initial configurations as the principal evaluation. Models train at 2, 4, and 6 mm and are evaluated at 3 and 5 mm, keeping radial clearance at 0.5 mm. The checkpoint is selected using the training validation set. Material tests use 100 mm long, 4 mm diameter rods of 6061-T6 aluminium or dry PA66 and the same 90 initial configurations. Each rod is initialised straight and unstrained, with zero velocity and acceleration and no contact history, under zero external load. The Cosserat state evolves during Stage 1 and passes to Stage 2 with its configuration, motion, and internal and contact histories intact. Both learned models remain frozen, and the contact parameters, visual appearance, control settings, and sampling seeds remain unchanged. Overall success includes every initial case. Code, model weights, and evaluation data are available in an anonymised repository. 1
+
+E. Results 1) Stage Separation: Separating coarse approaching from insertion improves success even before introducing a world model. With the temporal U-Net diffusion policy, the staged controller achieves 88.9% success, compared with 1.1% when the policy controls the complete task directly (Table II). The deterministic Transformer trained by behaviour cloning achieves 0.0% success. Within this demonstration budget, the results support assigning broad pose correction to Stage 1 so that the policy can concentrate on local insertion motions. 
+
+2) Predictive Action Selection: The world model improves insertion by choosing among motions proposed by the same diffusion policy. With the policy and initial cases fixed, predictive selection raises success from 88.9% to 96.7%, with all previously successful trials remaining successful. The exact paired McNemar test gives a p value of 0.0156, with gains across all three training materials (Table III). Replacing only the GRU transition with a Transformer gives 93.3% success. However, the paired comparison with the GRU gives a p value of 0.375, so these results do not establish superiority of either architecture. 
+
+> 1https://github.com/emotionalchara-lang/ RodForesight-review
+
+TABLE III SUCCESS RATES (%) ACROSS THE THREE TRAINING MATERIALS . E VERY INITIAL CASE REMAINS IN THE DENOMINATOR .                     
+
+> Configuration AISI 304(%) C11000(%) Carbon (%)
+> Evaluation within the training distribution
+> One stage, Transformer policy 0.0 0.0 0.0 One stage, diffusion policy 3.4 0.0 0.0 Two stages, no world model 93.1 93.5 80.0 Two stages, Transformer model 93.1 96.8 90.0 Two stages, GRU model (RodForesight) 96.6 100.0 93.3
+> Generalisation to hole positions and initial rod poses
+> Two stages, GRU model 86.4 89.7 86.4
+
+TABLE IV WORLD MODEL PREDICTION ERRORS AFTER FOUR ACTIONS . R ADIAL ERRORS ARE IN MILLIMETRES AND TILT ERRORS ARE IN DEGREES .GENERALISATION REFERS TO THE 256 CASES WITH UNSEEN HOLE POSITIONS AND INITIAL ROD POSES . R OWS LABELLED ‘SUCCESSFUL ’
+
+> INCLUDE ONLY SUCCESSFUL ROLLOUTS
+
+.                                      
+
+> Radial (mm) Tilt ( ◦)State set or material MAE RMSE MAE RMSE
+> Matched test branches
+> All materials 0.028 0.052 0.108 0.225 AISI 304 0.028 0.052 0.130 0.361 C11000 0.029 0.054 0.101 0.155 Carbon epoxy 0.026 0.049 0.101 0.158
+> Executed branches from policy states
+> Training distribution, all 0.576 3.208 0.567 0.822 Training distribution, successful 0.156 0.186 0.503 0.605 Generalisation, all 0.761 3.739 0.690 0.953 Generalisation, successful 0.163 0.193 0.568 0.669
+> Note: MAE and RMSE denote mean absolute error and root mean square error, respectively.
+
+Matched candidate branches help identify when prediction improves action selection. Exact index agreement counts differences even when candidates have nearly identical outcomes. Regret instead measures the gap between the selected and oracle outcomes, normalised by the success tolerances. Prediction reduces mean regret from 0.031 to 0.025 across all test panels (Table V). The reduction is larger on the 28 panels selected by a fixed action diversity threshold, where regret falls from 0.534 to 0.248. This suggests that prediction is particularly useful when the candidate corrections have different consequences. On expert branches, the world model has radial MAE in 
+
+[0 .026 , 0.029] mm and tilt MAE in [0 .101 , 0.130] ◦ across the three training materials (Table IV). Accuracy decreases, however, on states reached by the controller. Radial MAE rises to 0.576 mm in the training distribution test and 0.761 mm in the generalisation test. Together with the paired success comparison, these results show that prediction can improve action selection even though its accuracy decreases during execution. 
+
+F. Ablation and Generalisation 
+
+The frozen controller also generalises to softer materials. Stage 1 succeeds in every case for both 6061-T6 aluminium and dry PA66, and overall success is 93.3% for each material (Table II). All failures occur during Stage 2. Aluminium and 
+
+TABLE V CANDIDATE SELECTION ON 623 TEST PANELS WITH MATCHED BRANCHES . T HE DIVERSE SUBSET CONTAINS 28 PANELS : 7 AISI 304, 14 C11000, AND 7 CARBON EPOXY . L OWER REGRET IS BETTER .                         
+
+> Exact match (%) Regret Selector or material All Diverse All Diverse
+> Selector using predicted geometry
+> All materials 3.4 42.9 0.025 0.248 AISI 304 4.5 57.1 0.017 0.088 C11000 3.8 42.9 0.026 0.288 Carbon epoxy 1.3 28.6 0.029 0.328 No world model, all 13.3 10.7 0.031 0.534
+
+PA66 have Young’s moduli of 68.9 and 3.5 GPa, respec-tively, compared with the training range of [117 , 193] GPa. With rod dimensions fixed, these results support transfer to lower stiffness without retraining, including the much softer PA66 model. The observed responses remain elastic, with PA66 represented by an isotropic surrogate. Fig. 4 shows representative successful executions. Stage 1 also reduces the larger initial errors in the test with unseen hole positions and initial rod poses. Among successful handoffs, median radial error falls from 19.39 to 0.38 mm, while median tilt falls from 20 .06 ◦ to 1.20 ◦. Most of the initial misalignment is therefore corrected before the insertion policy takes over. Stage 1 achieves 95.7% success, while the complete controller achieves 87.5%, with all initial cases retained. These tests use the three training materials to assess generalisation in hole position and initial pose. Transfer across rod diameters is less uniform. After training at 2, 4, and 6 mm, the controller achieves 68.9% success at 3 mm and 86.7% at 5 mm, with radial clearance fixed. The thinner rod remains difficult to observe: perception recovery accounts for 89.3% of failures in the 3 mm test. These results demonstrate insertion at diameters absent from training, while identifying perception as the principal bottleneck at 3 mm. VI. C ONCLUSION 
+
+This manuscript presented RodForesight for inserting long, thin flexible rods through fine clearances. Stage 1 contracts broad initial variation into a compact hand-off region, allowing the diffusion policy in Stage 2 to focus on contact-sensitive corrections. The world model evaluates candidate actions by predicting their radial and angular effects before execution. Experiments show that RodForesight improves insertion success over baseline methods, including Diffusion Policy, and generalises across unseen hole positions, initial rod poses, rod diameters, and materials, including a highly flexible material with compliance well beyond the training range. REFERENCES [1] S. Kim and A. Rodriguez, “Active extrinsic contact sensing: Application to general peg-in-hole insertion,” in Proc. IEEE Int. Conf. Robot. Autom. (ICRA) , 2022, pp. 10 241–10 247. [2] Y. Chen, K. Kimble, H. H. Qian, P. Chanrungmaneekul, R. Seney, and K. Hang, “Robust peg-in-hole assembly under uncertainties via compliant and interactive contact-rich manipulation,” in Proc. Robot. Sci. Syst. , 2025. [3] M. Li and C. Choi, “Learning for deformable linear object insertion leveraging flexibility estimation from visual cues,” in Proc. IEEE Int. Conf. Robot. Autom. (ICRA) , 2024, pp. 5183–5189. [4] Y. Yang, J. A. Stork, and T. Stoyanov, “Learning to propagate interaction effects for modeling deformable linear objects dynamics,” in Proc. IEEE Int. Conf. Robot. Autom. (ICRA) , 2021, pp. 1950–1957. [5] Y. Wu et al. , “1 kHz behavior tree for self-adaptable tactile insertion,” in 
+
+Proc. IEEE Int. Conf. Robot. Autom. (ICRA) , 2024, pp. 16 002–16 008. [6] W.-T. Yang, J.-M. Liao, and P.-C. Lin, “Physics-data hybrid dynamic model of a multi-axis manipulator for sensorless dexterous manipulation and high-performance motion planning,” Int. J. Adv. Robot. Syst. ,vol. 22, no. 2, pp. 1–20, Mar./Apr. 2025. [7] M. Ueda et al. , “Robust and error-tolerant peg-in-hole assembly using simple control,” IEEE Robot. Autom. Lett. , vol. 10, no. 7, pp. 6928– 6935, Jul. 2025. [8] Q. Zhao, H. Y. Hailegebrial, W. Wang, K. Wen, and L. Zheng, “Robotic jamming-free and precise assembly for peg-in-hole operation by multi-DOF force-controlled parallel end-effector,” Robot. Comput.-Integr. Manuf. , vol. 97, Feb. 2026, Art. no. 103083. [9] C. Chi, S. Feng, Y. Du, Z. Xu, E. Cousineau, B. C. M. Burchfiel, and S. Song, “Diffusion policy: Visuomotor policy learning via action diffusion,” in Proc. Robot. Sci. Syst. , 2023. [10] C. Finn and S. Levine, “Deep visual foresight for planning robot motion,” in Proc. IEEE Int. Conf. Robot. Autom. (ICRA) , 2017, pp. 2786–2793. [11] W. Yan, A. Vangipuram, P. Abbeel, and L. Pinto, “Learning predictive representations for deformable objects using contrastive estimation,” in Proc. Conf. Robot Learn. , ser. Proceedings of Machine Learning Research, vol. 155, 2021, pp. 564–574. [12] W. Wang, D. Berenson, and D. J. Balkcom, “An online method for tight-tolerance insertion tasks for string and rope,” in Proc. IEEE Int. Conf. Robot. Autom. (ICRA) , 2015, pp. 2488–2495. [13] M. Janner, Y. Du, J. Tenenbaum, and S. Levine, “Planning with diffusion for flexible behavior synthesis,” in Proc. Int. Conf. Mach. Learn. (ICML) , ser. Proceedings of Machine Learning Research, vol. 162, 2022, pp. 9902–9915. [14] M. Li, H. Yu, and C. Choi, “Routing manipulation of deformable linear object using reinforcement learning and diffusion policy,” in 
+
+Proc. IEEE Int. Conf. Robot. Autom. (ICRA) , 2025, pp. 7270–7276. [15] K. Zhang, B. Li, K. Hauser, and Y. Li, “AdaptiGraph: Material-adaptive graph-based neural dynamics for robotic manipulation,” in Proc. Robot. Sci. Syst. , 2024. [16] F. Liu, E. Su, J. Lu, M. Li, and M. C. Yip, “Robotic manipulation of deformable rope-like objects using differentiable compliant position-based dynamics,” IEEE Robot. Autom. Lett. , vol. 8, no. 7, pp. 3964– 3971, Jul. 2023. [17] Y. Chen, Y. Zhang, Z. Brei, T. Zhang, Y. Chen, J. Wu, and R. Vasudevan, “Differentiable discrete elastic rods for real-time modeling of deformable linear objects,” in Proc. Conf. Robot Learn. , ser. Proceedings of Machine Learning Research, vol. 270, 2025, pp. 2996–3014. [18] M. Gazzola, L. H. Dudte, A. G. McCormick, and L. Mahadevan, “Forward and inverse problems in the mechanics of soft filaments,” R. Soc. Open Sci. , vol. 5, no. 6, Jun. 2018, Art. no. 171628. [19] N. Carion et al. , “SAM 3: Segment anything with concepts,” in Proc. Int. Conf. Learn. Represent. (ICLR) , 2026. [20] H. K. Cheng and A. G. Schwing, “XMem: Long-term video object segmentation with an Atkinson-Shiffrin memory model,” in Proc. Eur. Conf. Comput. Vis. , 2022, pp. 640–658. [21] K. He, X. Zhang, S. Ren, and J. Sun, “Deep residual learning for image recognition,” in Proc. IEEE Conf. Comput. Vis. Pattern Recognit. , 2016, pp. 770–778.
