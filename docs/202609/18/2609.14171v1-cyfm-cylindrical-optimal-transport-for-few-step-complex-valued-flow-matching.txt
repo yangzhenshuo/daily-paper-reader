@@ -1,0 +1,607 @@
+Title: CyFM: Cylindrical Optimal Transport for Few-Step Complex-Valued Flow Matching
+
+URL Source: https://arxiv.org/pdf/2609.14171v1
+
+Published Time: Tue, 15 Sep 2026 01:00:33 GMT
+
+Number of Pages: 16
+
+Markdown Content:
+Preprint 
+
+# CYFM: C YLINDRICAL OPTIMAL TRANSPORT FOR 
+
+# FEW -S TEP COMPLEX -V ALUED FLOW MATCHING 
+
+Marcel Musiałek Iga Wolanin Damian Ryczko Anna Grelewska Oleksii Furman 
+
+Wrocław University of Science and Technology Wrocław, Poland 
+
+{marcel.musialek, 281203, 281188, 279694}@student.pwr.edu.pl oleksii.furman@pwr.edu.pl 
+
+# ABSTRACT 
+
+Complex-valued signals, such as Magnetic Resonance Imaging (MRI) and audio spectrograms, are almost always modelled as flat two-channel Euclidean data. For nonzero values the amplitude–phase chart z 7 → (|z|, z/ |z|) identifies the signal domain with the cylinder (0 , ∞) × S1, on which we deliberately replace the inherited metric dA 2 + A2dθ 2 by the decoupled product metric dA 2 + dθ 2. In this empirical study we measure what that substitution costs and what it buys. By computing exact analytical bridges, we demonstrate that Cartesian paths induce a heavy-tailed distribution of angular velocity (power law index ≈ 1.0), with nearly half of the probability paths exceeding an angular speed of π under independent coupling, a rate no cylindrical path ever exceeds. To resolve this, we analyze Cylindrical Flow Matching (CyFM), which strictly bounds the regression target, and couple noise and data by exact minibatch Optimal Transport computed jointly over whole fields in the cylindrical metric. Although the transport-cost reduction of this coupling collapses with field dimension (from 86% for scalar pairs to 3% for 
+
+64 × 64 fields), its benefit to few-step generation does not: it lowers the few-step error of the cylindrical model by 3–60% at every evaluated resolution. With this coupling, CyFM has a lower error than the best Cartesian baseline at every step count up to k = 8 and every evaluated resolution, with all five seeds separated and without distillation, and at convergence we detect no significant difference between the two geometries. Finally, we expose the “Factorized Coupling Trap,” showing that dimension-wise or patch-wise transport factorizations silently destroy the joint distribution of the data. All experiments are on synthetic complex fields. 
+
+# 1 INTRODUCTION 
+
+Flow Matching (Lipman et al., 2023; Albergo & Vanden-Eijnden, 2023; Liu et al., 2023) has emerged as a state-of-the-art paradigm for continuous-time generative modeling, offering simulation-free training and straightforward extension to Riemannian manifolds (Chen & Lipman, 2024; Mathieu & Nickel, 2020). Interest has recently grown in applying these methods to complex-valued physical signals z = x+iy = Ae iθ ∈ C, such as Magnetic Resonance Imaging (MRI) or Audio Spectrograms, where the signal phase θ encodes critical structural and physical properties. However, existing frameworks almost universally force complex signals into a naive Euclidean embedding: the data is treated as a two-channel flat Cartesian vector (Re( z), Im( z)) ∈ R2. As illustrated in Figure 1, the plane itself is perfectly well behaved; what suffers is the probability path drawn on it. Straight Euclidean probability paths z(t) = (1 − t)z0 + tz 1 obey the triangle inequality, which pulls intermediate states below the amplitude of either endpoint, and arbitrarily close to the origin when the phases are near-antipodal. Furthermore, the phase of a Cartesian path can turn arbitrarily fast when the endpoints are close to antipodal. The Cartesian target z1 − z0 is itself bounded whenever the endpoints are; what is unbounded is the rate at which the path turns, and that is what a coarse integrator has to resolve. Prior work in representation learning and abstract feature alignment has proposed decoupled metrics on cylindrical or polar product manifolds to alleviate these issues (Chen et al., 2026; Wang et al., 1arXiv:2609.14171v1 [cs.LG] 12 Sep 2026 Preprint  
+
+> (a) Standard Euclidean Flow ( R2)(b) Cylindrical Flow Matching (Ours)
+
+Figure 1: Geometric mismatch in complex-valued generative flows. (a) In the Euclidean complex plane (Re( z), Im( z)) , linear probability trajectories pass close to the origin, inducing severe midpoint amplitude attenuation ( |z1/2| ≪ 12 (|z0| + |z1|)). (b) Cylindrical Flow Matching works in amplitude– phase coordinates on (0 , ∞) × S1 under the decoupled product metric, transporting phase along the minimal circular geodesic while preserving amplitude. 2026). However, attempting to scale these Riemannian formulations to raw, high-dimensional complex wavefields introduces entirely new failure modes associated with spatial coherence and empirical Optimal Transport (OT). In this paper, we conduct an empirical analysis of Euclidean versus Cylindrical Flow Matching for complex-valued synthesis. While our target physical domains of interest are complex MRI and audio, we isolate the fundamental geometric mechanisms by evaluating on synthetic complex fields with known ground-truth distributions. We define Cylindrical Flow Matching (CyFM) on the product manifold M = [0 , ∞) × S1 with a decoupled product metric, whose target angular velocity is bounded by construction ( |uθ | ≤ π), and measure on exact analytical probability paths what the Cartesian alternative costs. We couple noise and data by exact minibatch OT computed jointly over whole fields in the cylindrical metric, and find that although its transport-cost reduction collapses as the field dimension grows, its benefit to few-step generation persists. Finally, we expose the “Factorized Coupling Trap”—a common but flawed countermeasure where transport plans are factored per-dimension or per-patch, which we show destroys the joint distribution. 
+
+Contributions. 
+
+• Bridge geometry. We measure, on exact probability paths, how fast the phase has to turn. The Cartesian bridge has a heavy tail with power-law index ≈ 1, which we derive in closed form for equal amplitudes: under independent coupling, nearly half of its paths exceed an angular speed of π, the bound the cylindrical target never crosses at any coupling. • Few-step generation. At 16 × 16 , 32 × 32 and 64 × 64 , CyFM with the joint coupling reaches a lower error than the best Cartesian baseline at every k ≤ 8 integration steps, with all five seeds separated and no distillation. Run to convergence, we detect no significant difference between them. • Joint OT at field scale. We couple noise and data by exact minibatch OT over whole fields in the cylindrical metric. Its saving in transport cost shrinks as the field grows, from 86% on scalar pairs to 3% for 64 × 64 fields (batch 64). The few-step error of the cylindrical model still drops by 3–60% at every resolution we evaluated. • The factorized coupling trap. Factorizing that coupling per coordinate (amplitude/phase) or per patch is the obvious way around the cost of OT in high dimension. It quietly destroys the target instead. The marginals survive intact, the dependence between them does not, and structural coherence across patch seams goes with it. 2Preprint 
+
+# 2 RELATED WORK 
+
+2.1 FLOW MATCHING ON EUCLIDEAN AND RIEMANNIAN MANIFOLDS 
+
+Continuous Normalizing Flows (CNFs) parameterize generative transformations between a tractable base distribution and a target data distribution via time-dependent ordinary differential equations (ODEs) (Chen et al., 2018). Flow Matching (FM) (Lipman et al., 2023; Albergo & Vanden-Eijnden, 2023; Liu et al., 2023) broke the historical computational bottleneck of CNFs by directly regressing a neural vector field onto closed-form target paths, enabling simulation-free training. Subsequent advances incorporated minibatch optimal transport couplings (Pooladian et al., 2023; Tong et al., 2024) to straighten probability trajectories and reduce inference latency. Recognizing that physical and structural data frequently inhabit non-Euclidean spaces, Rieman-nian Flow Matching (RFM) (Chen & Lipman, 2024) extended vector field regression to general Riemannian manifolds. Recently, the specific polar or cylindrical decoupled manifold construction (R+ ×Sd−1) has been explored in representation learning and abstract feature alignment. For instance, Direct Product Flow Matching (DP-FM) (Chen et al., 2026) applies a decoupled metric to Vision-Language Model latent features to resolve angular dynamics distortion during few-shot adaptation, while DisRFM (Wang et al., 2026) utilizes polar Riemannian flows for structure-preserving graph domain adaptation. However, applying this geometric construction directly to raw, high-dimensional complex wavefields (e.g., D = 4096 ) presents unique scaling challenges regarding spatial coherence and optimal transport, which remain largely unexplored. 2.2 DEEP GENERATIVE MODELS FOR COMPLEX -V ALUED SIGNALS 
+
+The processing of complex-valued physical wavefields, such as Magnetic Resonance Imaging (MRI) or Audio STFTs, inherently requires modeling both magnitude and phase (Bernstein et al., 2004; Trabelsi et al., 2018). While supervised networks have successfully adopted complex convolutions (Cole et al., 2021), modern generative frameworks (such as Score-Based Diffusion Models (Song et al., 2021; Chung & Ye, 2022)) almost universally operate strictly on real-valued magnitude images, or naively treat real and imaginary parts as two Cartesian channels in R2, inheriting the metric of the plane. Very recently, a few works have begun exploring generative models for complex signals. Schlimbach et al. (2026) combine a complex-valued variational autoencoder with latent flow matching for brain MRI, and model the phase in a learned Euclidean latent space rather than on its circular domain. Other works, such as PhaseGen (Rempe et al., 2025) for MRI or UniverSR (Choi et al., 2025) for audio, similarly default to Euclidean formulations. As we demonstrate in this paper, Cartesian interpolation structurally induces origin singularities and extreme angular velocities. 2.3 OPTIMAL TRANSPORT TRAPS IN FLOW MATCHING 
+
+Minibatch optimal transport (OT) is commonly used to pair noise and data in flow matching (Pooladian et al., 2023; Tong et al., 2024). Related couplings under a Riemannian cost have been used on other manifolds: FoldFlow-OT (Bose et al., 2024) for protein backbones on SE(3) N , and Metric Flow Matching (Kapu´ sniak et al., 2024) with geodesics of a learned, data-induced metric. Three aspects distinguish our setting from prior work: the modality consists of complex-valued fields; the manifold is ([0 , ∞) × S1)H×W , whose phase factor is a circle at every pixel; the research question: how the coupling behaves as the field dimension grows and why it must not be factorized. The population-level coupling induced by minibatch OT, as well as its dependence on batch size, has recently been characterized by Boïté et al. (2026). Because minibatch OT scales at least quadratically with the batch, cheaper couplings have been proposed: One-Sided Quantile Coupling (QC-FM, Kim et al., 2026) constructs each source sample from one-dimensional rank statistics of the data along random projections, leaving every data sample intact. A different shortcut, which we show must be avoided, factorises the coupling itself: matching coordinates (amplitude and phase) or spatial patches with independent permutations. This reassembles data samples out of parts of different samples and destroys the joint data distribution (Section 5). 3Preprint 
+
+# 3 PRELIMINARIES AND GEOMETRIC FOUNDATIONS 
+
+3.1 FLOW MATCHING ON EUCLIDEAN SPACES 
+
+Let p0 denote a tractable base distribution on Rd (e.g., standard Gaussian N (0 , I ) or uniform prior) and let p1 denote an empirical data distribution. Continuous Normalizing Flows (CNFs) model continuous-time transport between p0 and p1 through a time-dependent vector field vt : [0 , 1] × Rd →
+
+Rd, defining a flow ψt : Rd → Rd via the ordinary differential equation (ODE): 
+
+ddt ψt(x) = vt(ψt(x)) , ψ0(x) = x. (1) Conditional Flow Matching (CFM) (Lipman et al., 2023; Albergo & Vanden-Eijnden, 2023; Liu et al., 2023) sidesteps the intractable marginal vector field by constructing target conditional vector fields 
+
+ut(xt|x0, x 1) along linear probability paths: 
+
+xt = (1 − t)x0 + tx 1, ut(xt|x0, x 1) = x1 − x0. (2) A neural network vϕ(t, x ) is classically trained via the simulation-free objective: 
+
+LCFM (ϕ) = Et∼U [0 ,1] , x 0∼p0, x 1∼p1
+
+∥vϕ(t, x t) − ut(xt|x0, x 1)∥2 . (3) Once trained, new samples are generated by drawing x0 ∼ p0 and integrating vϕ from t = 0 to t = 1 
+
+with standard numerical ODE solvers. 3.2 THE GEOMETRY OF COMPLEX -V ALUED FIELDS : C YLINDER VS . P OLAR SINGULARITY 
+
+For complex-valued physical fields, such as Magnetic Resonance Imaging (MRI) or audio spec-trograms, each spatial pixel has an amplitude A ∈ [0 , ∞) and a phase q = eiθ ∈ S1, represented by the principal angle θ ∈ [−π, π ) when coordinates are needed; the half-open interval is a set of representatives for S1 ∼= R/2πZ, not a homeomorphic copy of it. Writing R+ = (0 , ∞), the punctured plane is diffeomorphic to the open cylinder, C∗ = C \ { 0} ∼= R+ × S1. CyFM works on its closure [0 , ∞) × S1, on which the product metric below stays non-degenerate. Standard polar coordinates on C∗ induce the inherited Euclidean metric: 
+
+gpolar = dA 2 + A2dθ 2. (4) This metric is flat for A > 0, and the parametrisation is nonsingular on its domain. What degenerates is its attempted extension to A = 0 : the differential drops rank there, and the entire circle of phases collapses to a single point. In contrast, by equipping the single-pixel signal domain with a decoupled product metric, we define the local cylindrical manifold :
+
+Mlocal = [0 , ∞) × S1, glocal = dA 2 + dθ 2. (5) Both metrics are flat (Riemann curvature tensor R ≡ 0), so curvature is not what separates them; glocal 
+
+differs in that the circle A = const has length 2π at every amplitude rather than 2πA (Appendix A.1). The non-trivial fundamental group ( π1(Mlocal ) = Z) is shared by both and is the price of the construction: phase must be handled modulo 2π. Because the metric is decoupled, geodesics on 
+
+Mlocal are simply the Cartesian product of geodesics on [0 , ∞) and minimal geodesic arcs on the circle S1. Furthermore, the cylinder is parallelizable. Writing a point as (A, q ) with q ∈ S1 ⊂ C, the fields EA = (1 , 0) and Eθ = (0 , iq ) form a global orthonormal frame, and for this metric parallel transport preserves components in it. This needs no global angular coordinate, and it removes neither the periodic wrap nor the cut locus: θ stays a local coordinate with a branch cut, which Section 4 handles with a trigonometric embedding rather than with an atlas. 3.3 DESTRUCTIVE MIDPOINT ATTENUATION IN EUCLIDEAN INTERPOLATION 
+
+When complex signals are processed as two-channel real tensors (Re( z), Im( z)) , straight Euclidean paths interpolate between states z0 = A0eiθ 0 and z1 = A1eiθ 1 . By the triangle inequality: 
+
+|z(t)| = |(1 − t)z0 + tz 1| ≤ (1 − t)A0 + tA 1, (6) 4Preprint with equality exactly when the two terms are non-negative multiples of one another, so the inequality is strict whenever 0 < t < 1, both A0 > 0 and A1 > 0, and θ0̸ ≡ θ1 (mod 2 π). At the temporal midpoint t = 0 .5, the magnitude is: 
+
+|z(0 .5) | = 12
+
+q
+
+A20 + A21 + 2 A0A1 cos(∆ θ), ∆θ = θ1 − θ0. (7) For equal amplitudes A0 = A1 = A, this simplifies to |z(0 .5) | = A| cos(∆ θ/ 2) |.Write δ = wrap(∆ θ) ∈ (−π, π ] for the wrapped phase difference. The raw difference of two independent uniform angles is triangular on [−2π, 2π], whereas its wrapped counterpart is again uniform, and | cos( ·/2) | has period 2π, so the midpoint magnitude depends on the endpoints through 
+
+δ alone. 
+
+Proposition 1 (Analytic Midpoint Attenuation) . For equal amplitudes A0 = A1 = A > 0 and a uniform wrapped phase difference δ ∼ U (−π, π ], which an independent coupling of uniform phases induces, the relative expected midpoint amplitude under Euclidean interpolation suffers an analytic attenuation of 1 − 2 
+
+> π
+
+≈ 36 .338% :
+
+E[|z(0 .5) |]
+
+A = 12π
+
+Z π
+
+> −π
+
+cos 
+
+ δ
+
+2
+
+
+
+dδ = 2
+
+π ≈ 0.6366 . (8) Exactly antipodal endpoints are the only ones whose path meets the origin, and then only at the single time t = A0/(A0 + A1), where the phase is undefined; under any continuous phase law that has probability zero. The practical case is the near-antipodal one at comparable amplitudes, where the path passes arbitrarily close to zero: the amplitude is heavily attenuated and the induced angular velocity is correspondingly large. The attenuation itself occurs for any δ̸ = 0 ; its expected value 
+
+2/π is the figure for an independent coupling, and it moves with the coupling, since minibatch OT suppresses large |δ| (Table 1). That dependence is itself the asymmetry between the two geometries. What a Cartesian path costs can only be stated for a given law of δ, and has to be bought down by choosing a coupling; the cylindrical bound |uθ | ≤ π holds for every pair of endpoints under every coupling, with no distributional assumption at all. 
+
+# 4 CYLINDRICAL FLOW MATCHING 
+
+To remove the amplitude factor from the phase geometry, we formulate Cylindrical Flow Matching (CyFM) for complex-valued fields. A crucial conceptual clarification is that CyFM constructs the full signal domain as a decoupled product manifold of local voxel manifolds: 
+
+MH×W =
+
+> H
+
+Y
+
+> u=1
+> W
+
+Y
+
+> v=1
+
+Mu,v = ([0 , ∞) × S1)H×W . (9) The fundamental group of a product is the product of the factors’, and each factor is homotopy equivalent to S1, so π1(MH×W ) = ZHW : every pixel wraps independently of the others. This product structure has three consequences: • Point-wise Separability: The product Riemannian metric g = P 
+
+> u,v
+
+(dA 2 
+
+> u,v
+
++ dθ 2 
+
+> u,v
+
+)
+
+decomposes completely point-wise. Geodesics, exponential maps, and logarithmic maps require zero spatial inter-pixel coupling in the probability paths, making them embarrassingly parallel. • Vanishing Curvature: Because each local factor is intrinsically flat (Gaussian curvature 
+
+K = 0 ), the entire product manifold MH×W has identically vanishing Riemann curvature (R ≡ 0), so the construction carries no curvature-dependent local terms. This is not an advantage over the Cartesian baseline, which is flat as well, and flatness removes neither the 
+
+2π wrap, nor the cut locus at antipodal phase, nor the boundary at A = 0 .• Architectural Synergy: Spatial correlations are learned by the neural network backbone, while the geometric probability path bounds the target angular velocity ( |uθ | ≤ π) at every spatial coordinate. 5Preprint 4.1 GEODESIC PROBABILITY PATHS AND BOUNDED TARGET VELOCITIES 
+
+Given a prior sample x0 = ( A0, θ 0) ∼ p0 (e.g., standard uniform noise) and a ground-truth complex target x1 = ( A1, θ 1) ∼ p1, the geodesic flow path on M interpolates amplitude along [0 , ∞) and phase along S1:
+
+At = (1 − t)A0 + tA 1, θt = exp S1 
+
+> θ0
+
+(t u θ ) = ( θ0 + t u θ ) (mod 2 π), (10) where the target velocity components (uA, u θ ) ∈ T(At,θ t)M are given by: 
+
+uA = A1 − A0, uθ = atan2   sin( θ1 − θ0), cos( θ1 − θ0). (11) The phase target velocity uθ is computed via the Riemannian logarithmic map on S1, resolving the minimal circular arc displacement, which is unique except when θ1 is antipodal to θ0.
+
+Lemma 1 (Bounded Angular Velocity) . For any pair of configurations (x0, x 1) ∈ M × M , the target angular velocity under Cylindrical Flow Matching is globally bounded: 
+
+|uθ | ≤ π. (12) 
+
+In contrast, wherever zt̸ = 0 the induced angular velocity under Cartesian flow zt = (1 − t)z0 + tz 1
+
+is: 
+
+˙θCart = xt ˙yt − yt ˙xt
+
+|zt|2 = A0A1 sin( θ1 − θ0)
+
+|zt|2 , (13) 
+
+whose numerator is constant along the path, so the rate is largest at the closest approach to the origin and is unbounded over near-antipodal endpoints. For equal amplitudes its peak is exactly 
+
+2| tan( δ/ 2) | (Corollary 2). 
+
+The bound holds for the regression target at every pixel, at the cost of handling the periodic wrap. It is a property of the target, not of the learned field: a trained network is not constrained to respect it. The same caveat governs the amplitude, and there it has a geometric cost. Both endpoints are non-negative and At interpolates between them, so the target path never leaves [0 , ∞); but vA is unconstrained, and an integrated trajectory can reach the boundary. Our state space is a manifold with boundary and is therefore not geodesically complete, unlike the complete manifolds without boundary assumed by the Riemannian flow-matching framework (Chen & Lipman, 2024). We do not reparameterise the radius, since integrating ρ = log A would change both the radial metric and the probability path; instead the sampler projects onto A ≥ 0 at every step, and the guarantee is on the target, not on the learned flow. That projection is almost never active: across six trained cylindrical models at 16 × 16 , 32 × 32 and 64 × 64 , generating 64 fields at each of k ∈ { 1, 2, 4, 8, 100 }, it altered at most 0.003% of amplitude updates and left at most 0.03% of generated pixels at A = 0 ; at 
+
+k ≤ 4 it was inactive in every run but one. 4.2 JOINT OPTIMAL TRANSPORT COUPLING ON THE CYLINDER 
+
+Pairing prior and data samples independently yields crossing conditional paths whose average the network must regress. Minibatch Optimal Transport (OT) (Pooladian et al., 2023; Tong et al., 2024) reduces this by re-pairing each training batch. CyFM performs this re-pairing jointly over whole fields in the cylindrical metric. For a batch of prior fields {xi
+
+> 0
+
+}Bi=1 and data fields {xj
+
+> 1
+
+}Bj=1 , the cost of pairing i with j is the squared norm of the cylindrical logarithmic map, averaged over all pixels and both tangent components: 
+
+cij = 12HW 
+
+> H
+
+X
+
+> u=1
+> W
+
+X
+
+> v=1
+
+h Aj 
+
+> 1,uv
+
+− Ai
+
+> 0,uv
+
+2 + w d S1
+
+ θi 
+
+> 0,uv
+
+, θ j
+
+> 1,uv
+
+2i
+
+, (14) with phase weight w = 1 and dS1 the geodesic (wrapped) angular distance. At every training step the permutation σ minimising P 
+
+> i
+
+ciσ (i) is found exactly by linear sum assignment, and the geodesic bridge of the previous subsection is built between xi 
+
+> 0
+
+and xσ(i)1 . Generation is unaffected: it starts from the prior and integrates the learned field. The assignment is joint: amplitude, phase and all pixels of a field are moved together, so every data sample stays intact and the coupling is a valid transport plan between the joint distributions. Because the metric is a sum over coordinates, it is tempting to factorise the problem into independent one-dimensional sorts per coordinate or per spatial patch; this destroys the joint target distribution (Section 5.4). 6Preprint 4.3 CONTINUOUS TRIGONOMETRIC EMBEDDING 
+
+Two discontinuities meet here, and only one of them is an artefact. The scalar angle θ ∈ [−π, π )
+
+jumps across the negative real axis ( −π ∼ π); where that jump sits depends only on where the interval is cut, and any faithful representation of S1 removes it. Passing raw scalar angles directly to neural networks introduces sharp gradients at this branch cut. The second discontinuity is intrinsic: every point of S1 has a cut locus at its antipode, where the two minimal arcs have equal length π
+
+and the sign of uθ is arbitrary, so the logarithmic map is discontinuous there. We break that tie deterministically in favour of +π, rather than leaving it to floating-point rounding, which resolves it differently in single and double precision. The bound of Lemma 1 is unaffected, since atan2 returns values in (−π, π ] and only the sign is ambiguous. Antipodal pairs have measure zero under the phase priors we use, but near them the two branches ±π both enter the conditional expectation that the squared error regresses, and partly cancel. The embedding below removes the first discontinuity and leaves the second: 
+
+e(A, θ ) =  A, cos θ, sin θ ∈ R3. (15) A standard convolutional or vision transformer backbone takes e(At, θ t) concatenated with time embedding t, and outputs the two-channel tangent vector field vϕ(t, e) = ( vA, v θ ) ∈ T(A,θ )M.4.4 TRAINING OBJECTIVE 
+
+Both geometries regress their target velocity with the squared error, the flow-matching objective whose minimiser is the conditional expectation of the target: 
+
+LCyFM (ϕ) = Et,x 0,x 1
+
+h
+
+(vA − uA)2 + λ (vθ − uθ )2i
+
+, λ = 1 . (16) The angular term compares two tangent vectors at the same point, so it needs no wrapping: the shortest-arc displacement is already in the target uθ .
+
+Two objectives that break the fixed point. Weighting the phase term by the target amplitude, 
+
+A1/ ¯A1, is tempting because background phase carries little signal, but the weight depends on x1: the phase channel then regresses an amplitude-weighted conditional mean that the amplitude channel does not, and the learned flow is no longer guaranteed to transport the prior to the data. The absolute error regresses the conditional median instead of the mean, with the same consequence. We measured both at 32 × 32 (joint OT, 3 seeds, k = 100 ): the cylindrical sliced W2 is 0.121 with the amplitude-weighted L1 loss, 0.074 without the weight and 0.038 with the unweighted squared error, against 
+
+0.033 for the Cartesian geometry under the same squared error. Appendix Table 5 reports both geometries under unweighted L1 and L2 losses across all resolutions. 
+
+What differs between the two pipelines. The Cartesian baselines take the two channels (Re , Im) 
+
+and are trained with the same squared error on them. The pipelines therefore differ in the path, in the metric of the coupling, and in the three-channel embedding. The last is a choice rather than a necessity: a network can take the raw scalar angle, but it then sees a branch discontinuity that the embedding avoids. 
+
+# 5 EXPERIMENTS 
+
+We organise the evaluation around four claims. First, we show through analytical bridges that the cylindrical target has no origin singularity. Second, we verify the practical interaction of this geometry with U-Net architectures and Optimal Transport. Third, we ablate the framework across spatial dimensions to test scaling robustness and the effect of the joint OT coupling. Fourth, we show that factorising the coupling destroys the joint target distribution. 5.1 ANALYTICAL BRIDGE ABLATION : I SOLATING THE GEOMETRY 
+
+To isolate the effect of the metric without the confounding variables of neural network capacity or imperfect empirical Optimal Transport coupling, we first evaluate the exact analytical probability paths. By computing the theoretical trajectories zt between samples drawn from a uniform phase prior and a synthetic complex target distribution, we can directly measure the angular velocities predicted in Section 4. Because the numerator of the Cartesian angular velocity ˙θ(t) = Im (¯ z0z1)/|zt|2 is 7Preprint invariant along the straight-line path, the peak angular velocity is governed exclusively by the minimum distance to the origin. Table 1 reports the empirical distribution of peak angular velocities over 10 6 sampled endpoint pairs (seed 0); the peak on each bridge is evaluated in closed form (Proposition 4), so the trajectories are exact and only the endpoint sampling is Monte Carlo. The Cartesian bridge exhibits a heavy-tailed power law (index ≈ 1.0), consistent with Corollary 3. With independent coupling, 46% of Cartesian paths exceed an angular velocity of π rad per unit time, and the 99.9th percentile reaches 1,566 ;because the tail index is close to 1, the sample maximum grows with the number of paths and is not a property of the bridge. Minibatch OT on scalar pairs partially mitigates this by avoiding origin-crossing pairs; the transport-cost reduction that makes this possible shrinks with field dimension (Section 5.3), and we do not measure the bridges at field scale. In stark contrast, the Cylindrical bridge is structurally bounded by π by construction ( 0.0% paths > π ), independently of the coupling. This bounded regression target is consistent with the few-step results below. Table 1: Analytical Path Geometry. Distribution of peak angular velocities ( | ˙θ|, rad per unit time) evaluated on 10 6 exact theoretical bridges. Cartesian paths exhibit a heavy-tailed divergence, whereas Cylindrical paths are structurally bounded by π. Minibatch OT row: scalar pairs, batch 256.                        
+
+> Geometry Coupling Median 99.9th Percentile ↓Paths > π ↓Theoretical Max
+> Cartesian ( R2)Independent 2.81 1,566 46.0% ∞
+> Cartesian ( R2)Minibatch OT 0.31 26.7 1.0% ∞
+> Cylindrical (Ours) Independent 1.57 3.14 0.0% π
+
+5.2 SPATIAL FIELD SYNTHESIS : U-N ET EVALUATION 
+
+While the analytical bridges characterise the two regression targets exactly, practical generative modeling relies on a neural network’s ability to regress this vector field. 
+
+Data and protocol. All spatial experiments use a synthetic complex field with a known ground truth: amplitude and phase are coupled through a Gaussian copula (correlation ρ = 0 .5) with fixed marginals, and the latents are spatially smoothed (correlation length 4 pixels, lag-1 amplitude correlation 0.96 ). Each field is normalised by its own peak modulus, and metrics are computed in this training domain. We train a convolutional U-Net for 40 epochs (batch 64, 8192 training fields, the squared velocity error of Section 4 in both geometries) with both geometries sharing the same prior, amplitude U[0 , 1] and phase U[0 , 2π) independently per pixel (supported on the unit disc, though not uniform on it), and report the mean over 5 seeds. We call a difference separated when every seed of one arm lies below every seed of the other; for 5 against 5 seeds this is an exact two-sided Mann–Whitney p = 0 .008 , the smallest attainable. The headline claim is an intersection, a lower error at every evaluated step count and resolution, so every component has to pass on its own and the conjunction needs no multiplicity correction. With 5 seeds per arm the tests have little power, so where we report no significant difference that is a failure to detect one, not evidence of equivalence; an equivalence claim would need a prespecified margin and a test against it. Generation uses a Heun solver; k steps correspond to 2k − 1 function evaluations. The generative error is the sliced W2
+
+distance between the per-pixel complex values of generated and reference fields, pooled over pixels. It compares pixel-level statistics and is insensitive to spatial arrangement (Section 5.4), so the tables below do not measure spatial structure. We compare Cartesian and Cylindrical geometries under both Independent and joint OT couplings (Section 4.2; for the Cartesian arm the same assignment uses the Euclidean cost). Table 2 presents the results at 64 × 64 . CyFM with the joint coupling has the lowest error at every 
+
+k ≤ 8, with all seeds separated from the best Cartesian arm. At a single integration step ( k = 1 )it reaches 0.117 , a 3× lower error than the best Cartesian arm ( 0.376 ). At convergence ( k = 100 )we detect no significant difference ( 0.040 against 0.046 , p = 0 .15 ). With the joint coupling the cylindrical error decreases monotonically with k, here and at 32 × 32 (Table 3); without it, the error rises from k = 1 to k = 2 at every resolution. Straightness is similar across arms ( 0.13 –0.14 ); we did not test for equality. The two error components behave differently: at k ≤ 8 CyFM has the lower amplitude W2 at every resolution with separated seeds, while the circular phase W2 is mixed, 8Preprint the Cartesian geometry being lower at k = 8 on 32 × 32 and 64 × 64 fields. We report this as a decomposition of where the arms differ, not as evidence that the amplitude component causes the aggregate difference. Table 2: Spatial Field Synthesis ( 64 × 64 ). Generative error (Sliced W2, ↓), mean over 5 seeds. All arms are trained with the same objective, the unweighted squared error of the velocity. CyFM with joint OT has the lowest error up to k = 8 , with all seeds separated; at k = 100 we detect no significant difference ( p = 0 .15 ). Appendix Table 5 repeats the comparison with each geometry’s best loss. 
+
+Geometry Coupling 1 Step 2 Steps 4 Steps 8 Steps 100 Steps 
+
+Cartesian ( R2) Independent 0.416 0.349 0.285 0.154 0.046 Cartesian ( R2) Minibatch OT 0.376 0.318 0.260 0.141 0.047 
+
+Cylindrical (Ours) Independent 0.121 0.148 0.109 0.066 0.043 
+
+Cylindrical (Ours) Minibatch OT 0.117 0.114 0.078 0.054 0.040 5.3 DIMENSIONALITY SCALING AND THE JOINT OT C OUPLING 
+
+The transport-cost reduction that minibatch OT achieves over independent pairing collapses with dimension. Under the cylindrical metric on the pointwise copula target (batch 64), it is 86% for scalar pairs, 21% for 8 × 8 fields and 3% for 64 × 64 fields, while the assignment still reorders nearly every pair. To test whether the trained benefit collapses with it, we ablate the U-Net models across dimensions ( 16 × 16 , 32 × 32 , and 64 × 64 ), with the cylindrical model trained both with and without the joint coupling (Table 3). It does not. At every resolution and every step count, joint cylindrical OT lowers the mean error of the cylindrical model; at k ≤ 4 the reduction is 3–60% , and the five seeds are separated in 6 of the 9 cases (the exceptions are k = 1 at 16 × 16 and k = 2 , 4 at 64 × 64 ). With the coupling, CyFM has a lower error than the best Cartesian arm at every k ≤ 8 at all three resolutions, with all seeds separated, and at k = 100 no difference is significant. Giving each geometry its best objective from {L 1, L2} × { independent , OT } leaves this unchanged except at 16 × 16 , k = 8 (p = 0 .15 ); at 
+
+64 × 64 , k = 100 , the best arms reach 0.035 and 0.032 (p = 0 .69 ; Appendix Table 5). OT is also most effective for the Cartesian geometry at low resolution: at 16 × 16 , Cartesian k = 1 improves from 0.442 without OT to 0.227 with it. Table 3: Dimensionality Scaling. Generative error (Sliced W2, ↓) across spatial resolutions, mean over 5 seeds, with the cylindrical model trained with and without the joint OT coupling. All arms use the unweighted squared velocity error. CyFM’s few-step advantage holds at all three resolutions, and joint OT improves the cylindrical model at every step count.                                                                             
+
+> Resolution Geometry Coupling 1 Step 2 Steps 4 Steps 8 Steps 100 Steps
+> 16 ×16 (D= 256 )Cartesian OT 0.227 0.202 0.153 0.097 0.068 CyFM Independent 0.116 0.155 0.133 0.097 0.062
+> CyFM (Ours) Joint OT 0.098 0.086 0.053 0.064 0.054
+> 32 ×32 (D= 1024 )Cartesian OT 0.340 0.275 0.209 0.104 0.037 CyFM Independent 0.123 0.145 0.113 0.063 0.047
+> CyFM (Ours) Joint OT 0.113 0.094 0.072 0.049 0.041
+> 64 ×64 (D= 4096 )Cartesian OT 0.376 0.318 0.260 0.141 0.047 CyFM Independent 0.121 0.148 0.109 0.066 0.043
+> CyFM (Ours) Joint OT 0.117 0.114 0.078 0.054 0.040
+
+5.4 THE FACTORIZED COUPLING TRAP 
+
+Because the cylindrical metric is a sum over amplitude and phase, and over pixels, it is tempting to solve the transport problem separately per coordinate or per spatial patch. The factorised minimum is 9Preprint always a lower bound on the joint one, and it is attained exactly when some joint plan is simultaneously optimal in every coordinate — which holds when both distributions are product measures, and degenerately when source and target coincide, but not in general. We measure the consequence without any network, on the pointwise copula target (spiral structure) with n = 1024 pairs and 8 seeds (Table 4). Coupling amplitude and phase independently leaves both marginals bit-identical to the target (Kolmogorov–Smirnov distance 0), yet the circular-linear correlation of the coupled data falls to ≈ 0.04 at every ρ, and its transport cost stays flat at 0.20 while the true optimum rises to 0.38 
+
+at ρ = 1 : the factorised plan reports a cost below the optimum because it no longer transports the target. The spatial analogue behaves identically. On 64 × 64 fields (correlation length 6), coupling 
+
+16 × 16 patches independently leaves the pooled sliced W2 to the data at 0.000 and the correlation inside patches at 0.979 , but the lag-1 correlation across patch seams falls from 0.979 to 0.044 . The damage is in the coupled targets themselves: a factorised plan reassembles endpoints from different data samples, so the law that the flow-matching objective transports to at its population optimum is that reassembled law and not the data. Capacity does not change which target is being fitted, and pooled distributional metrics do not detect the difference. Table 4: The Factorized Coupling Trap (no network). Coupling amplitude and phase independently preserves both marginals exactly but erases their dependence, and reports a transport cost below the true optimum. Spiral copula target, n = 1024 , mean over 8 seeds. 
+
+ρ Corr. target Corr. coupled KS (marginals) Cost, factorised Cost, joint OT 
+
+0.0 0.024 0.042 0 0.200 0.206 0.5 0.310 0.042 0 0.200 0.225 1.0 0.867 0.040 0 0.200 0.385 5.5 SCOPE AND FUTURE WORK 
+
+All results in this paper are on synthetic complex fields. The next steps are: evaluating on physical signals, namely unconditional generation of complex MRI images (fastMRI, Zbontar et al., 2018) and complex audio spectrograms; adding spatial metrics alongside the pooled sliced W2; and investigating the Cartesian geometry’s lower phase error at intermediate step counts. 
+
+# 6 CONCLUSION 
+
+In this empirical study, we compared Euclidean and cylindrical geometries for complex-valued generative Flow Matching. On exact probability paths, Cartesian interpolation produces a heavy-tailed angular velocity near the origin, while mapping complex fields onto the decoupled cylindrical manifold ( [0 , ∞) × S1) bounds the target angular velocity by π. On synthetic fields up to 64 × 64 ,Cylindrical Flow Matching (CyFM) with the joint coupling has a lower error than the Cartesian baselines at every step count up to k = 8 , without distillation, and shows no significant difference at convergence. Our analysis also found two limits in scaling such flows to fields. First, the transport-cost reduction of minibatch Optimal Transport collapses at field scale, yet the joint cylindrical coupling still lowers the few-step error of CyFM at every resolution. Second, the Factorized Coupling Trap arises when the coupling is factorized across coordinates or spatial patches. This factorization destroys the joint data distribution. We also found that the training objective matters: an amplitude-weighted L1 loss leaves the flow-matching fixed point, and under it the cylindrical model fell behind at convergence and did not improve reliably with more integration steps; the squared error removes both. What remains open is the Cartesian geometry’s lower phase error at intermediate step counts. Explaining it, and evaluating on physical signals, is the next step. 
+
+# REFERENCES 
+
+Michael S. Albergo and Eric Vanden-Eijnden. Building normalizing flows with stochastic interpolants. In International Conference on Machine Learning (ICML) , pp. 719–742, 2023. 10 Preprint Matt A. Bernstein, Kevin F. King, and Xiaohong Joe Zhou. Handbook of MRI Pulse Sequences .Elsevier Academic Press, 2004. Samuel Boïté, Julie Delon, and Kimia Nadjahi. Expected batch optimal transport plans and conse-quences for flow matching. arXiv preprint arXiv:2605.12174 , 2026. Avishek Joey Bose, Tara Akhound-Sadegh, Guillaume Huguet, Kilian Fatras, Jarrid Rector-Brooks, Cheng-Hao Liu, Andrei Cristian Nica, Maksym Korablyov, Michael Bronstein, and Alexander Tong. SE(3)-stochastic flow matching for protein backbone generation. In International Conference on Learning Representations (ICLR) , 2024. Hongxu Chen, Yanghao Wang, Bowei Zhu, Hongxiang Li, Zhen Wang, Ziqi Jiang, Lin Li, Rui Liu, and Long Chen. Direct product flow matching: Decoupling radial and angular dynamics for few-shot adaptation. arXiv preprint arXiv:2605.05054 , 2026. Ricky T. Q. Chen and Yaron Lipman. Flow matching on general geometries. In International Conference on Learning Representations (ICLR) , 2024. Ricky T. Q. Chen, Yulia Rubanova, Jesse Bettencourt, and David K. Duvenaud. Neural ordinary dif-ferential equations. In Advances in Neural Information Processing Systems (NeurIPS) , volume 31, pp. 6571–6583, 2018. Woongjib Choi, Sangmin Lee, Hyungseob Lim, and Hong-Goo Kang. UniverSR: Unified and versatile audio super-resolution via vocoder-free flow matching. arXiv preprint arXiv:2510.00771 ,2025. Hyungjin Chung and Jong Chul Ye. Score-based diffusion models for accelerated MRI. Medical Image Analysis , 80:102479, 2022. Elizabeth K. Cole, John M. Pauly, Shreyas S. Vasanawala, and Frank Ong. Analysis of deep complex-valued convolutional neural networks for MRI reconstruction and phase-focused applications. 
+
+Magnetic Resonance in Medicine , 86(2):1093–1109, 2021. Kacper Kapu´ sniak, Peter Potaptchik, Teodora Reu, Leo Zhang, Alexander Tong, Michael Bronstein, Avishek Joey Bose, and Francesco Di Giovanni. Metric flow matching for smooth interpolations on the data manifold. In Advances in Neural Information Processing Systems (NeurIPS) , 2024. Jin-Young Kim, So-Yoon Cho, and Hyun-Gyoon Kim. One-sided quantile coupling for flow matching. 
+
+arXiv preprint arXiv:2608.00978 , 2026. Yaron Lipman, Ricky T. Q. Chen, Heli Ben-Hamu, Maximilian Nicklas, and Matt Le. Flow matching for generative modeling. In International Conference on Learning Representations (ICLR) , 2023. Xingchao Liu, Chengyue Gong, and Qiang Liu. Flow straight and fast: Learning to generate and transfer data with rectified flow. In International Conference on Learning Representations (ICLR) ,2023. Emile Mathieu and Maximilian Nickel. Riemannian continuous normalizing flows. In Advances in Neural Information Processing Systems (NeurIPS) , volume 33, pp. 2503–2515, 2020. Aram-Alexandre Pooladian, Heli Ben-Hamu, Marcello Carioni, Ricky T. Q. Chen, and Yaron Lipman. Multisample flow matching: Straightening flows with minibatch couplings. In International Conference on Machine Learning (ICML) , pp. 28100–28127, 2023. Moritz Rempe, Fabian Hörst, Helmut Becker, Marco Schlimbach, Lukas Rotkopf, Kevin Kröninger, and Jens Kleesiek. PhaseGen: A diffusion-based approach for complex-valued MRI data generation. 
+
+arXiv preprint arXiv:2504.07560 , 2025. Marco Schlimbach, Moritz Rempe, Jessica Mnischek, Lukas T. Rotkopf, Jens Weingarten, Jens Kleesiek, and Kevin Kröninger. Generative modeling of complex-valued brain MRI data. arXiv preprint arXiv:2604.14800 , 2026. Yang Song, Jascha Sohl-Dickstein, Diederik P. Kingma, Abhishek Kumar, Stefano Ermon, and Ben Poole. Score-based generative modeling through stochastic differential equations. In International Conference on Learning Representations (ICLR) , 2021. 11 Preprint Alexander Tong, Nikolay Malkin, Guillaume Huguet, Yanlei Zhang, Jarrid Rector-Brooks, Kilian Fatras, Guy Wolf, and Pietro Lio. Improving and generalizing flow-based generative models with minibatch optimal transport. Transactions on Machine Learning Research (TMLR) , 2024. Chiheb Trabelsi, Olexa Bilaniuk, Ying Zhang, Dmitriy Serdyuk, Sandeep Subramanian, Joao Felipe Santos, Soroush Mehri, Negar Rostamzadeh, Yoshua Bengio, and Christopher J. Pal. Deep complex networks. In International Conference on Learning Representations (ICLR) , 2018. Yingxu Wang, Xinwang Liu, Mengzhu Wang, Siyang Gao, and Nan Yin. DisRFM: Polar riemannian flow matching for structure-preserving graph domain adaptation. arXiv preprint arXiv:2602.00656 ,2026. Jure Zbontar, Florian Knoll, Anuroop Sriram, Tullie Murrell, Zhengnan Huang, Matthew J. Muckley, Aaron Defazio, Ruben Stern, Patricia Johnson, Maryam Maleki, Maureen Parente, Neslihan Celik, Sohae Chung, and Daniel K. Sodickson. fastMRI: An open dataset and benchmarks for accelerated MRI. arXiv preprint arXiv:1811.08839 , 2018. 12 Preprint 
+
+# A APPENDIX 
+
+A.1 THE CYLINDER IS A METRIC SUBSTITUTION , NOT AN INHERITED GEOMETRY 
+
+Lemma 2 (Amplitude–phase chart and its pullback metric) . Let C∗ = C \ { 0} and let 
+
+Φ : C∗ → (0 , ∞) × S1, Φ( z) = ( |z|, z/ |z|) , (17) 
+
+with inverse Φ−1(A, θ ) = ( A cos θ, A sin θ). Then Φ is a diffeomorphism, and the pullback of the Euclidean metric geuc = dx 2 + dy 2 under Φ−1 is 
+
+(Φ −1)∗geuc = dA 2 + A2dθ 2. (18) 
+
+Proof. Both Φ and Φ−1 are smooth on their domains and are mutually inverse by construction, so Φ
+
+is a diffeomorphism. Differentiating Φ−1,
+
+dx = cos θ dA − A sin θ dθ, (19) 
+
+dy = sin θ dA + A cos θ dθ. (20) Squaring and summing, the cross terms ∓2A sin θ cos θ dA dθ cancel and the remaining terms group by cos 2 θ + sin 2 θ = 1 :
+
+dx 2 + dy 2 = dA 2 + A2dθ 2. (21) CyFM does not use this metric. It replaces it with the decoupled product metric gcyl = dA 2 + dθ 2,that is, it deletes the factor A2. The map Φ is therefore a diffeomorphism but not an isometry between 
+
+(C∗, g euc ) and ((0 , ∞) × S1, g cyl ). This substitution, and not the identification of the domain, is the modelling decision this paper evaluates. 
+
+Remark 1 (Flatness is not the distinguishing property) . Both metrics have identically vanishing Riemann curvature: geuc because C∗ is an open subset of the plane, and gcyl because it is a product of one-dimensional factors. Each is therefore locally isometric to R2, and no local computation separates them. They are not globally isometric: under gcyl the curves A = const are closed geodesics, whereas the geodesics of geuc are straight line segments and none is closed. The non-trivial fundamental group π1 = Z is a property of the punctured domain, shared by both, and is a cost the model pays through the 2π wrap rather than a benefit it gains. 
+
+Corollary 1 (Circumference) . The circle {A = r} has length 2πr under geuc and length 2π under 
+
+gcyl , for every r > 0.
+
+This single difference accounts for both of the paper’s velocity statements. Under geuc the circum-ference available for a phase change shrinks to zero as r → 0, so a path carrying a fixed phase difference through a neighbourhood of the origin must traverse it at ever greater angular speed; this is the |c|/|zt|2 growth of Proposition 4. Under gcyl the circumference is constant, so a half-turn costs the same at every amplitude and an angular displacement of π always suffices; this is the bound of Lemma 1. The two results are the same fact about the factor A2, read at the two ends of its range. A.2 PATH -L EVEL CONSEQUENCES OF THE EUCLIDEAN METRIC 
+
+We present the formal proofs for the statements made in the main text about what the inherited Euclidean metric on (Re , Im) ∈ R2 implies for probability paths and for the regression target. Let z1 = eiθ 1 and z2 = eiθ 2 be two unit-amplitude phasors on the circle S1, and let ∆θ = θ1 − θ2 ∈
+
+[−π, π ] denote their phase difference. 
+
+Lemma 3 (Chordal vs. Geodesic Distance) . The Euclidean (chordal) distance dchord in the complex plane and the geodesic (arc) distance dS1 on the circle are related by: 
+
+dchord (θ1, θ 2) = ∥eiθ 1 − eiθ 2 ∥2 = 2 sin 
+
+ ∆θ
+
+2
+
+
+
+, (22) 
+
+dS1 (θ1, θ 2) = |∆θ|. (23) 13 Preprint 
+
+Proof. Expanding the squared Euclidean distance: 
+
+∥eiθ 1 − eiθ 2 ∥22 = (cos θ1 − cos θ2)2 + (sin θ1 − sin θ2)2 (24) 
+
+= (cos 2 θ1 + sin 2 θ1) + (cos 2 θ2 + sin 2 θ2) − 2(cos θ1 cos θ2 + sin θ1 sin θ2) (25) 
+
+= 2 − 2 cos( θ1 − θ2) = 2(1 − cos ∆ θ). (26) Using the half-angle trigonometric identity 1 − cos α = 2 sin 2(α/ 2) :
+
+∥eiθ 1 − eiθ 2 ∥22 = 4 sin 2
+
+ ∆θ
+
+2
+
+
+
+. (27) Taking the square root yields dchord = 2 sin   ∆θ
+
+> 2
+
+ . The geodesic distance on the unit circle is trivially the absolute arc length |∆θ|.
+
+Proposition 2 (Expected Midpoint Attenuation) . Consider a linear (Euclidean) interpolation between two unit phasors: zeuc  
+
+> t
+
+= (1 − t)eiθ 1 + te iθ 2 for t ∈ [0 , 1] . Under a uniform phase difference prior 
+
+∆θ ∼ U (( −π, π ]) , the expected magnitude at the midpoint t = 0 .5 is exactly 2/π , representing an expected signal attenuation of: 
+
+1 − 2
+
+π ≈ 36 .338% . (28) 
+
+Proof. At t = 0 .5, the interpolated signal is: 
+
+zeuc 0.5 = 12 (eiθ 1 + eiθ 2 ) = ei θ1+θ22 cos 
+
+ ∆θ
+
+2
+
+
+
+. (29) The magnitude is |zeuc 0.5 | = cos   ∆θ
+
+> 2
+
+ . The expected value under a uniform distribution p(∆ θ) = 12π
+
+is: 
+
+E [|zeuc 0.5 |] = 12π
+
+Z π
+
+> −π
+
+cos 
+
+ ∆θ
+
+2
+
+
+
+d∆θ. (30) Since ∆θ ∈ [−π, π ], the half-angle ∆θ/ 2 ∈ [−π/ 2, π/ 2] . In this domain, the cosine function is non-negative, so the absolute value can be dropped: 
+
+E [|zeuc 0.5 |] = 12π
+
+Z π
+
+> −π
+
+cos 
+
+ ∆θ
+
+2
+
+
+
+d∆θ (31) 
+
+= 12π
+
+
+
+2 sin 
+
+ ∆θ
+
+2
+
+ π
+
+> −π
+
+(32) 
+
+= 12π (2(1) − 2( −1)) = 42π = 2
+
+π ≈ 0.6366 . (33) The expected loss in amplitude is therefore 1 − 2/π ≈ 36 .338% . By contrast, on the cylindrical manifold, At = (1 − t)A0 + tA 1, which trivially evaluates to 1.0 at t = 0 .5, yielding exactly 0% 
+
+attenuation. 
+
+Proposition 3 (Vanishing Gradient of the Chordal Penalty) . Let the chordal Euclidean loss be 
+
+Lchord (θ) = 12 ∥eiθ − eiθ ∗
+
+∥22 = 1 − cos( θ − θ∗) and the geodesic loss be Lgeod (θ) = 12 (θ − θ∗)2.As the phase error reaches its maximum ∆θ = |θ − θ∗| → π, the gradient of the chordal penalty vanishes to zero, while the geodesic gradient reaches its supremum. Proof. Taking the derivative of the chordal loss with respect to the phase θ:
+
+∂Lchord 
+
+∂θ = ddθ (1 − cos( θ − θ∗)) = sin( θ − θ∗). (34) Taking the limit as ∆θ → π, we find lim ∆θ→π | sin(∆ θ)| = sin( π) = 0 . Thus, at the point of maximum possible error (antipodal phase), the network receives exactly zero corrective gradient signal. Conversely, the geodesic loss derivative is: 
+
+∂Lgeod 
+
+∂θ = θ − θ∗, (35) which linearly increases with the error, providing a maximal restoring force of π at ∆θ → π.14 Preprint 
+
+Proposition 4 (Angular velocity of the Cartesian bridge) . Let z0, z 1 ∈ C with z0̸ = z1, and let 
+
+zt = (1 − t)z0 + tz 1. Write c = Im(¯ z0z1). At every t with zt̸ = 0 the induced angular velocity is 
+
+˙θt = Im(¯ zt ˙zt)
+
+|zt|2 = c
+
+|zt|2 , (36) 
+
+so the numerator does not depend on t, and 
+
+sup 
+
+> t∈[0 ,1]
+
+| ˙θt| = |c|
+
+d2 , d = min  
+
+> t∈[0 ,1]
+
+|zt|, (37) 
+
+with the supremum attained at the closest approach to the origin. Proof. With z = x + iy and A = |z|, the map θ = atan2( y, x ) is differentiable at every point with 
+
+A > 0, and the chain rule gives ˙θ = ( x ˙y − y ˙x)/A 2 = Im(¯ z ˙z)/|z|2. Along the bridge ˙zt = z1 − z0
+
+is constant, and 
+
+Im(¯ zt ˙zt) = Im  ((1 − t)¯ z0 + t¯z1)( z1 − z0) (38) 
+
+= (1 − t) Im(¯ z0z1) − t Im(¯ z1z0) = Im(¯ z0z1) = c, (39) because Im(¯ z0z0) = Im(¯ z1z1) = 0 and Im(¯ z1z0) = −c. The numerator being constant, | ˙θt| is largest exactly where |zt| is smallest. Two consequences are worth separating from the usual informal statement. First, the bridge does 
+
+not approach the origin arbitrarily closely for fixed endpoints: combining | ˙θ| = |c|/A 2 with the Cauchy–Schwarz bound | ˙θ| ≤ | z1 − z0|/A gives d ≥ | c|/|z1 − z0|, which is the distance from the origin to the line through z0 and z1. Second, an upper bound of order A−1 on | ˙θ| does not by itself establish divergence, since a purely radial flow has c = 0 and ˙θ ≡ 0 while satisfying the same bound. What diverges, and the regime the experiments probe, is the peak over a bridge whose endpoints approach antipodal. 
+
+Corollary 2 (Peak angular velocity at equal amplitudes) . If |z0| = |z1| = A > 0 and δ =wrap( θ1 − θ0), the closest approach occurs at t = 1 /2 and 
+
+sup 
+
+> t∈[0 ,1]
+
+| ˙θt| = 2 tan 
+
+ δ
+
+2
+
+
+
+, (40) 
+
+which is unbounded as δ → ± π and equals the cylindrical rate |uθ | = |δ| only at δ = 0 .Proof. |zt|2 = A2 1 − 2t(1 − t)(1 − cos δ) is minimised at t = 1 /2, where |z1/2| = A| cos( δ/ 2) |.With c = A2 sin δ = 2 A2 sin( δ/ 2) cos( δ/ 2) , equation equation 37 gives 2| sin( δ/ 2) |/| cos( δ/ 2) |.
+
+Corollary 3 (Heavy tail under a uniform phase difference) . If in addition δ ∼ U (−π, π ], then for 
+
+x > 0
+
+P
+
+
+
+sup 
+
+> t
+
+| ˙θt| > x 
+
+
+
+= 1 − 2
+
+π arctan 
+
+ x
+
+2
+
+
+
+= 4
+
+πx + O(x−3), (41) 
+
+a Pareto tail of index 1.Proof. 2| tan( δ/ 2) | > x iff |δ| > 2 arctan( x/ 2) , and |δ| is uniform on [0 , π ]. Expanding 
+
+arctan( x/ 2) = π/ 2 − 2/x + O(x−3) gives the asymptotic form. Corollary 3 fixes the amplitudes. When they are random as well, a second route to a small numerator opens, since c also vanishes as either amplitude does, and the tail is heavier than index 1 rather than lighter. The index near 1 measured in Table 1 is therefore consistent with this analysis but is not derived from it. The cylindrical bridge admits no such tail: θt = θ0 + tu θ turns at the constant rate 
+
+uθ , and |uθ | ≤ π for every pair of endpoints. 15 Preprint A.3 BOTH GEOMETRIES UNDER BOTH LOSSES 
+
+Tables 2 and 3 train both geometries with the same objective, the unweighted squared velocity error. Table 5 repeats the grid with the absolute error as well, so that each geometry can also be compared at its best objective. The best of the four variants is selected on the evaluation itself, so the comparison is post-selection and its nominal p-values do not hold; we report it descriptively, as a robustness check rather than as a test. Table 5: Both geometries under both losses. Generative error (Sliced W2, ↓), mean over 5 seeds. L1 / L2: absolute / squared error of the velocity; the cylindrical phase term is unweighted in both. Taking each geometry’s best of the four variants per cell, CyFM has the lower error at every k ≤ 8 with all seeds separated, except 16 × 16 , k = 8 (p = 0 .15 ); at k = 100 no best-against-best comparison is significant ( p ≥ 0.54 ). 
+
+Resolution Geometry Coupling Loss 1 Step 2 Steps 4 Steps 8 Steps 100 Steps 
+
+16 × 16 Cartesian Independent L1 0.418 0.353 0.226 0.085 0.076 Cartesian Independent L2 0.442 0.334 0.225 0.100 0.071 Cartesian OT L1 0.183 0.168 0.130 0.077 0.061 Cartesian OT L2 0.227 0.202 0.153 0.097 0.068 CyFM Independent L1 0.143 0.134 0.137 0.130 0.102 CyFM Independent L2 0.116 0.155 0.133 0.097 0.062 CyFM Joint OT L1 0.093 0.096 0.090 0.092 0.070 CyFM Joint OT L2 0.098 0.086 0.053 0.064 0.054 
+
+32 × 32 Cartesian Independent L1 0.428 0.363 0.258 0.125 0.069 Cartesian Independent L2 0.431 0.339 0.253 0.127 0.043 Cartesian OT L1 0.320 0.263 0.199 0.091 0.048 Cartesian OT L2 0.340 0.275 0.209 0.104 0.037 CyFM Independent L1 0.125 0.146 0.129 0.097 0.110 CyFM Independent L2 0.123 0.145 0.113 0.063 0.047 CyFM Joint OT L1 0.091 0.087 0.079 0.056 0.070 CyFM Joint OT L2 0.113 0.094 0.072 0.049 0.041 
+
+64 × 64 Cartesian Independent L1 0.411 0.365 0.283 0.136 0.037 Cartesian Independent L2 0.416 0.349 0.285 0.154 0.046 Cartesian OT L1 0.363 0.313 0.252 0.126 0.032 Cartesian OT L2 0.376 0.318 0.260 0.141 0.047 CyFM Independent L1 0.107 0.169 0.145 0.091 0.050 CyFM Independent L2 0.121 0.148 0.109 0.066 0.043 CyFM Joint OT L1 0.092 0.122 0.099 0.064 0.035 CyFM Joint OT L2 0.117 0.114 0.078 0.054 0.040 16
