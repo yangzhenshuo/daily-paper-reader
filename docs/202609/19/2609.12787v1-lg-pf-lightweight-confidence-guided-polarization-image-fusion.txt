@@ -1,0 +1,587 @@
+Title: LG-PF: Lightweight Confidence-Guided Polarization Image Fusion
+
+URL Source: https://arxiv.org/pdf/2609.12787v1
+
+Published Time: Mon, 14 Sep 2026 01:20:57 GMT
+
+Number of Pages: 11
+
+Markdown Content:
+# LG-PF: Lightweight Confidence-Guided Polarization Image Fusion 
+
+## Zhuangfan Huang a, Zhenyu Kuang b, Gao Wang c, Yang Liu a,∗, Haishu Tan a and Xiaosong Li a,∗
+
+> a
+
+Guangdong-HongKong-Macao Joint Laboratory for Intelligent Micro-Nano Optoelectronic Technology, School of Physics and Optoelectronic Engineering, Foshan University, Foshan 528225, China 
+
+> b
+
+School of Electronic and Information Engineering, Foshan University, Foshan 528225, China. 
+
+> c
+
+State Key Laboratory of Dynamic Measurement Technology, North University of China, Taiyuan 030051, China 
+
+A R T I C L E I N F O 
+
+Keywords :Polarization image fusion Confidence-guided residual transfer Lightweight neural network Polarization fusion benchmark 
+
+A B S T R A C T 
+
+Polarization image fusion combines the stable luminance and structural information of the total-intensity image 𝑆 0 with the material-sensitive details of the degree of linear polarization ( 𝐷𝑜𝐿𝑃 )image. However, the reliability of 𝐷𝑜𝐿𝑃 varies spatially, and indiscriminate polarization transfer may amplify unstable responses or disturb the structural appearance anchored by 𝑆 0. We therefore propose LG-PF, a lightweight confidence-guided framework that formulates polarization fusion as a selective residual transfer process. A Polarization Confidence Prior estimates spatially reliable polarization responses, a Mask-guided Multi-scale Fusion module regulates their transfer across three feature scales, and a Lightweight Context-aware Bounded Correction Head stabilizes local photometric and structural transitions. Confidence guidance is also incorporated into the optimization objectives to preserve reliable polarization details while suppressing unsupported responses. We also construct MSP, a multi-scene polarization fusion dataset containing 1000 pixel-aligned image pairs from 17 indoor and outdoor scene categories. LG-PF achieves the best results across all six evaluated metrics on MSP, while subset-based evaluations on PIF and GAND show promising transferability without fine-tuning. With only 0.2936 M parameters and an inference time of 21 .712 ms per image, LG-PF achieves competitive fusion quality with low computational cost.The source code, dataset, and official data splits will be made publicly available upon publication. 
+
+## 1. Introduction 
+
+Polarization imaging captures material- and reflection-dependent cues that are unavailable to conventional intensity measurements [1]. In the Stokes-based linear-polarization representation [2], the total-intensity image 𝑆 0 provides a relatively stable luminance and structural reference, whereas the degree of linear polarization ( 𝐷𝑜𝐿𝑃 ) emphasizes com-plementary material responses, reflection boundaries, and fine-scale textures. However, the informativeness of 𝐷𝑜𝐿𝑃 
+
+is spatially nonuniform, and its responses may become less reliable in low-intensity, weakly polarized, or noise-dominated regions. Effective polarization fusion should therefore treat 𝑆 0 and 𝐷𝑜𝐿𝑃 as asymmetric yet complemen-tary inputs rather than equally reliable modalities. Against this background, recent multimodal image fu-sion research has progressively moved toward unified rep-resentation, stronger cross-modal interaction, generative modeling, and semantic guidance. EMMA introduces an equivariant self-supervised paradigm, while TC-MoA cus-tomizes shared representations for multiple fusion tasks through task-specific adapter routing [3, 4]. Task-aware Transformer interaction, high-order multimodal synergy, and discriminative evolutionary learning have also been explored to improve both fusion quality and downstream per-ception [5, 6, 7]. Recent lightweight fusion models combine 
+
+> ∗
+
+Corresponding authors.  
+
+> 2112455033@stu.fosu.edu.cn
+
+( Zhuangfan Huang);  
+
+> kmustkzy@126.com
+
+( Zhenyu Kuang); wanggao@nuc.edu.cn ( Gao Wang);  
+
+> ly25@fosu.edu.cn
+
+( Yang Liu); tanhaishu@fosu.edu.cn ( Haishu Tan);  
+
+> lixiaosong@buaa.edu.cn
+
+( Xiaosong Li) 
+
+parallel Mamba–KAN modeling with heterogeneous multi-branch interaction, while adaptive multi-resolution enhance-ment and dynamic weighting improve scene-dependent information allocation [8, 9]. Diffusion-based frameworks such as FusionINV and LFDT-Fusion formulate multimodal integration through generative priors or latent diffusion Transformers [10, 11]. MaeFuse and OmniFuse further ex-ploit pretrained visual representations and language-driven semantic guidance [12, 13]. Recent studies also address illumination-constrained fusion and compound adverse-weather restoration [14, 15]. Despite these advances, their guidance is primarily derived from semantic relevance, downstream task utility, degradation characteristics, or learned data distributions. Polarization fusion poses a different problem because the physical reliability of 𝐷𝑜𝐿𝑃 varies across spatial locations. Existing polarization-specific designs commonly apply pri-ors, saliency cues, or attention mechanisms at selected stages, without a unified criterion for determining where and how strongly complementary polarization information should be transferred. Consequently, aggressive transfer may amplify unstable responses or disturb the luminance structure of 𝑆 0, whereas conservative regulation may sup-press useful material- and reflection-sensitive details. More-over, complex interaction or generative architectures intro-duce additional computational cost, while existing public polarization-fusion datasets remain limited in scale and scene diversity, as summarized in Table 1. These limitations motivate a lightweight framework that consistently regulates 
+
+𝐷𝑜𝐿𝑃 transfer according to spatial confidence. To address these issues, we propose LG-PF, a lightweight confidence-guided framework for polarization image fusion. 
+
+First Author et al. Page 1 of 11 arXiv:2609.12787v1 [cs.CV] 11 Sep 2026 LG-PF: Lightweight Confidence-Guided Polarization Image Fusion 
+
+LG-PF treats 𝑆 0 as the photometric and structural anchor and selectively transfers complementary 𝐷𝑜𝐿𝑃 information through a residual process. The Polarization Confidence Prior (PCP) estimates the spatial reliability of polarization responses, the Mask-guided Multi-scale Fusion module (MMF) regulates polarization transfer across multiple fea-ture scales, and the Lightweight Context-aware Bounded Correction Head (LCH) stabilizes local photometric and structural transitions. The same confidence prior is further incorporated into the optimization objectives to preserve reliable polarization details while suppressing unsupported responses. The main contributions are summarized as follows: 1. We formulate polarization image fusion as a confidence-guided residual transfer problem, explicitly account-ing for the spatially varying reliability of 𝐷𝑜𝐿𝑃 
+
+information. 2. We develop a lightweight framework composed of PCP, MMF, and LCH for spatial confidence esti-mation, controlled multi-scale polarization transfer, and bounded local correction. The resulting model requires only 0.2936 M parameters. 3. We construct MSP, a polarization fusion dataset con-taining 1000 pixel-aligned 𝑆 0–𝐷𝑜𝐿𝑃 image pairs from 17 indoor and outdoor scene categories. Exten-sive comparisons, cross-dataset evaluations, ablation studies, and efficiency analyses demonstrate the effec-tiveness, transferability, and computational efficiency of LG-PF. The remainder of this paper is organized as follows. Section 2 reviews related studies. Section 3 presents LG-PF. Section 4 reports the experimental results, and Section 5 concludes the paper. 
+
+## 2. Related Work 
+
+2.1. Polarization Representation 
+
+Polarization imaging records light-state information that is not available from intensity measurements alone. For the linear division-of-focal-plane (DoFP) imaging system considered in this work, four polarization observations, 𝐼 0◦ ,
+
+𝐼 45 ◦ , 𝐼 90 ◦ , and 𝐼 135 ◦ , are acquired, from which the Stokes parameters are computed [1, 2]: 
+
+𝑆 0 = 𝐼 0◦ + 𝐼 90 ◦
+
+𝑆 1 = 𝐼 0◦ − 𝐼 90 ◦
+
+𝑆 2 = 𝐼 45 ◦ − 𝐼 135 ◦
+
+(1) The degree of linear polarization is calculated as 
+
+𝐷𝑜𝐿𝑃 =
+
+√
+
+𝑆 21 + 𝑆 22
+
+𝑆 0 + 𝜖 , (2) where 𝜖 is a small constant introduced to avoid numerical instability. Since 𝐷𝑜𝐿𝑃 is normalized by 𝑆 0, its response may become less reliable in low-intensity, weakly polar-ized, or noise-dominated regions. Accordingly, 𝑆 0 and 
+
+𝐷𝑜𝐿𝑃 should be regarded as asymmetric yet complemen-tary modalities: 𝑆 0 provides a relatively stable photomet-ric and structural reference, whereas 𝐷𝑜𝐿𝑃 contributes material- and reflection-sensitive cues whose reliability varies spatially. 
+
+2.2. Polarization Image Fusion Methods 
+
+Based on this asymmetric yet complementary represen-tation, polarization image fusion was initially formulated through multi-scale decomposition and rule-based coeffi-cient selection. Oriented Laplacian pyramids, for example, integrate directional polarization information across multi-ple spatial scales [16]. Although such methods offer clear physical interpretations, their performance is closely tied to the selected decomposition, activity measures, and re-construction rules. Learning-based approaches subsequently shifted the focus toward adaptive representation and in-formation weighting. Representative developments include self-learned 𝑆 0–𝐷𝑜𝐿𝑃 fusion [17], quality- and attention-guided integration [18], salient-information-guided fusion in PAPIF [19], and noise-aware filtering with a salient polariza-tion prior [20]. These methods established the importance of selectively emphasizing informative polarization responses rather than uniformly combining the two modalities. Subsequent studies strengthened non-local interaction and modality-specific representation using deeper archi-tectures. TIPFNet employs Transformer-based non-local modeling [21], whereas DT-F Transformer introduces dual-transpose interaction for cross-modal feature exchange [22]. PIPFNet incorporates polarization priors into feature extrac-tion and reconstruction [23], and GAND adopts adversarial learning to enhance weak polarization targets [24]. CPIFuse further considers the physical discrepancy between intensity and polarization observations through lightweight color and texture reconstruction [25]. These approaches improve global dependency modeling and reconstruction flexibility, while embedding polarization regulation within different network components. More recent work has pursued increasingly explicit polarization-aware modeling. Hierarchical progressive fu-sion uses significant polarization information to guide stage-wise integration [26], while DCCFNet strengthens modality interaction through dual channel-cross fusion [27]. Beyond image-level reconstruction, FuseISP integrates intensity and spectral-polarization information through hierarchical multimodal fusion for transparent-object perception [28]. Polarization-forming-based fusion suppresses background interference before reconstruction [29], and IGFD-Net intro-duces illumination-guided frequency decoupling to balance polarization details and photometric fidelity [30]. PPA-Diff further extends polarization fusion toward physics-aware full-Stokes diffusion modeling [31]. Overall, polarization fusion has progressed from hand-crafted decomposition to global interaction and physics-aware representation. Never-theless, most existing approaches embed polarization guid-ance within dedicated modules or processing stages, while  
+
+> First Author et al. Page 2 of 11
+
+LG-PF: Lightweight Confidence-Guided Polarization Image Fusion LCH 
+
+> 𝒢 (DoLP) 𝒢 (DoLP)
+> S0 S0
+> MM
+> F1 F1
+> DoLP DoLP
+> Correction Map
+
+LCH       
+
+> 𝒢 (DoLP)
+> S0
+> M
+> F1
+> DoLP
+> Correction Map
+> Lightweight Context-aware Bounded Correction (LCH)
+> Gradient Advantage (A) Highlight Confidence (H) Texture Confidence (F)
+> Polarization Confidence Prior (PCP)
+> 3× 3 Local Mean 9× 9 Local Mean 17× 17 Local Mean
+> D3 C
+> D9 HM_raw=A ⊙H⊙FFA
+> Polarization Confidence Mask (M) DoLP S0
+> d1 s1 M1 d1 s1 M1
+> d2
+> s3
+> M2 d2
+> s3
+> M2
+> d3 s3 M3 d3 s3 M3
+> Mask-guided Multi-scale Fusion (MMF)
+> Concat Concat Concat
+> X1 f1 f2 f3 Decoder Decoder
+> Residual Reconstruction Head
+
+MMF   
+
+> Polarization Detail Refinement
+> Dual-Stream Lightweight Encoder
+> s1 s3 s2 d1 d2 d3 M1 M2 M3
+> Polarization Confidence Mask (M)
+> F0 S0
+> MM
+> DoLP DoLP
+> X1 X1 X1
+
+S0 DoLP 
+
+Final Fused Image            
+
+> Adaptive Sharpening
+> Dark-Noise
+> Suppression Highlight Restoration Correction Map
+> Condition Mixing Signed Projection Local Context
+> 5→12 12 →112 × H × W12 × H × W3 × 3 Depthwise Conv
+> Structure –
+> Frequency Loss Regularization Loss Teacher Consistency Loss
+> Overall Loss
+
+=
+
+Overview of the Proposed Framework 
+
+> F1
+
+Figure 1: Overall architecture of the proposed LG-PF. 
+
+a shared reliability estimate that consistently governs multi-scale transfer and subsequent correction remains compara-tively underexplored. 
+
+## 3. Proposed Method 
+
+3.1. Overall Framework 
+
+As illustrated in Fig. 1, LG-PF instantiates the above reliability-guided formulation as a lightweight selective residual transfer framework. Given 𝑆 0 and 𝐷𝑜𝐿𝑃 , LG-PF treats 𝑆 0 as the photometric and structural anchor, while selectively transferring complementary polarization increments from 𝐷𝑜𝐿𝑃 .The framework consists of three main components. The PCP estimates a polarization confidence mask 𝑀 from multi-scale local responses and the gradient advantage of 
+
+𝐷𝑜𝐿𝑃 over 𝑆 0. The MMF resizes 𝑀 into scale-specific masks {𝑀 𝑖 }3
+
+𝑖 =1 and uses them to regulate polarization fea-ture transfer at three encoder stages. Finally, the LCH per-forms bounded local correction to local photometric and structural transitions in the fused result. A lightweight dual-stream encoder with non-shared pa-rameters extracts the intensity features {𝑠 𝑖 }3
+
+𝑖 =1 and polar-ization features {𝑑 𝑖 }3
+
+𝑖 =1 . MMF produces the fused features 
+
+{𝑓 𝑖 }3
+
+𝑖 =1 , which are progressively aggregated by the decoder to obtain the full-resolution representation 𝑋 1. A resid-ual reconstruction head predicts a polarization increment relative to 𝑆 0, yielding the preliminary result 𝐹 0. Guided by 𝐷𝑜𝐿𝑃 and 𝑀 , the polarization detail refinement stage further restores reliable polarization-sensitive details to pro-duce 𝐹 1. LCH then performs bounded local correction using 
+
+𝑆 0, (𝐷𝑜𝐿𝑃 ), 𝐷𝑜𝐿𝑃 , 𝐹 1, and 𝑀 , where (⋅) denotes the gradient-magnitude operator. The overall mapping is formu-lated as 
+
+𝑀 = (𝑆 0, 𝐷𝑜𝐿𝑃 )
+
+𝑓 𝑖 = 𝑖 
+
+(𝑖 𝑆 (𝑆 0), 𝑖 𝐷 (𝐷𝑜𝐿𝑃 ), 𝑀 𝑖 
+
+) , 𝑖 ∈ {1 , 2, 3} 
+
+𝑋 1 = dec 
+
+(𝑓 1, 𝑓 2, 𝑓 3
+
+)
+
+𝐹 0 = Π [0 ,1] 
+
+[𝑆 0 + 𝜆 𝑟 (𝑋 1)]
+
+𝐹 1 = ref 
+
+(𝐹 0, 𝐷𝑜𝐿𝑃 , 𝑀 )
+
+𝐼 fuse = Π [0 ,1] 
+
+[𝐹 1 + 𝜆 𝑐  (𝑆 0, (𝐷𝑜𝐿𝑃 ), 𝐷𝑜𝐿𝑃 , 𝐹 1, 𝑀 )] 
+
+(3) Here,  denotes PCP, and 𝑖 denotes the confidence-guided fusion operation at the 𝑖 -th scale of MMF. 𝑖 𝑆 and 
+
+𝑖 𝐷 are the corresponding 𝑆 0 and 𝐷𝑜𝐿𝑃 encoders, while 
+
+𝑀 𝑖 is obtained by resizing 𝑀 to the spatial resolution of the 𝑖 -th-scale features. dec , , and ref represent the lightweight decoder, residual reconstruction head, and po-larization detail refinement stage within MMF, respectively, whereas  denotes LCH. The coefficients 𝜆 𝑟 and 𝜆 𝑐 control the residual reconstruction and local correction magnitudes, respectively. 𝐼 fuse is the final fused image, and Π[0 ,1] (⋅)
+
+projects its input onto the valid intensity range. 
+
+3.2. PCP 
+
+To realize the mapping 𝑀 = (𝑆 0, 𝐷𝑜𝐿𝑃 ) in Eq. (3), PCP constructs a spatial confidence mask by jointly evaluat-ing local response prominence, fine-scale texture evidence, and the cross-modal gradient advantage of 𝐷𝑜𝐿𝑃 over 𝑆 0.Let 𝑘 (⋅) denote a 𝑘 × 𝑘 local-mean operator. Specifically, 
+
+𝐷 9 and 𝐷 3 are obtained by subtracting the 9 × 9 and 3 × 3 
+
+local-mean responses from 𝐷𝑜𝐿𝑃 , respectively, while 𝐶 is the difference between its 9 × 9 and 17 × 17 local-mean responses. Accordingly, 𝐷 9 characterizes locally prominent polarization responses, 𝐷 3 captures fine-scale variations, and 𝐶 represents coarse background fluctuations. Based on 
+
+First Author et al. Page 3 of 11 LG-PF: Lightweight Confidence-Guided Polarization Image Fusion 
+
+these responses, the highlight confidence 𝐻 and texture confidence 𝐹 are defined as 
+
+𝐻 = 𝜎 {𝛾 ℎ
+
+[ReLU( 𝐷 9) − 𝜏 ℎ
+
+]} 
+
+𝐹 = 𝜎 {𝛾 𝑡 
+
+[ReLU (|𝐷 3| − 𝛼 |𝐶 |) − 𝜏 𝑡 
+
+]} (4) where 𝜎 (⋅) denotes the sigmoid function, ReLU( ⋅) retains positive responses, and |⋅| denotes the element-wise absolute value. 𝛾 ℎ and 𝛾 𝑡 control the transition sharpness, 𝜏 ℎ and 𝜏 𝑡 are the corresponding response thresholds, and 𝛼 determines the suppression strength of coarse background variation. Thus, 
+
+𝐻 emphasizes locally prominent responses, whereas 𝐹 re-tains fine textures after suppressing large-scale fluctuations. Local evidence from 𝐷𝑜𝐿𝑃 alone cannot determine whether a response is complementary to the structural in-formation in 𝑆 0. PCP therefore constructs a cross-modal gradient-advantage map: 
+
+𝐴 = 𝛽 0 + 𝛽 1𝜎 {𝛾 𝑔 
+
+[(𝐷𝑜𝐿𝑃 ) − (𝑆 0)]} (5) where 𝛽 0 sets the lower response bound, 𝛽 1 controls the adaptive range, and 𝛾 𝑔 determines the sensitivity to the cross-modal gradient difference. A larger value of 𝐴 indicates that the corresponding structure is more pronounced in 𝐷𝑜𝐿𝑃 
+
+than in 𝑆 0 and is therefore assigned greater confidence during polarization transfer. The three confidence cues are combined and locally smoothed to obtain the final polarization confidence mask: 
+
+𝑀 raw = 𝐴 ⊙ 𝐻 ⊙ 𝐹 𝑀 = Π [0 ,1] 
+
+[3
+
+(𝑀 raw 
+
+)] (6) here, ⊙ denotes element-wise multiplication. The multi-plicative formulation assigns high confidence only to re-sponses that are locally prominent, contain reliable fine-scale evidence, and provide a gradient advantage over 𝑆 0.Local-mean filtering improves spatial continuity and sup-presses isolated responses. The resulting mask 𝑀 is resized to {𝑀 𝑖 }3 
+
+> 𝑖 =1
+
+and passed to MMF for multi-scale polarization feature modulation. 
+
+3.3. MMF 
+
+To realize the multi-scale feature transfer in Eq. (3), a non-shared dual-stream encoder extracts three-scale inten-sity features {𝑠 𝑖 }3 
+
+> 𝑖 =1
+
+and polarization features {𝑑 𝑖 }3
+
+> 𝑖 =1
+
+. Their channel dimensions are 𝑐 𝑖 ∈ {16 , 32 , 64} for 𝑖 = 1 , 2, 3,respectively. The confidence mask 𝑀 is resized to the spatial resolution of each feature scale, yielding the scale-specific masks {𝑀 𝑖 }3
+
+> 𝑖 =1
+
+.At each scale, MMF regulates the polarization feature using a soft confidence gate: ̃𝑑 𝑖 = [𝜂 + (1 − 𝜂 )𝑀 𝑖 
+
+] ⊙ 𝑑 𝑖 , 𝑖 ∈ {1 , 2, 3} (7) where ̃ 𝑑 𝑖 denotes the gated polarization feature and 𝜂 = 0 .35 
+
+is the minimum retention coefficient. Since 𝑀 𝑖 ∈ [0 , 1] ,the modulation weight lies in [0 .35 , 1] , preserving high-confidence responses while attenuating, rather than com-pletely discarding, uncertain polarization information. The gated polarization feature is subsequently concate-nated with the corresponding intensity feature and fused through a 1 × 1 convolution: 
+
+𝑧 𝑖 = Cat 
+
+(
+
+𝑠 𝑖 ,̃ 𝑑 𝑖 
+
+)
+
+𝑓 𝑖 = Conv 2𝑐 𝑖 →𝑐 𝑖 
+
+> 1×1
+
+(𝑧 𝑖 
+
+) , 𝑖 ∈ {1 , 2, 3} (8) where Cat( ⋅) denotes channel-wise concatenation, and 𝑧 𝑖 
+
+is the concatenated feature at the 𝑖 -th scale. Conv 2𝑐 𝑖 →𝑐 𝑖  
+
+> 1×1
+
+(⋅)
+
+performs cross-modal channel mixing while reducing the channel dimension from 2𝑐 𝑖 to 𝑐 𝑖 . The resulting 𝑓 𝑖 corre-sponds to the output of 𝑖 in Eq. (3). The fused features are then aggregated by a two-stage lightweight decoder. Starting from the deepest feature 𝑓 3,the decoder progressively upsamples and combines it with 
+
+𝑓 2 and 𝑓 1 to obtain the full-resolution representation 𝑋 1.The residual reconstruction head (⋅) maps 𝑋 1 to a single-channel polarization increment. With 𝜆 𝑟 = 0 .60 , this in-crement is added to the structural anchor 𝑆 0 to produce the preliminary fused result 𝐹 0. This residual formulation preserves the global appearance of 𝑆 0 while focusing the network on complementary polarization information. Finally, the polarization detail refinement stage ref uses 
+
+𝐷𝑜𝐿𝑃 and 𝑀 to selectively restore reliable polarization-sensitive details that may be attenuated during hierarchical encoding and decoding. It produces the refined result 𝐹 1,which is subsequently passed to LCH for bounded local correction. 
+
+3.4. LCH 
+
+As the final stage in Eq. (3), LCH performs lightweight bounded local correction on the refined result 𝐹 1, rather than reconstructing the fused image. It is conditioned on 
+
+𝑆 0, (𝐷𝑜𝐿𝑃 ), 𝐷𝑜𝐿𝑃 , 𝐹 1, and 𝑀 , which provide the struc-tural reference, polarization-sensitive boundaries, original polarization responses, current fusion state, and spatial con-fidence guidance, respectively. These five single-channel maps are concatenated along the channel dimension to form the condition tensor 𝑋 𝑐 .LCH first projects 𝑋 𝑐 into a compact twelve-channel rep-resentation through a pointwise convolution, models local spatial context using a 3×3 depthwise convolution, and then predicts a signed single-channel correction: 
+
+𝑍 𝑐 = 𝛿 [DWConv 3×3 
+
+(𝛿 [Conv 5→12 1×1 
+
+(𝑋 𝑐 
+
+)])] 
+
+Δ𝑐 = tanh [Conv 12 →11×1 
+
+(𝑍 𝑐 
+
+)] (9) where 𝑍 𝑐 denotes the locally contextualized twelve-channel feature, 𝛿 (⋅) represents the GELU activation, and DWConv 3×3 (⋅)
+
+denotes the 3 × 3 depthwise convolution. The two pointwise projections perform cross-condition channel mixing and signed correction prediction, respectively. The hyperbolic tangent function constrains Δ𝑐 to [−1 , 1] , enabling both positive and negative local adjustments while preventing unbounded modification. The correction map Δ𝑐 corresponds to the output of 
+
+(𝑆 0, (𝐷𝑜𝐿𝑃 ), 𝐷𝑜𝐿𝑃 , 𝐹 1, 𝑀 ) in Eq. (3). With 𝜆 𝑐 = 0 .05 , 
+
+> First Author et al. Page 4 of 11
+
+LG-PF: Lightweight Confidence-Guided Polarization Image Fusion 
+
+Table 1 
+
+Comparison of representative open-source polarization fusion datasets. Boldface indicates the largest value in each count-based column, and N/R denotes information that was not reported. Dataset Dataset details Acquisition pattern Total pairs Indoor pairs Outdoor pairs Scene categories Image size PIF [22] DoFP 74 5 69 N/R 1024 × 1224 
+
+GAND [24] DoFP 415 331 84 N/R 768 × 576 
+
+MSP (Proposed) DoFP 1000 128 872 17 1125 × 938 
+
+the maximum adjustment introduced by LCH is restricted to 
+
+±0 .05 . This bounded correction stabilizes local photometric and structural transitions while preserving the structural and polarization information in 𝐹 1. Moreover, the pointwise projections and depthwise local modeling introduce only minor computational overhead. 
+
+3.5. Loss Functions 
+
+To optimize the above fusion pipeline without pixel-wise ground truth, LG-PF employs structure-frequency, regular-ization, and teacher consistency losses: 
+
+total = 𝜆 sf SF + 𝜆 reg REG + 𝜆 tc TC (10) where 𝜆 sf , 𝜆 reg , and 𝜆 tc balance the three loss groups. Their values are reported in the implementation details. All terms are applied to the final output 𝐼 fuse .Following PCP, 𝑘 (⋅) denotes 𝑘 ×𝑘 local-mean filtering, and 𝑘 (𝑋 ) = 𝑋 − 𝑘 (𝑋 ) denotes the corresponding high-frequency component. Moreover, ‖ ⋅ ‖1 is the 𝓁 1 norm, and 
+
+[𝑥 ]+ = max( 𝑥, 0) is applied element-wise. Using the confidence mask 𝑀 , we construct the gradient and detail targets: 
+
+𝐺 ⋆ = max [(𝑆 0), 𝑀 ⊙ (𝐷𝑜𝐿𝑃 )]
+
+𝐷 ⋆𝑘 = (1 − 𝑀 ) ⊙ 𝑘 (𝑆 0) + 𝑀 ⊙ 𝑘 (𝐷𝑜𝐿𝑃 ), 𝑘 ∈ {3 , 9} 
+
+(11) where the maximum is applied element-wise. These targets preserve the structural information of 𝑆 0 while introducing polarization gradients and details according to the spatial confidence. The structure-frequency loss is defined as 
+
+SF = grad + detail + pol + freq (12) with 
+
+grad = ‖‖‖[𝐺 ⋆ − (𝐼 fuse )]
+
+> +
+
+‖‖‖1
+
+detail = ‖‖‖3(𝐼 fuse ) − 𝐷 ⋆
+
+> 3
+
+‖‖‖1
+
+pol = ‖‖‖𝑀 ⊙ [3(𝐼 fuse ) − 3(𝐷𝑜𝐿𝑃 )]‖‖‖1
+
+freq = ‖‖9(𝐼 fuse ) − 9(𝑆 0)‖‖1 + ‖‖‖9(𝐼 fuse ) − 𝐷 ⋆
+
+> 9
+
+‖‖‖1
+
+(13) here, grad penalizes missing structural gradients, detail 
+
+constrains confidence-weighted fine details, and pol fur-ther reinforces polarization consistency in high-confidence regions. freq preserves the low-frequency appearance of 𝑆 0
+
+and the confidence-guided intermediate-scale details. To suppress excessive responses in dark regions and undesirable exposure variations, we define 
+
+𝑀 dark = 𝜎 [𝜅 d
+
+(𝜏 d − 17 (𝑆 0))] 
+
+𝐸 dark = ||3(𝐼 fuse )|| − ||3(𝑆 0)|| − 𝑀 ⊙ ||3(𝐷𝑜𝐿𝑃 )||
+
+(14) where 𝜅 d controls the transition sharpness and 𝜏 d is the dark-region threshold. 𝑀 dark emphasizes locally dark regions, while 𝐸 dark measures high-frequency responses exceed-ing the evidence provided by 𝑆 0 and confidence-weighted 
+
+𝐷𝑜𝐿𝑃 details. The regularization loss is 
+
+REG = dark + exp (15) with 
+
+dark = ‖‖‖𝑀 dark ⊙ [𝐸 dark 
+
+]
+
+> +
+
+‖‖‖1
+
+exp = ‖‖‖[𝜏 l − 31 (𝐼 fuse )]
+
+> +
+
+‖‖‖1 + ‖‖‖[31 (𝐼 fuse ) − 𝜏 u
+
+]
+
+> +
+
+‖‖‖1
+
+(16) where 𝜏 l and 𝜏 u define the valid local-exposure range. dark 
+
+suppresses unsupported high-frequency responses in dark regions, whereas exp penalizes local means outside the prescribed range. Two frozen fusion teachers are further used to provide complementary supervision. Let 𝑇 P and 𝑇 L denote the out-puts of PAPIF and LFDT, respectively. For 𝑞 ∈ {P , L} ,
+
+𝑞, low = ‖‖‖17 (𝐼 fuse ) − 17 (𝑇 𝑞 )‖‖‖1
+
+𝑞, ssim = 1 − SSIM (Ψ𝑞 (𝐼 fuse ), Ψ𝑞 (𝑇 𝑞 ))
+
+TC = ∑
+
+> 𝑞 ∈{P ,L}
+
+(𝑞, low + 𝑞, ssim 
+
+) (17) where ΨP(𝑋 ) = 17 (𝑋 ) and ΨL(𝑋 ) = 𝑋 . PAPIF mainly provides low-frequency structural guidance, whereas LFDT additionally constrains the full-resolution appearance. Both teachers remain frozen during training and are removed during inference. 
+
+## 4. Experiments 
+
+4.1. MSP Dataset 
+
+To support polarization image fusion in diverse real-world scenes, we construct a multi-scene polarization dataset 
+
+First Author et al. Page 5 of 11 LG-PF: Lightweight Confidence-Guided Polarization Image Fusion Water Shadow Details Reflective Objects Stone           
+
+> Outdoor collection device Outdoor collection device Indoor collection device Indoor collection device Captured Polarization Images 0° 45° 90° 135° Captured Polarization Images 0° 45° 90° 135°
+> DoFP camera structure
+> Photodiode Polarizer On-Chip Lens
+> DoFP camera structure
+> Photodiode Polarizer On-Chip Lens
+> S0 DoLP Polarization Features
+> S0 DoLP Polarization Features
+> Indoor
+> Subset of MSP
+> Indoor
+> Subset of MSP
+> Ceramics Glass Metalwork Plastics
+> ……
+> Outdoor Subset of MSP Outdoor Subset of MSP
+> ……
+> 872 Outdoor Pairs 872 Outdoor Pairs 128 Indoor Pairs 128 Indoor Pairs Resolution: 1125 x 938 Resolution: 1125 x 938 1000 Image Pairs 1000 Image Pairs
+
+Figure 2: Acquisition systems and composition of the MSP dataset, including the DoFP imaging process, four-direction polarization observations, derived 𝑆 0 and 𝐷𝑜𝐿𝑃 images, and representative indoor and outdoor scenes. 
+
+termed MSP. As shown in Fig. 2, MSP contains 1000 pixel-aligned 𝑆 0–𝐷𝑜𝐿𝑃 image pairs, including 872 outdoor pairs and 128 indoor pairs, acquired using division-of-focal-plane (DoFP) polarization imaging systems. In a DoFP sensor, micro-polarizers at 0◦, 45 ◦, 90 ◦, and 
+
+135 ◦ are periodically integrated above the photodiode array. The four directional polarization observations are separated from each raw image and spatially interpolated, from which 
+
+𝑆 0 and 𝐷𝑜𝐿𝑃 are derived according to the Stokes represen-tation. MSP covers diverse polarization-sensitive materials and imaging conditions. The indoor subset mainly includes ce-ramics, glass, metalwork, and plastics, whereas the outdoor subset contains stone surfaces, water regions, shadow de-tails, and reflective objects. It further spans daytime and nighttime scenes, varying illumination and exposure levels, reflections, shadows, and a wide range of real-world envi-ronments. Table 1 compares MSP with the representative PIF [22] and GAND [24] datasets. Compared with these benchmarks, which contain fewer image pairs and are concentrated on a relatively limited set of acquisition scenes, MSP provides substantially broader coverage in terms of scene diversity, material categories, and illumination conditions. This di-versity makes MSP a more comprehensive benchmark for training and evaluating polarization image fusion methods under real-world conditions. 
+
+4.2. Experimental Settings 
+
+The 1000 image pairs in MSP were randomly divided into 900 training pairs, 50 validation pairs, and 50 test pairs. The paired 𝑆 0 and 𝐷𝑜𝐿𝑃 images were normalized to [0 , 1] 
+
+and resized to a common resolution of 1125 × 938 using bicubic interpolation. LG-PF was trained from scratch using AdamW with a batch size of 16, an initial learning rate of 
+
+5 × 10 −5 , and a weight decay of 5 × 10 −5 . A cosine annealing schedule reduced the learning rate to 2.5 × 10 −6 . Training was conducted for 175 epochs, and the checkpoint obtained at epoch 130 was selected according to its validation perfor-mance. The maximum gradient norm was set to 0.5, the base 
+
+First Author et al. Page 6 of 11 LG-PF: Lightweight Confidence-Guided Polarization Image Fusion DoLP S0 LG-PF CPIFuse DT-F LFDT PAPIF PIPFNet TIPFNet DoLP S0 LG-PF CPIFuse DT-F LFDT PAPIF PIPFNet TIPFNet 
+
+Figure 3: Qualitative comparison on representative samples from the MSP test set. 
+
+channel width was 16, and four data-loading workers were used. All experiments were conducted on a single NVIDIA GeForce RTX 3090 GPU. For cross-dataset evaluation, fixed subsets of 10 image pairs were randomly sampled from PIF [22] and GAND [24], respectively. The same subsets were used for all compared methods, and LG-PF was directly evaluated without fine-tuning or domain adaptation. LG-PF was compared with six representative meth-ods: CPIFuse [25], DT-F [22], LFDT [11], PAPIF [19], PIPFNet [23], and TIPFNet [21]. These methods cover lightweight CNN, attention-guided, Transformer-based, and polarization-prior-guided fusion paradigms. All fused re-sults were converted to the same grayscale intensity range and evaluated using identical metric implementations. Six commonly used fusion metrics were adopted: en-tropy (EN), spatial frequency (SF), standard deviation (SD) [32], the sum of correlations of differences (SCD) [33], multi-scale structural similarity (MS-SSIM) [34], and the Chen–Blum metric 𝑄 𝐶𝐵 [35]. EN, SF, and SD measure information content, spatial detail, and contrast, respec-tively. SCD evaluates complementary information transfer, whereas MS-SSIM and 𝑄 𝐶𝐵 assess structural and perceptual quality. Higher values indicate better performance for all six metrics. 
+
+Table 2 
+
+Quantitative comparison results on the MSP test set. Red and blue denote the best and second-best results, respectively. Methods Metrics EN ↑ SF ↑ SD ↑ SCD ↑ MS-SSIM ↑ 𝑄 𝐶𝐵 ↑                                          
+
+> LG-PF 6.5485 15.6979 46.0210 1.6632 0.9439 0.3099 CPIFuse 6.3884 8.9657 40.8085 1.4867 0.9296 0.3020 DT-F 6.5269 15.5525 40.4660 1.6563 0.7926 0.2621 LFDT 6.5263 12.1124 45.5976 1.6251 0.9387 0.3074 PAPIF 6.4486 10.8050 42.7253 1.5935 0.9057 0.2892 PIPFNet 6.3281 8.0722 39.0078 1.1774 0.7650 0.2727 TIPFNet 6.3078 10.8383 38.0155 1.5136 0.8252 0.2996
+
+4.3. Comparison Results and Analysis 
+
+Tables 2–4 summarize the quantitative comparisons on the full MSP test set and the fixed PIF and GAND subsets. The best and second-best values are highlighted in red and blue, respectively. As shown in Table 2, LG-PF achieves the best performance across all six metrics on MSP. Its leading EN, SF, and SD values indicate strong information preservation, spatial detail, and contrast, while the superior SCD, MS-SSIM, and 𝑄 𝐶𝐵 scores demonstrate effective complementary information transfer, structural fidelity, and perceptual quality. These results show that LG-PF improves 
+
+First Author et al. Page 7 of 11 LG-PF: Lightweight Confidence-Guided Polarization Image Fusion DoLP S0 LG-PF CPIFuse DT-F LFDT PAPIF PIPFNet TIPFNet DoLP S0 LG-PF CPIFuse DT-F LFDT PAPIF PIPFNet TIPFNet 
+
+Figure 4: Qualitative comparison on randomly selected PIF samples without fine-tuning. 
+
+Table 3 
+
+Quantitative comparison results on 10 randomly selected image pairs from the PIF dataset. Methods Metrics EN ↑ SF ↑ SD ↑ SCD ↑ MS-SSIM ↑ 𝑄 𝐶𝐵 ↑                                          
+
+> LG-PF 7.4989 23.2688 63.8530 1.5917 0.9214 0.4562 CPIFuse 7.3479 13.8353 55.0505 1.5699 0.9155 0.4165 DT-F 7.3064 21.7685 52.4917 1.7609 0.8166 0.3603 LFDT 7.4509 17.8186 62.7805 1.5718 0.9175 0.4728 PAPIF 7.4261 17.0269 60.0223 1.6770 0.9140 0.4455 PIPFNet 7.2163 13.1146 55.7901 1.4345 0.8443 0.3887 TIPFNet 7.2585 15.7598 52.8156 1.5841 0.8583 0.4494
+
+polarization-sensitive details without sacrificing the photo-metric and structural information anchored by 𝑆 0.The visual comparisons in Fig. 3 are consistent with the quantitative results. In the first and fourth examples, the red-box regions show that LG-PF preserves reliable polarization-sensitive details in dark areas, whereas the blue-box regions demonstrate that the luminance and structural content of 𝑆 0 remains well maintained. The second and third examples contain challenging bright–dark transitions. LG-PF retains fine wall-surface textures while recovering polarization details from dark iron railings and tiled surfaces. In contrast, several competing methods either attenuate in-formative local details, introduce excessive polarization en-hancement, or disturb the original luminance distribution. LG-PF therefore achieves a favorable balance between se-lective 𝐷𝑜𝐿𝑃 detail transfer and preservation of the photo-metric and structural appearance of 𝑆 0.On the fixed PIF subset, Table 3 shows that LG-PF ranks first in EN, SF, SD, and MS-SSIM, and second in 𝑄 𝐶𝐵 . As illustrated in Fig. 4, LG-PF more clearly preserves radial fan textures, object boundaries, and material-sensitive details, without introducing obvious luminance deviation or local over-enhancement. On the fixed GAND subset, LG-PF obtains the best EN, SF, and SD values and the second-best 𝑄 𝐶𝐵 value, as reported in Table 4. Although DT-F achieves a higher SCD score and CPIFuse performs better in MS-SSIM and 
+
+𝑄 𝐶𝐵 , Fig. 5 shows that LG-PF retains clear scene structures, dark-region details, and polarization-sensitive boundaries while maintaining a natural intensity distribution. The eval-uations on PIF and GAND therefore indicate promising cross-dataset transferability without fine-tuning or domain adaptation. Overall, LG-PF achieves the strongest quantitative per-formance on MSP and remains competitive on the two external datasets. The quantitative and qualitative results consistently support its ability to selectively transfer reliable polarization information while preserving structural fidelity 
+
+First Author et al. Page 8 of 11 LG-PF: Lightweight Confidence-Guided Polarization Image Fusion DoLP S0 LG-PF CPIFuse DT-F LFDT PAPIF PIPFNet TIPFNet DoLP S0 LG-PF CPIFuse DT-F LFDT PAPIF PIPFNet TIPFNet 
+
+Figure 5: Qualitative comparison on a randomly selected GAND sample without fine-tuning. 
+
+Table 4 
+
+Quantitative comparison results on 10 randomly selected image pairs from the GAND dataset. Methods Metrics EN ↑ SF ↑ SD ↑ SCD ↑ MS-SSIM ↑ 𝑄 𝐶𝐵 ↑
+
+LG-PF 6.9700 17.6705 39.1293 1.7269 0.7335 0.5290 CPIFuse 6.8694 11.3982 36.9481 1.7230 0.9430 0.5883 DT-F 6.8655 16.6782 29.9436 1.8802 0.6180 0.3696 LFDT 6.8695 14.7905 38.2868 1.7196 0.5697 0.4923 PAPIF 6.9613 14.5522 38.8881 1.7233 0.6147 0.4716 PIPFNet 6.8056 13.4443 36.9769 1.6107 0.8007 0.5078 TIPFNet 6.6308 12.8721 31.6894 1.8365 0.7013 0.5261 
+
+and luminance consistency across different imaging condi-tions. 
+
+4.4. Ablation Studies 
+
+All ablation variants were independently trained from scratch on the same MSP training split under identical set-tings, with only the investigated component or loss con-figuration changed. For ablation evaluation, fixed subsets were randomly sampled once from MSP, PIF, and GAND and consistently used for the full model and all ablation variants. The PIF and GAND subsets were evaluated without fine-tuning or domain adaptation. Table 5 evaluates the contributions of PCP, MMF, and LCH. Removing PCP increases SF and SD but degrades EN, SCD, MS-SSIM, and 𝑄 𝐶𝐵 , indicating that stronger local activity may also in-troduce unreliable polarization responses. Removing MMF reduces information content and source complementarity, while removing LCH weakens photometric and structural consistency. Although the baseline achieves the highest SF, its lower structural and perceptual scores show that spatial activity alone does not guarantee balanced fusion quality. 
+
+Table 5 
+
+Ablation study of the key modules. Methods Metrics EN ↑ SF ↑ SD ↑ SCD ↑ MS-SSIM ↑ 𝑄 𝐶𝐵 ↑
+
+Full model 6.9094 15.5907 56.3164 1.7211 0.9466 0.4165 w/o PCP 6.8752 16.5595 56.3806 1.7019 0.9251 0.4119 w/o MMF 6.8931 15.3270 55.8327 1.7063 0.9475 0.4224 w/o LCH 6.8962 15.1074 56.2214 1.7054 0.9403 0.4190 Baseline 6.8653 16.8300 56.1553 1.7012 0.9233 0.4129 
+
+Table 6 
+
+Ablation study of different loss configurations. Settings Metrics EN ↑ SF ↑ SD ↑ SCD ↑ MS-SSIM ↑ 𝑄 𝐶𝐵 ↑                                         
+
+> Full loss 6.9094 15.5907 56.3164 1.7211 0.9466 0.4165 w/o REG 6.8767 15.6931 56.1723 1.6984 0.9535 0.4119 w/o SF 6.8942 15.7950 56.7184 1.7093 0.9230 0.4147 w/o TC 6.7902 15.3528 56.7781 1.3409 0.8917 0.4107
+> TC with PAPIF only 6.8869 15.5807 55.4955 1.6954 0.9316 0.4005
+> TC with LFDT only 6.7906 14.9664 55.9281 1.6028 0.9415 0.4160
+
+Overall, the complete model provides the most consistent performance across the six metrics. Table 6 evaluates the three loss groups and the teacher composition of TC . Removing SF or REG improves sev-eral individual metrics but weakens the overall balance, whereas removing TC causes substantial degradation in EN, SCD, and MS-SSIM. Using PAPIF or LFDT alone also underperforms the complete configuration, confirming the complementary roles of structural and full-resolution appearance guidance. Figure 6 further evaluates the sensitivity of the three group-level loss weights. The adopted setting, 𝜆 sf = 0 .42 ,
+
+𝜆 reg = 0 .66 , and 𝜆 tc = 1 .00 , achieves the largest number 
+
+First Author et al. Page 9 of 11 LG-PF: Lightweight Confidence-Guided Polarization Image Fusion 
+
+Figure 6: Sensitivity analysis of the three group-level loss weights. Stars and triangles denote the best and second-best results for each metric, respectively. 
+
+Table 7 
+
+Comparison of computational efficiency. 
+
+Methods Computational efficiency FLOPs (G) ↓ Parameters (M) ↓ Time (ms) ↓
+
+LG-PF 51.9883 0.2936 21.7120 CPIFuse 173.8998 0.8740 110.8920 LFDT 1936.6296 17.8980 692.8200 PAPIF 287.4564 0.2609 323.3230 PIPFNet 76.3328 0.0343 288.6660 TIPFNet 979.7782 4.1509 485.6140 DT-F 737.8300 0.8344 4951.9010 
+
+of best-performing results and provides a favorable balance across the six metrics. The metric curves also remain rela-tively stable within the evaluated ranges, indicating that LG-PF is not highly sensitive to moderate variations in these weights. 
+
+4.5. Computational Efficiency 
+
+Table 7 compares the computational costs of all methods under the same input resolution and hardware platform. LG-PF achieves the lowest computational complexity of 51.9883 G FLOPs and the fastest inference time of 21.7120 ms, while requiring only 0.2936 M parameters. Compared with the next-lowest computational cost achieved by PIPFNet, LG-PF reduces FLOPs by approximately 31.9%. It also reduces inference time by approximately 80.4% relative to the next-fastest method, CPIFuse. Although PIPFNet and PAPIF contain fewer parame-ters, both require substantially more computation and longer inference time. This result indicates that parameter count alone does not fully reflect practical efficiency. The effi-ciency of LG-PF benefits from its compact multi-scale rep-resentation, channel-compressed fusion operations, residual reconstruction strategy, and depthwise spatial modeling in LCH. Combined with the quantitative results in Table 2, these findings demonstrate that LG-PF achieves high-quality polarization fusion without relying on a parameter-heavy or computationally expensive architecture. 
+
+## 5. Conclusion 
+
+In this paper, we presented LG-PF, a lightweight confidence-guided framework for polarization image fusion. By treating 
+
+𝑆 0 as the photometric and structural anchor and 𝐷𝑜𝐿𝑃 as a spatially varying source of complementary information, LG-PF formulates fusion as a confidence-guided residual transfer process. PCP estimates the spatial reliability of polarization responses, MMF regulates their transfer across multiple scales, and LCH performs bounded local correction to stabilize photometric and structural transitions. The same confidence prior is further incorporated into the optimization objectives to preserve stable 𝑆 0 structures while selectively retaining reliable polarization-sensitive details. We also constructed MSP, a polarization fusion dataset containing 1000 pixel-aligned 𝑆 0–𝐷𝑜𝐿𝑃 image pairs from 17 indoor and outdoor scene categories. LG-PF achieves the best results across all six evaluated metrics on the MSP test set, while evaluations on fixed subsets of PIF and GAND indicate promising cross-dataset transferability without fine-tuning. Ablation and sensitivity studies further validate the contributions and stability of the proposed design. With only 
+
+0.2936 M parameters, 51 .9883 G FLOPs, and an inference time of 21 .712 ms, LG-PF provides a favorable balance between fusion quality and computational efficiency. Future work will extend MSP to broader materials and acquisition conditions and investigate real-time polarization fusion on resource-constrained imaging devices. 
+
+## References 
+
+[1] Yang, K., Liu, F., Liang, S., Xiang, M., Han, P., Liu, J., Dong, X., Wei, Y., Wang, B., Shimizu, K., Shao, X., 2024. Data-driven polarimetric imaging: A review. Opto-Electronic Science 3, 230042. doi: 10.29026/oes.2024.230042 .[2] Collett, E., 1984. Measurement of the four Stokes polarization parameters with a single circular polarizer. Optics Communications 52, 77–80. doi: 10.1016/0030-4018(84)90286-4 .[3] Zhao, Z., Bai, H., Zhang, J., Zhang, Y., Zhang, K., Xu, S., Chen, D., Timofte, R., Van Gool, L., 2024. Equivariant multi-modality image fusion, in: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, IEEE. pp. 25912–25921. doi: 10.1109/CVPR52733.2024.02448 .[4] Zhu, P., Sun, Y., Cao, B., Hu, Q., 2024. Task-customized mixture of adapters for general image fusion, in: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, IEEE. pp. 7099–7108. doi: 10.1109/CVPR52733.2024.00678 .[5] Chen, J., Ding, J., Ma, J., 2024. HitFusion: Infrared and visible image fusion for high-level vision tasks using trans-former. IEEE Transactions on Multimedia 26, 10145–10159. doi: 10.1109/TMM.2024.3405714 .[6] Zhou, M., Zheng, N., He, X., Hong, D., Chanussot, J., 2025. Probing synergistic high-order interaction for multi-modal image fusion. IEEE Transactions on Pattern Analysis and Machine Intelligence 47, 840– 857. doi: 10.1109/TPAMI.2024.3475485 .[7] Liu, J., Zhang, B., Mei, Q., Li, X., Zou, Y., Jiang, Z., Ma, L., Liu, R., Fan, X., 2025. DCEvo: Discriminative cross-dimensional evolution-ary learning for infrared and visible image fusion, in: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recogni-tion, IEEE. pp. 2226–2235. doi: 10.1109/CVPR52734.2025.00213 .[8] Sun, Y., Dong, M., Zhu, L., 2025. Rethinking the approach to lightweight multi-branch heterogeneous image fusion frame-works: Infrared and visible image fusion via the parallel Mamba-KAN framework. Optics & Laser Technology 185, 112612. doi: 10.1016/j.optlastec.2025.112612 .[9] Wang, Z., Wang, C., Pu, Y., Peng, J., Zhao, Z., Gu, J., 2025. In-frared and visible image fusion with multi-resolution enhancement and dynamic weighted. Optics & Laser Technology 188, 112763. doi: 10.1016/j.optlastec.2025.112763 .
+
+First Author et al. Page 10 of 11 LG-PF: Lightweight Confidence-Guided Polarization Image Fusion 
+
+[10] Liang, P., Jiang, J., Ma, Q., Wang, C., Liu, X., Ma, J., 2025. FusionINV: A diffusion-based approach for multimodal image fu-sion. IEEE Transactions on Image Processing 34, 5355–5368. doi: 10.1109/TIP.2025.3593775 .[11] Yang, B., Jiang, Z., Pan, D., Yu, H., Gui, G., Gui, W., 2025. LFDT-Fusion: A latent feature-guided diffusion Transformer model for general image fusion. Information Fusion 113, 102639. doi: 10.1016/j.inffus.2024.102639 .[12] Li, J., Jiang, J., Liang, P., Ma, J., Nie, L., 2025. MaeFuse: Transferring omni features with pretrained masked autoencoders for infrared and visible image fusion via guided training. IEEE Transactions on Image Processing 34, 1340–1353. doi: 10.1109/TIP.2025.3541562 .[13] Zhang, H., Cao, L., Zuo, X., Shao, Z., Ma, J., 2025. OmniFuse: Composite degradation-robust image fusion with language-driven semantics. IEEE Transactions on Pattern Analysis and Machine Intelligence 47, 7577–7595. doi: 10.1109/TPAMI.2025.3568433 .[14] Peng, J., Chen, Y., Peng, S., Liu, Z., Chen, J., Qu, S., Wang, J., 2025. BICFusion: An unsupervised infrared and visible image fusion framework for beyond illumination constraints. Optics & Laser Technology 192, 113554. doi: 10.1016/j.optlastec.2025.113554 .[15] Liu, H., Li, X., Huang, Z., Ye, T., Liu, Y., Tan, H., 2026. CAWM-Mamba: A unified model for infrared–visible image fusion and com-pound adverse weather restoration. Expert Systems with Applications 314, 131665. doi: 10.1016/j.eswa.2026.131665 .[16] Yue, Z., Li, F., 2014. An infrared polarization image fusion algorithm based on oriented laplacian pyramid, in: Selected Pa-pers from Conferences of the Photoelectronic Technology Commit-tee of the Chinese Society of Astronautics: Optical Imaging, Re-mote Sensing, and Laser–Matter Interaction 2013, SPIE. pp. 60–70. doi: 10.1117/12.2054074 .[17] Zhang, J., Shao, J., Chen, J., Yang, D., Liang, B., 2021. Polarization image fusion with self-learned fusion strategy. Pattern Recognition 118, 108045. doi: 10.1016/j.patcog.2021.108045 .[18] Duan, J., Zhang, H., Liu, J., Gao, M., Cheng, C., Chen, G., 2023. A dual-weighted polarization image fusion method based on quality assessment and attention mechanisms. Frontiers in Physics 11, 1214206. doi: 10.3389/fphy.2023.1214206 .[19] Xu, H., Sun, Y., Mei, X., Tian, X., Ma, J., 2022. Attention-guided polarization image fusion using salient information distribu-tion. IEEE Transactions on Computational Imaging 8, 1117–1130. doi: 10.1109/TCI.2022.3228633 .[20] Li, K., Qi, M., Zhuang, S., Liu, Y., Gao, J., 2023. Noise-aware infrared polarization image fusion based on salient prior with attention-guided filtering network. Optics Express 31, 25781–25796. doi: 10.1364/OE.492954 .[21] Li, K., Qi, M., Zhuang, S., Yang, Y., Gao, J., 2022. TIPFNet: A Transformer-based infrared polarization image fusion network. Optics Letters 47, 4255–4258. doi: 10.1364/OL.466191 .[22] Liu, J., Li, S., Dian, R., Song, Z., 2024. DT-F Transformer: Dual transpose fusion transformer for polarization image fusion. Informa-tion Fusion 106, 102274. doi: 10.1016/j.inffus.2024.102274 .[23] Li, K., Qi, M., Zhuang, S., Liu, Y., 2024. Polarized prior guided fusion network for infrared polarization images. IEEE Transactions on Geoscience and Remote Sensing 62, 1–17. doi: 10.1109/TGRS.2024.3389976 .[24] Zhou, H., Zeng, X., Lin, B., Li, D., Shah, S.A.A., Liu, B., Guo, K., Guo, Z., 2024. Polarization motivating high-performance weak targets’ imaging based on a dual-discriminator GAN. Optics Express 32, 3835–3851. doi: 10.1364/OE.504918 .[25] Luo, Y., Zhang, J., Li, C., 2025. CPIFuse: Toward realistic color and enhanced textures in color polarization image fusion. Information Fusion 120, 103111. doi: 10.1016/j.inffus.2025.103111 .[26] Gong, M., Li, J., Chen, M., Cao, C., Zou, R., 2025. Hierarchical progressive network for polarized image fusion based on significant polarization information. Knowledge-Based Systems 318, 113554. doi: 10.1016/j.knosys.2025.113554 .[27] Liu, Q., Wang, Q., Guo, J., Xu, Z., Yu, J., Xia, R., 2025. A dual channel-cross fusion network for polarization image fusion. Optics & Laser Technology 187, 112822. doi: 10.1016/j.optlastec.2025.112822 .[28] Fan, X., Qiao, L., Lin, B., Guo, Z., 2025. Joint intensity-spectral polarization hierarchical fusion guided efficient transpar-ent object detection. Optics & Laser Technology 192, 113429. doi: 10.1016/j.optlastec.2025.113429 .[29] Duan, J., Zheng, Y., Chen, G., Liu, J., Zhang, H., Song, J., 2025. A multi-scale infrared polarization image fusion method based on polarization-forming. Infrared Physics & Technology 146, 105735. doi: 10.1016/j.infrared.2025.105735 .[30] Gong, M., Li, J., Chen, M., 2026. IGFD-Net: Illumination-guided frequency decoupling for polarization image fusion. Neural Networks 204, 109283. doi: 10.1016/j.neunet.2026.109283 .[31] Hu, M., Pan, Y., Xue, D., Xu, X., Wang, P., 2026. Full-Stokes polarization feature image fusion via polarization physics-aware dif-fusion model. Expert Systems with Applications 329, 133082. doi: 10.1016/j.eswa.2026.133082 .[32] Jagalingam, P., Hegde, A.V., 2015. A review of quality metrics for fused image. Aquatic Procedia 4, 133–142. doi: 10.1016/j.aqpro.2015.02.019 .[33] Aslantas, V., Bendes, E., 2015. A new image quality metric for image fusion: The sum of the correlations of differences. AEU– International Journal of Electronics and Communications 69, 1890– 1896. doi: 10.1016/j.aeue.2015.09.004 .[34] Wang, Z., Simoncelli, E.P., Bovik, A.C., 2003. Multiscale structural similarity for image quality assessment, in: Proceedings of the Thirty-Seventh Asilomar Conference on Signals, Systems and Computers, IEEE. pp. 1398–1402. doi: 10.1109/ACSSC.2003.1292216 .[35] Chen, Y., Blum, R.S., 2009. A new automated quality assessment algorithm for image fusion. Image and Vision Computing 27, 1421– 1432. doi: 10.1016/j.imavis.2007.12.002 .
+
+First Author et al. Page 11 of 11
