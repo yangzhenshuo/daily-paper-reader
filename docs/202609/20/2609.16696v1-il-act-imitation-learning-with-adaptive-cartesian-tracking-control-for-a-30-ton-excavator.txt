@@ -1,0 +1,576 @@
+Title: IL-ACT: Imitation Learning with Adaptive Cartesian Tracking Control for a 30-ton Excavator
+
+URL Source: https://arxiv.org/pdf/2609.16696v1
+
+Published Time: Wed, 16 Sep 2026 00:44:34 GMT
+
+Number of Pages: 8
+
+Markdown Content:
+# IL-ACT: Imitation Learning with Adaptive Cartesian Tracking Control for a 30-ton Excavator 
+
+Mehdi Heydari Shahna, Seihun Kim, Soyi Jung, Soohyun Park, Jouni Mattila, Joongheon Kim 
+
+Abstract — Autonomous excavator control is challenged by coupled kinematics, actuation lag, and uncertainty. We propose imitation learning and adaptive Cartesian tracking (IL-ACT), a novel motion control framework for a 30-ton-class excavator. An anchored, 14-input imitation policy pretrained on operator demonstrations generates nominal joint rates; adaptive Cartesian feedback and gated gain/bias estimation correct these commands before a stopping-distance governor constrains joint-reference generation. Simscape evaluation covers 100 sequential goals and spiral, figure-eight, and rounded-raster tracking, including 88 additional runs across three training seeds, two initializations, and speeds, under hydraulic response and sensing conditions. Compared with Teacher+ACT, IL-ACT completes all goals with shorter duration and lower terminal errors under both response conditions. Telemetry-initialized IL-ACT lowers RMSE in all 24 figure-eight and rounded-raster seed comparisons and lowers additional-load spiral mean RMSE by approximately 
+
+29% . Original spiral RMSE also improves over IL-only and PID. Under a shared sensor-noise realization, telemetry-initialized IL-ACT achieves 27 .67% lower mean RMSE than Teacher+ACT; enabling estimation reduces mean RMSE by 22 .44% relative to the frozen estimator. Pretrained-weight effects remain mixed, and the original teacher comparison exhibits a spiral RMSE– maximum-error tradeoff. Analysis establishes bounded adaptive states and Cartesian feedback, with reference admissibility conditional on governor feasibility. 
+
+I. I NTRODUCTION 
+
+Autonomous excavation requires target localization and machine positioning, goal-reaching control, and trajectory tracking (Fig. 1). This work designs a new motion control framework, addressing the latter two stages for a 30-ton-class excavator with coupled kinematics and hydraulic actuation. Previous systems have demonstrated trajectory optimization, constrained planning, learned inverse control, and integrated excavation [1]–[4]. Imitation learning (IL) exploits expert demonstrations and has been combined with model-based trajectory generation and learned closed-loop excavator dynamics [5]–[8]. Offline robot-learning studies emphasize data quality, temporal con-text, distribution shift, and reliable evaluation [9]–[12]. Causal      
+
+> This work was supported by the Korean Ministry of Trade, Industry and Energy (MOTIE) under Grant RS-2024-00442168, through the Mechanical Equipment Industry Technology Development Program administered by KEIT. M. H. Shahna and J. Mattila are with the Faculty of Engineering and Natural Sciences, Tampere University, Tampere, Finland; S. Kim and J. Kim are with the Department of Defense Convergence Technology and the Department of Electrical and Computer Engineering, respectively, at Korea University, Seoul, Republic of Korea; S. Jung is with the Department of Electrical and Computer Engineering, Ajou University, Suwon, Republic of Korea; and S. Park is with the Division of Computer Science, Sookmyung Women’s University, Seoul, Republic of Korea. (Corresponding author e-mail: mehdi.heydarishahna@tuni.fi) Target localization Goal-reaching control Digging trajectory tracking
+> Research Vision and Scope of the Present Work
+> (1)(2)(3)
+> Fig. 1. Stages of autonomous excavation and scope of the present work.
+
+confusion further motivates observation design consistent with deployment-time measurements [13]. Recent robotics research has combined adaptive control with neural networks to improve tracking accuracy and robustness under uncertain dynamics and changing operating conditions. Kong et al. [14] developed an adaptive neural controller that compensates for unknown robot dynamics and actuator saturation, establishing fixed-time convergence of tracking errors to a neighborhood of zero and validating the approach through simulations and physical experiments. For magnetic micromanipulation, Jia et al. [15] integrated offline neural model learning with online weight adaptation and constrained optimal control, enabling experimentally demonstrated non-contact trajectory tracking and navigation in cluttered environments. Extending adaptation to changing payloads, Li et al. [16] combined online payload identification with physics-informed neural networks and predictive control. Their work reported approximately 35% higher tracking precision than their previous adaptive controller in quadruped experiments with payloads ranging from 25 to 100 kg. More recently, Han et al. [17] combined adaptive radial basis function neural networks with local model approximation and particle swarm optimization, reporting reduced tracking errors in simulations of an ABB IRB1600 industrial manipulator. Collectively, these studies suggest that neural approximation and online adaptation provide complementary mechanisms for improving robotic control performance, although the differing platforms, baselines, and validation methods limit direct comparisons between their reported gains. Adaptive control and other control-theoretic methods can strengthen neural-network-based reinforcement learning (RL) and imitation learning by introducing explicit mechanisms for uncertainty compensation and error convergence [18], [19]. Sung et al. [20] augmented model-based RL with L1 adaptive control, using online uncertainty estimation and compensation to improve robustness and sample efficiency in simulated control tasks. Zhao et al. [21] incorporated control Lyapunov and barrier functions into actor-critic learning, expressing stability arXiv:2609.16696v1 [cs.RO] 15 Sep 2026 and safety requirements as optimization constraints. For imitation learning, Abyaneh et al. [22] designed neural dynamical policies with contraction guarantees, ensuring convergence between generated trajectories and improving recovery from unfamiliar states. Such mathematical structure makes key behavioral properties analyzable even when the neural network itself remains difficult to interpret [18]. These architectures motivate integrating a learned excavator policy with feedback that compensates for uncertain joint response. Hence, for a 30-ton excavator, we design IL with an adaptive Cartesian tracking (ACT) framework, denoted IL-ACT. It coordinates an anchored joint-rate policy with nominal response prediction, excitation- and intervention-gated gain/bias estimation, and a shared stopping-distance governor. The main contributions are: 1) Anchored imitation-policy design . Kinematic teacher supervision and dataset aggregation refine a coordinated four-joint policy with causal observations and an exact zero-action anchor. Telemetry-initialized and random-weight variants are evaluated. 2) Adaptive tracking with constrained reference generation .Cartesian feedback and gated projected gain/bias estimation share a stopping-distance governor. The analysis establishes boundedness and reference admissibility conditional on governor feasibility. 3) Comparative simulation evidence across tasks and trajectories . Goal regulation and spiral tracking include IL-only and tuned PID baselines. An additional 88-run study compares Teacher+ACT and IL-ACT across figure-eight, rounded-raster, and perturbed spiral tracking, with three training seeds, two initializations, and estimator ablations. The comprehensive companion technical report documents execution, training, response modeling, and baseline tuning (S1–S4), together with ablations, detailed results, and valida-tion checks (S5–S8). Its proposed physical-machine protocol (S9) covers calibration, actuator integration, point reaching and digging, safety supervision, staged commissioning, inde-pendent measurement, and comparative evaluation. The report and task video are available at https://anonymous.4o pen.science/r/icra2027-supplement-6263 , on Anonymous GitHub. II. P RELIMINARIES AND PROBLEM FORMULATION 
+
+The machine is a 30-ton-class hydraulic excavator with four controlled joints: swing, boom, arm, and bucket. Let 
+
+q = [ q1, q 2, q 3, q 4]T denote the model-aligned joint angles in degrees, and let θ = κq, where κ = π/ 180 , denote the corresponding angles in radians. Swing is an actively controlled joint in both goal regulation and timed trajectory tracking. The controlled task is the three-dimensional position of the center-reference bucket tip; bucket orientation is not an independently tracked task variable. The model-base origin lies on the swing axis at boom-pivot elevation, with its vertical axis upward. Boom angle is measured from the swung horizontal axis; arm and bucket angles are relative to their preceding links. The radial swing-to-boom offset is a1 = 0 .120 m; the boom and arm pivot-to-pivot lengths are a2 = 6 .245 and a3 = 3 .113 m, and the bucket pivot-to-tip length is a4 = 1 .910 m. All Cartesian references use this frame. The conventional DH parameters and execution conventions are given in Sec. S1. For zero lateral bucket offset, define 
+
+r = a1 + a2 cos θ2 + a3 cos( θ2 + θ3)+ a4 cos( θ2 + θ3 + θ4). (1) The tip coordinates in metres are 
+
+x = r cos θ1, y = r sin θ1,z = a2 sin θ2 + a3 sin( θ2 + θ3)+ a4 sin( θ2 + θ3 + θ4).
+
+(2) To match the controller’s numerical units, define 
+
+p = 1000[ x, y, z ]T, J(q) = ∂p
+
+∂q ∈ R3×4. (3) Thus, Cartesian positions and velocities use millimetres and 
+
+mm s −1, whereas joint rates use deg s −1. The Jacobian includes the degree-to-radian factor κ.At period Tc = 0 .1 s, the controller receives measured joint angles qk, measured tip position pk, the current desired position pd,k and velocity vd,k , and a conditioning point 
+
+ppr  
+
+> k
+
+for the learned policy. For goal regulation, ppr  
+
+> k
+
+= pd,k 
+
+is the current fixed goal and vd,k = 0. For timed tracking, the learned policy receives a preview point, while feedback uses the current reference position and velocity. The timed reference advances independently of tracking error; it is not paused at intermediate points. The controller generates a four-joint rate command uk and integrates it into a position-demand register ck:
+
+ck+1 = ck + Tcuk. (4) The current register value ck is emitted to the plant during the current interval. The register and measured joint positions are distinct. Initialization uses c0 = [0 , 30 , −100 , −20] T
+
+degrees and requires measured joints to agree with this initial demand within 10 −3 degrees. The control objective is Cartesian tracking with admissible generated joint references. The governor constrains the position-demand register, and measured bucket-tip motion determines Cartesian tracking performance. III. IL P OLICY DESIGN AND TRAINING 
+
+The dataset counts and checkpoint statistics in this section describe the original telemetry-initialized benchmark policy. The additional seed and initialization study is reported in Section V-C. The source telemetry corpus contains operator demonstrations from 15 recording dates, partitioned by date into seven training, two validation, three test, and three stress-test dates. We adapt the behavior-cloning approach in [8] to goal-conditioned four-joint excavator control. For this original policy, all four network layers inherit weights and biases from a telemetry-trained policy refined using telemetry replay and offline kinematic supervision. The inherited input means and scales (μx, σx) and affine output transformation (Ay , by ) remain fixed. The present refinement Data Preparation Imitation -Learning Policy Design and Training        
+
+> Adaptive tracking and Supervision
+> Expert
+> demonstration
+> HDI DX300LC -5L
+> Raw telemetry data
+> Cartesian tracking feedback , g ain/bias
+> estimation and nominal response
+> predi ction, inverse command
+> compensation, shared governor and
+> position -reference inte gratio n
+> Prepared data
+> Offline policy design and training
+> Cartesian reference
+> Simscape excavator
+> model
+> Observation and action design
+> Behavior -cloning training
+> Supervised refinement and validation
+> Telemetry alignment and state –
+> action construction
+> Labeling and feature encoding
+> 30 -ton -class excavator
+> Learned N ominal IL contr oller
+> Causal measured -sta te observation 14
+> features to 4 nominal joint rates
+> Goal/pr eview
+> point Measured joint angles and tip position
+> Joint -
+> position
+> demand
+> Cur rent
+> des ired
+> motion
+> Nominal
+> jo int -rate
+> command
+> mac hine -mapping cal ibration
+> Onli ne closed -loop control
+> Learned poli cy para meters
+> Off li ne
+> supervision
+
+Fig. 2. IL-ACT architecture: offline policy training and validation, followed by online Cartesian feedback, gain/bias adaptation, and command supervision. 
+
+optimizes all shared network weights and biases through both evaluations of the anchored policy in (9). The hydraulic-response parameters are prescribed in Sec. S3. The initial supervised dataset contains 120000 accepted examples. A kinematic teacher reconstructs the current configuration and Cartesian goal from the observation without receiving a goal-joint witness. It selects a bounded elbow-down IK posture and blends a bounded posture guide with a box-constrained least-squares Cartesian-velocity command as the goal approaches. Labels are joint-rate commands before the stateful governor; measured-rate features do not enter the teacher law. Three dataset-aggregation rounds each collect 
+
+96 learner-driven analytical rollouts, labeling visited states including unsuccessful prefixes. Dataset sizes are 120000 ,
+
+135990 , 150677 , and 164585 , with 60 epochs per stage. The teacher supplies online nominal commands only in the matched Teacher+ACT comparison. Its exact law, sampling distributions, and collection procedure are specified in Sec. S2. For minibatch B, define rn = πΘ(xn) − uE 
+
+> n
+
+, where πΘ
+
+is the anchored policy in (9) and uE 
+
+> n
+
+is the teacher label. Here eqn is the joint configuration reconstructed from the pose features of xn. With Jn = J(eqn) in mm deg −1, the dimensionless training loss is 
+
+LB(Θ) = 1
+
+|B| 
+
+X
+
+> n∈B
+
+wn
+
+"
+
+∥D−1 
+
+> v
+
+rn∥22
+
+4 + 0.23
+
+Jnrn
+
+60 
+
+> 22
+
+#
+
+, (5) where Dv = diag(0 .6, 0.4, 0.6, 0.8) uses deg s −1, the Cartesian normalization is 60 mm s −1, and wn = 1 + 3 exp[ − max( xn, 13 , 0) /(100 mm)] . The loss averages over examples, not the sum of weights, and compares predicted and teacher Cartesian velocities. Its definition is fixed while dataset aggregation changes the empirical training distribution. Each stage uses AdamW. Checkpoint selection maximizes success on the same 32 validation rollouts and then minimizes mean terminal error. The selected fourth-stage checkpoint is evaluated on 64 separate test cases. Optimizer settings, seeds, and complete training details are provided in Sec. S2. IV. C ONTROL DESIGN 
+
+For each IL-only versus IL-ACT comparison, both modes use the same learned policy, observations, tasks, and command governor. IL-only disables Cartesian correction and gain/bias adaptation; IL-ACT enables both upstream of the governor. The nominal plant response uses two cascaded 0.1 sposition-input filters. The disturbed response adds valve, friction, and supply/load effects [18], [23], [24], described in Section V and Sec. S3. 
+
+A. Design of the Goal-Conditioned Imitation Policy 
+
+The observer unwraps swing using shortest angular incre-ments and applies causal exponential filtering to the measured joints and tip position. With αo = 1 − exp( −Tc/0.15) ,
+
+bqk = (1 − αo)bqk−1 + αoquw  
+
+> k
+
+,
+
+bpk = (1 − αo)bpk−1 + αopk,
+
+b˙qk = bqk − bqk−1
+
+Tc
+
+.
+
+(6) Filtered states initialize at the first measurement, with zero initial rate. A one-step joint jump exceeding [20 , 10 , 20 , 30] 
+
+degrees or a tip jump exceeding 1,000 mm triggers an observer reset. A reset after controller initialization is handled as a fault. Define the pose encoding and policy-conditioning error as 
+
+sk = [sin( κbq1,k ), cos( κbq1,k ), bq2,k , bq3,k , bq4,k ]T,
+
+δk = ppr  
+
+> k
+
+− bpk. (7) The ordered observation is 
+
+xk =
+
+h
+
+sT 
+
+> k
+
+b˙qT 
+
+> k
+
+δT 
+
+> k
+
+∥δk∥2 hk
+
+iT
+
+∈ R14 , (8) Here hk is a conditioning horizon in seconds, not a completion deadline. The observation has no history stack or binary mask; desired velocity enters Cartesian feedback separately. Let FΘ denote the fully connected 14 –256 –256 –128 –4
+
+network with biases, sigmoid linear unit (SiLU) hidden activations s(a) = a/ (1 + exp( −a)) , and 103,044 trainable parameters. It uses input normalization (x − μx) ⊘ σx and a linear output followed by the fixed affine transformation 
+
+(Ay , by ). The anchored policy is 
+
+x0 
+
+> k
+
+= [ sT 
+
+> k
+
+, 0T 
+
+> 4
+
+, 0T 
+
+> 3
+
+, 0, h k]T,
+
+uIL ,k = FΘ(xk) − FΘ(x0
+
+> k
+
+). (9) Both evaluations share weights and normalization; the affine output bias cancels. Outputs are swing, boom, arm, and bucket rates in deg s −1. When δk = 0 and b˙qk = 0, nominal action is exactly zero. Weights are trained offline and frozen online; command limiting follows feedback and adaptation. 
+
+B. Adaptive Cartesian Tracking Correction 
+
+Feedback uses the current measured task error ek = pd,k −
+
+pk, not the policy preview error. Let Dk = ∥ek∥2, Jk =
+
+J(qk), and σk = σmin (Jk). Define 
+
+λk = 1 + 8 max(0 , 1 − σk/12) 2,sk = clip( σk/6, 0.1, 1) ,
+
+J# 
+
+> k
+
+= JT 
+
+> k
+
+(JkJT 
+
+> k
+
++ λ2
+
+> k
+
+I3)−1.
+
+(10) All numerical gains and thresholds below use the de-gree/millimetre convention specified in Section II. For compactness, define the causal filter 
+
+Lτ [a]k = e−Tc/τ Lτ [a]k−1 + (1 − e−Tc/τ )ak. (11) All rate-filter and excitation-statistic states initialize at zero. Both stored intervention flags initialize to false. Measured Cartesian velocity is vk = L0.25 [( pk − pk−1)/T c]. With integral state Ik, the requested and limited Cartesian feedback velocities are 
+
+w∗ 
+
+> k
+
+= kp,k ek + Ik + 0 .25( vd,k − vk) + ρk
+
+ek
+
+pD2 
+
+> k
+
++ 25 ,
+
+wk = w∗
+
+> k
+
+max(1 , ∥w∗
+
+> k
+
+∥2/60) , ufb ,k = skJ# 
+
+> k
+
+wk.
+
+(12) The gain/bias estimator compares measured motion with the nominal position-filter prediction. Let τf = 0 .1 s, af =exp( −Tc/τ f ), and let f1,k , f2,k be nominal filter states driven by the previously emitted demand: 
+
+f1,k = ck−1 + af (f1,k −1 − ck−1),
+
+f2,k = ck−1 + af
+
+(f2,k −1 − ck−1)+ ( Tc/τ f )( f1,k −1 − ck−1).
+
+(13) Both filter states initialize at c0. The measured and predicted rate regressors are 
+
+zk = L0.25 [( quw  
+
+> k
+
+− quw 
+
+> k−1
+
+)/T c],
+
+rk = L0.25 [( f2,k − f2,k −1)/T c]. (14) With estimates carried from the previous sample, the residual is 
+
+εk = zk − (bgk−1 ⊙ rk + bbk−1). (15) These effective gain and bias estimates compensate deviations between the measured joint rates and the nominal predicted response. Excitation is assessed using mj,k = L5[rj ]k, vj,k =
+
+L5[r2 
+
+> j
+
+]k, and νj,k = max(0 , v j,k −m2
+
+> j,k
+
+). For an eligible joint, define eεj,k = sgn( εj,k ) max( |εj,k | − 0.001 , 0) and update 
+
+bgj,k = clip [0 .35 ,1.8] 
+
+nbgj,k −1 + Tc
+
+h 0.8eεj,k rj,k 
+
+r2 
+
+> j,k
+
++ 0 .15 2
+
+− 0.005( bgj,k −1 − 1) 
+
+io 
+
+,
+
+bbj,k = clip [−0.12 ,0.12] 
+
+nbbj,k −1 + Tc
+
+h 0.7eεj,k 0.15 2
+
+r2 
+
+> j,k
+
++ 0 .15 2
+
+− 0.005 bbj,k −1
+
+io 
+
+.
+
+(16) The estimates initialize at bg = 1, bb = 0. Updates require combined-control mode, completion of the first 50 control samples, no intervention flag aligned with the measured interval, νj,k > 2.5×10 −5, |rj,k | > 0.005 , and |εj,k | > 0.001 .Otherwise, the joint’s estimates are held fixed, including their leakage terms. The intervention flag is delayed to follow the emitted-demand timing; with the register convention above it is the limiting flag from two controller samples earlier. When the previous sample had neither task-velocity nor governor limiting, the scheduled gains are updated as 
+
+kp,k = clip [0 .2,0.6] {kp,k −1 + Tc[k∗ 
+
+> p,k
+
+− kp,k −1]},k∗ 
+
+> p,k
+
+= 0 .2 + 0 .4Dk/(Dk + 50) ,ρk = clip [0 .5,10] {ρk−1 + 0 .7Tc[ρ∗ 
+
+> k
+
+− ρk−1]},ρ∗ 
+
+> k
+
+= clip [0 .5,10] (0 .5 + ∥Jkεk∥2).
+
+(17) Otherwise, they remain unchanged. Initial values are kp, 0 =0.2 and ρ0 = 0 .5.The combined and correction commands are 
+
+uΣ,k = ( uIL ,k + ufb ,k − bbk) ⊘ bgk,
+
+uad ,k = uΣ,k − uIL ,k . (18) In IL-only mode, uΣ,k = uIL ,k ; feedback, estimator, scheduled-gain, and integral updates are disabled. After the governor determines uk, the combined mode uses anti-windup integration. Let χk = 1 only when neither Cartesian task limiting nor governor limiting occurs, and zero otherwise. Then 
+
+Ik+1 = Π 25 
+
+n
+
+Ik + Tc
+
+0.08 χkek + ( wk − w∗
+
+> k
+
+)+ Jk
+
+ bgk ⊙ (uk − uΣ,k ) o
+
+,
+
+(19) 
+
+Π25 projects onto the Euclidean ball of radius 25 and I0 = 0.C. Shared Command Governor and Execution 
+
+Both modes share the same position-reference, speed, and acceleration limits, in joint order swing, boom, arm, bucket: 
+
+qmin = [ −∞ , −8, −172 , −160] T,
+
+qmax = [ ∞, 75 , −22 , 60] T,
+
+vmax = [0 .6, 0.4, 0.6, 0.8] T,
+
+amax = [0 .6, 0.5, 0.8, 1.0] T.
+
+(20) Swing has no finite position bound in this model, but its rate and acceleration are limited. For speed v ≥ 0, define the discrete stopping distance 
+
+Dj (v) = Tc
+
+> ∞
+
+X
+
+> n=0
+
+max( v − na max ,j Tc, 0) . (21) Only finitely many summands are nonzero. The admissible stopping speed is 
+
+Sj (d) = max {v ∈ [0 , v max ,j ] : Dj (v) ≤ max( d, 0) }, (22) with Sj (∞) = vmax ,j . The governor uses the position-demand register, rather than measured plant position, to form 
+
+ℓj,k = max { − S j (cj,k − qmin ,j ), u j,k −1 − amax ,j Tc},b+ 
+
+> j,k
+
+= min {S j (qmax ,j − cj,k ), u j,k −1 + amax ,j Tc}.
+
+(23) Let ζk = 1 during fixed-goal regulation when the filtered goal distance is at most 25 mm , and ζk = 0 otherwise. For timed tracking, ζk = 0 . For IL-only and IL-ACT, the governor input is 
+
+ureq ,k = (1 − ζk)uΣ,k . (24) Thus, stopping requests zero rate upstream of the acceleration and stopping-distance constraints. A governor sample is feasible when ck is finite, lies within the declared position envelope, and ℓj,k ≤ b+ 
+
+> j,k
+
+for every joint. On a feasible sample, 
+
+uj,k = clip( ureq ,j,k , ℓ j,k , b +
+
+> j,k
+
+), (25) followed by the reference update in (4). Singularity scaling is applied to the Cartesian feedback in (12), not to the full nominal-plus-correction command in this governor. Invalid or nonfinite inputs, an invalid observer, inconsistent startup, or a subsequent observer reset trigger a latched fault. A fault requests zero rate before the governor, so the normal response is limited deceleration rather than an instantaneous stop. If the admissible interval itself is infeasible, the fallback is 
+
+uj,k = sgn( uj,k −1) max( |uj,k −1| − amax ,j Tc, 0) , (26) with an infeasibility fault. The fallback reduces the previous joint-rate command toward zero using the deceleration. Reference admissibility is established under the feasibility conditions stated below. The initialization sample holds the initial demand and emits zero rate. Each valid sample updates observations and prediction statistics before eligible estimation, gain scheduling, and command composition. Stopping and the governor precede anti-windup integration. The controller emits ck and stores 
+
+ck+1 with interval-aligned histories. IL-only omits feedback and adaptation. 
+
+D. Controller Boundedness and Reference Admissibility 
+
+Projection and scheduling ensure 0.35 ≤ bgj,k ≤ 1.8,
+
+|bbj,k | ≤ 0.12 , 0.2 ≤ kp,k ≤ 0.6, 0.5 ≤ ρk ≤ 10 , and 
+
+∥Ik∥2 ≤ 25 . Furthermore, λk ≥ 1 and ∥J# 
+
+> k
+
+∥2 ≤ (2 λk)−1,while ∥wk∥2 ≤ 60 . Therefore the feedback command is bounded. If the learned nominal output is bounded on the operating domain, the combined command is also bounded because the estimated gains remain strictly positive. At each feasible governor sample, 
+
+|uj,k | ≤ vmax ,j , |uj,k − uj,k −1| ≤ amax ,j Tc,qmin ,j ≤ cj,k + Tcuj,k ≤ qmax ,j . (27) The position inequality follows because the discrete stopping distance contains the next displacement Tc|uj,k |. Conse-quently, an initially admissible position-demand register remains admissible while the governor remains feasible. The analysis establishes bounded adaptive states and Cartesian feedback commands and admissible generated references under the stated feasibility conditions. Closed-loop task performance is evaluated in Section V. V. S IMSCAPE EVALUATION 
+
+A. Original Training and Analytical Rollouts 
+
+The original single-seed policy passes all 32 validation cases at each of four stages; mean terminal error falls from 
+
+21 .431 to 20 .367 mm. It passes 63 /64 separate analytical tests, with all-case mean error 26 .519 mm, including the 
+
+397 .481 mm timeout. These rollouts use the nominal re-sponse and governor. Success requires 25 mm position and 
+
+0.05 deg s −1 speed tolerances, checked every 0.01 s, with 1
+
+s qualification, 3 s hold, and 600 s timeout. Training curves and casewise results are in Sec. S2; the additional three-seed study follows in Section V-C. 
+
+B. Original Goal and Spiral Benchmarks 
+
+The control comparison uses four-joint Cartesian goal regulation and timed trajectory tracking. The IL-only mode and the combined mode are defined in Section IV. For sequential goals, the current goal is held until the qualification and hold conditions are satisfied, with a 600 s timeout. Policy, observer, reference-register, and plant states continue across goal changes. For timed tracking, current reference position and velocity advance every 0.1 s; intermediate target waiting and error-dependent time dilation are absent. The policy-conditioning horizon is hk = 2 s in the original goal-regulation and timed-tracking benchmarks. For goal regulation, ppr  
+
+> k
+
+= pd,k is the current goal. For timed tracking, 
+
+ppr  
+
+> k
+
+= pd(tk + 2 s) , vd,k = ˙ pd(tk), (28) with Cartesian feedback using pd(tk). Preview evaluation includes transitions between the approach, spiral, and terminal hold. Define H(ξ) = 35 ξ4 − 84 ξ5 + 70 ξ6 − 20 ξ7 for 0 ≤
+
+ξ ≤ 1. For 0 ≤ t < 600 s, the reference is pd(t) = f (q0 +
+
+H(t/ 600)( qs −q0)) , where f is the forward kinematics in (3), 
+
+q0 = [0 , 30 , −100 , −20] T degrees, and qs is the elbow-down inverse-kinematic solution for [9750 , 0, 4800] T mm with zero Fig. 3. IL-ACT regulation to 100 Cartesian goals with the disturbance.  
+
+> Fig. 4. IL-ACT spiral tracking with the hydraulic disturbance.
+
+swing and cumulative bucket pitch q2,s + q3,s + q4,s = 16 .5◦.Let Tsp denote the baseline spiral tracking duration. For 
+
+600 s ≤ t < 600 s + Tsp , set s = H(( t − 600 s) /T sp ) and 
+
+R(s) = 3750 /(1 + 2 s). The two-revolution spiral is 
+
+pd(t) = 
+
+
+
+6000 − 1400 s2 + R(s) cos(4 πs )
+
+R(s) sin(4 πs )4800 − 6500[1 − (1 − s)4]
+
+ mm . (29) For t ≥ 600 s + Tsp , pd(t) = [5850 , 0, −1700] T mm and 
+
+vd(t) = 0. Desired velocity is obtained analytically from the position reference. The run ends after a 30 s terminal hold following completion of the spiral. The added response qualitatively represents selected hy-draulic effects discussed in [23], [24]. It updates at 0.01 sand includes valve/velocity lag, dead zone, directional gains, friction/release hysteresis, and supply/load modulation before two nominal 0.1 s position-input filters. Disturbed runs share the response law and absolute-time schedule; realized load and exposure depend on configuration and completion time. Equations, initial states, and parameters appear in Sec. S3. In these original benchmarks, IL-only and IL-ACT use identical learned policy parameters and joint-command bounds. Goal-regulation runs share the ordered set of 100 goals, with performance-dependent transition times; spiral runs share the                                                               
+
+> TABLE I GOAL REGULATION OVER 100 ATTEMPTS .
+> No added disturbance
+> Metric PID IL-only IL-ACT Independently verified goals 95/100 100/100 100/100 Total recorded duration (s) 16000 14370.9 13682.2 Median goal-segment duration (s) 145 130.20 126.45 Maximum goal-segment duration (s) 600 293.5 287.5 Mean terminal Cartesian error (mm) 22 20.095 4.446 Maximum terminal Cartesian error (mm) 24 21.238 11.015 Maximum error during accepted holds (mm) 24.5 21.238 11.531 Largest joint command-tracking RMSE (deg) 0.15 0.132828 0.139972 Gain/bias joint-update events 000
+> Response disturbance
+> Metric PID IL-only IL-ACT Independently verified goals 86/100 100/100 100/100 Total recorded duration (s) 19000 14506.8 13698.0 Median goal-segment duration (s) 175 132.60 126.35 Maximum goal-segment duration (s) 600 296.1 290.9 Mean terminal Cartesian error (mm) 23 1.125 4.690 Maximum terminal Cartesian error (mm) 24.8 2.596 11.118 Maximum error during accepted holds (mm) 24.9 11.860 11.202 Largest joint command-tracking RMSE (deg) 0.23 0.184747 0.195247 Gain/bias joint-update events 0011192
+
+timed reference above. All eight original IL-only and IL-ACT runs recorded zero controller-fault samples and passed the recorded joint-limit checks. Their four goal-regulation runs completed without timeouts, and their four spiral runs remained within 25 mm over the evaluated spiral interval. Gain/bias updates occurred only in the disturbed IL-ACT runs, with 11192 joint-update events for goal regulation and 10014 
+
+for spiral tracking. Figures 3 and 4 illustrate IL-ACT bucket-tip motion during goal regulation and spiral tracking, respec-tively. Commanded and measured joint traces are provided in Sec. S5. All controllers share the stopping, qualification, hold, and governor rules in Section IV-C. Joint command-tracking RMSE uses qj,k − cj,k on the complete 0.1 s grid, with swing differences wrapped to [−180 , 180) degrees. The largest joint RMSE is the maximum across joints. Jointwise corrective-rate and combined stopping/governor-modification statistics, including their definitions and evaluation intervals, are reported in Sec. S5. For the spiral results in Table II, Cartesian tracking error is the Euclidean distance between the measured and de-sired bucket-tip positions. Its root-mean-square (RMS) value and mean are computed using trapezoidal time integration, including both endpoints. The 95th percentile uses linear interpolation of the sorted error samples. Full-run and terminal statistics are reported separately. The PID baseline operates in Cartesian velocity space, with desired-velocity feedforward, proportional and integral position-error feedback, and filtered velocity-error feedback. Its request is limited to 60 mm s −1 and mapped through the damped inverse and singularity scaling in (10). It uses back-calculation anti-windup and the same command governor, emitted-demand timing, and goal-acceptance rules as the TABLE II PID, IL-ONLY , AND IL-ACT SPIRAL TRACKING .                                            
+
+> No added disturbance
+> Metric PID IL-only IL-ACT Cartesian tracking RMSE (mm) 5.72946 2.49800 0.04459 Mean Cartesian tracking error (mm) 3.51830 1.73826 0.02830 95th-percentile tracking error (mm) 10.56082 4.85366 0.09465 Maximum tracking error (mm) 18.94713 8.16079 0.18485 Maximum error over full run (mm) 45.31658 26.74581 0.81243 Final error after terminal hold (mm) 0.001 5.069 ×10 −59.218 ×10 −6
+> Gain/bias joint-update events 000
+> Response disturbance
+> Metric PID IL-only IL-ACT Cartesian tracking RMSE (mm) 12.48371 2.49815 0.05864 Mean Cartesian tracking error (mm) 8.92604 1.74221 0.04058 95th-percentile tracking error (mm) 25.15782 4.85496 0.13607 Maximum tracking error (mm) 45.64039 8.19303 0.40440 Maximum error over full run (mm) 90.81526 26.72286 0.88102 Final error at t= 7630 s (mm) 0.23029 0.00608 0.06451 Gain/bias joint-update events 0010014
+
+IL-based controllers. Nine diagonal gains are tuned using JAYA [25] on separate cases excluding the evaluation goals, then frozen for all nominal and disturbed evaluations. Three seeded runs use 3060 objective evaluations, with equal weighting of nominal/disturbed goal and tracking groups. The full PID law, gains, tuning cases, objective, and failure handling are given in Sec. S4. Teacher+ACT replaces only the learned nominal command with the teacher (Sec. S2), retaining observations, ACT, and acceptance rules. Both complete all 100 goals. Under nominal and disturbed response, IL-ACT reduces duration by 7.22% 
+
+and 12 .97% , and mean terminal error by approximately 
+
+16 .16% and 28 .39% , respectively. Averaging the original spiral per-condition metrics gives 27 .88% lower RMSE but 
+
+33 .18% higher maximum error. Enabling estimation lowers disturbed-goal mean terminal error by 12 .68% (Sec. S5). Full original comparisons are in Sec. S5. 
+
+C. Expanded Tracking and Initialization Study 
+
+For each seed s ∈ { 11 , 22 , 33 }, telemetry- and random-initialized policies receive 64 ,920 AdamW updates with replacement-sampled batches of 1,024 examples. Each pair shares initial and pooled aggregation data, minibatch indices, normalization, and optimizer settings. This equal refine-ment budget excludes telemetry pretraining; all final-stage checkpoints are evaluated. The figure-eight and rounded-raster paths (Fig. 5) are excluded from training, tuning, and checkpoint selection. Runs use a 600 s approach and 
+
+30 s terminal observation. Each path is evaluated at tem-poral rate factors γ ∈ {1, 2}, corresponding to the 1×                                                
+
+> (a) Figure-eight (b) Rounded raster Fig. 5. Additional evaluation-path visualizations. TABLE III CARTESIAN TRACKING RMSE ( MM ). L EARNED ENTRIES AVERAGE SEEDS
+> 11 ,22 ,AND 33 . N/H DENOTE NOMINAL /HYDRAULIC -RESPONSE CONDITIONS .Path, speed, condition Teacher Telemetry Random Figure-eight, 1×, N 0.04233 0.01414 0.01286 Figure-eight, 1×, H 0.04897 0.03121 0.02973 Figure-eight, 2×, N 0.16931 0.05663 0.05828 Figure-eight, 2×, H 0.17196 0.06428 0.06553 Rounded raster, 1×, N 0.07278 0.03194 0.03498 Rounded raster, 1×, H 0.07851 0.04217 0.04362 Rounded raster, 2×, N 0.28851 0.13423 0.14785 Rounded raster, 2×, H 0.28847 0.13581 0.14878 Spiral, sensor noise 3.95121 2.85776 3.81691 Spiral, additional load 0.07758 0.05506 0.05720
+
+and 2× conditions, with tracking duration Tsp /γ and the progress polynomial H defined above. The 1× condition uses the baseline spiral tracking duration; the 2× condition traverses the same geometric path in half that duration. The noisy and additional-load spiral conditions use γ = 1 .Controller/reference clocks advance every 0.1 s independently of error. Nominal mappings use a shared 2 s preview; ACT uses current position/velocity references. Controller settings in Section IV are shared, except for the intended frozen/updating estimator ablation. Ten conditions comprise both new paths at both speeds under nominal/hydraulic response, plus noisy and additional-load spirals. Sensing adds independent zero-mean Gaussian noise to all four joint angles ( σq = 0 .02236 ◦, 10 Hz); Cartesian measurements use FK of the same corrupted angles. All comparators share one realization (seed 2026091201 ) with nominal actuator response. The load condition scales both directional hydraulic gains by √0.5, retaining all other response parameters. Per-run RMSE is pN −1 P 
+
+> k
+
+∥ptrue (tk) − pref (tk)∥22, using uncorrupted simulated position and equally weighted 0.1 ssamples. Tracking windows are [600 s , 600 s + Tsp /γ ], with 
+
+N = 1 + Tsp /(γT c) samples and both endpoints included. Here γ = 1 for the baseline and spiral conditions, and γ = 2 
+
+for the doubled temporal-rate conditions. Table III averages the three policy-seed RMSEs. Additional protocol details are in Sec. S6. Telemetry-initialized IL-ACT lowers RMSE versus Teacher+ACT in all 24 figure-eight and rounded-raster seed comparisons and all three additional-load spiral comparisons. The nine non-noise condition means improve by approxi-TABLE IV SENSOR -NOISE ESTIMATOR ABLATION ; ERRORS IN MM .Metric (telemetry-initialized IL-ACT) Frozen Updating Mean of per-run RMSEs 3.68452 2.85776 Mean of per-run tracking maxima 12.086 9.974 
+
+mately 29 –67% . Under the shared sensor-noise realization, telemetry-initialized IL-ACT achieves 27 .67% lower mean RMSE than Teacher+ACT. Telemetry initialization improves 
+
+16 /30 comparisons against random weights under shared telemetry-derived normalization, pooled data, and matched refinement, showing no consistent benefit. With fixed policies, estimation reduces mean noise RMSE by 22 .44% and mean per-run tracking maximum by 17 .5% (Table IV), improving both for every seed under one shared noise realization. This includes estimator-dependent gain scheduling; results outside noise are mixed in Sec. S7. All 88 runs completed with no recorded controller faults or operating-limit violations; all matching checks passed. The largest tracking-window error was 12 .515 mm ( 25 mm criterion). VI. D ISCUSSION AND CONCLUSIONS 
+
+IL-ACT improves goal-regulation duration and spiral RMSE over IL-only, and goal duration and terminal accuracy over Teacher+ACT. Lower RMSE versus Teacher+ACT extends to figure-eight and rounded-raster paths at both speeds and response settings, and additional-load spiral tracking. Estimator benefits depend on conditions; pretrained-weight effects remain mixed. Tradeoffs include higher joint command-tracking RMSE and disturbed-goal terminal error than IL-only. Analysis establishes bounded adaptive states and Cartesian feedback, with reference admissibility conditional on governor feasibility. These findings concern the evaluated simulation conditions. REFERENCES [1] Y. Yang, P. Long, X. Song, J. Pan, and L. Zhang, “Optimization-based framework for excavation trajectory generation,” IEEE Robot. Autom. Lett. , vol. 6, no. 2, pp. 1479–1486, 2021. [2] D. Lee, I. Jang, J. Byun, H. Seo, and H. J. Kim, “Real-time motion planning of a hydraulic excavator using trajectory optimization and model predictive control,” in 2021 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS) , pp. 2135–2142, 2021. [3] M. Lee, H. Choi, C. Kim, J. Moon, D. Kim, and D. Lee, “Precision motion control of robotized industrial hydraulic excavators via data-driven model inversion,” IEEE Robot. Autom. Lett. , vol. 7, no. 2, pp. 1912–1919, 2022. [4] I. Jang, J. Kim, D. Lee, C. Kim, C. Oh, Y. Kim, S. Woo, H. Sung, and H. J. Kim, “Towards fully integrated autonomous excavation: Autonomous excavator for precise earth cutting and onboard landscape inspection,” IEEE Robot. Autom. Mag. , vol. 32, no. 3, pp. 88–102, 2025. [5] Q. Guo, Z. Ye, L. Wang, and L. Zhang, “Imitation learning and model integrated excavator trajectory planning,” in 2022 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS) ,pp. 5737–5743, 2022. [6] Z. Zou, X. Liu, Y. Hu, R. Xiong, C. Fan, Y. Chen, and Y. Wang, “Feedback ACT with closed-loop dynamics for trajectory generation of excavators loading tasks,” in 2025 IEEE International Conference on Real-Time Computing and Robotics (RCAR) , pp. 257–262, 2025. [7] Z. Zou, C. Wang, Y. Hu, X. Liu, B. Xu, R. Xiong, C. Fan, Y. Chen, and Y. Wang, “High-precision and high-efficiency trajectory tracking for excavators based on closed-loop dynamics,” in 2025 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS) ,pp. 5617–5624, 2025. [8] J. Heo, M. Kim, and S. Park, “Lightweight excavator leveling policy learning based on imitation learning,” in Proceedings of the Korean Institute of Communications and Information Sciences (KICS) Conference , vol. 90, p. 708, 2026. [9] A. Mandlekar, D. Xu, J. Wong, S. Nasiriany, C. Wang, R. Kulkarni, L. Fei-Fei, S. Savarese, Y. Zhu, and R. Martín-Martín, “What matters in learning from offline human demonstrations for robot manipulation,” in Proceedings of the 5th Conference on Robot Learning , vol. 164 of 
+
+Proceedings of Machine Learning Research , pp. 1678–1690, PMLR, 2022. [10] Y. Zhou, Y. Lin, F. Peng, J. Chen, K. Huang, H. Yang, and Z. Yin, “MTIL: Encoding full history with Mamba for temporal imitation learning,” IEEE Robot. Autom. Lett. , vol. 10, no. 11, pp. 11761–11767, 2025. [11] S. A. Mehta, Y. U. Ciftci, B. Ramachandran, S. Bansal, and D. P. Losey, “Stable-BC: Controlling covariate shift with stable behavior cloning,” IEEE Robot. Autom. Lett. , vol. 10, no. 2, pp. 1952–1959, 2025. [12] J. A. Vincent, H. Nishimura, M. Itkina, P. Shah, M. Schwager, and T. Kollar, “How generalizable is my behavior cloning policy? a statistical approach to trustworthy performance evaluation,” IEEE Robot. Autom. Lett. , vol. 9, no. 10, pp. 8619–8626, 2024. [13] P. de Haan, D. Jayaraman, and S. Levine, “Causal confusion in imitation learning,” in Advances in Neural Information Processing Systems ,vol. 32, pp. 11693–11704, Curran Associates, Inc., 2019. [14] L. Kong, Y. Ouyang, and Z. Liu, “Adaptive neural network fixed-time control for an uncertain robot with input nonlinearity,” International Journal of Robust and Nonlinear Control , vol. 34, no. 5, pp. 3033–3056, 2024. [15] Y. Jia, S. Miao, J. Zhou, N. Jiao, L. Liu, and X. Li, “Efficient model learning and adaptive tracking control of magnetic micro-robots for non-contact manipulation,” in 2024 IEEE International Conference on Robotics and Automation (ICRA) , pp. 4534–4540, IEEE, 2024. [16] H. Li, Y. Chai, B. Lv, L. Ruan, H. Zhao, Y. Zhao, and J. Luo, “Physics-informed neural network predictive control for quadruped locomotion.” arXiv preprint arXiv:2503.06995, 2025. Version 1. [17] G. Han, C. Huang, W. Xiao, Y. Peng, X. Chen, and Z. Mei, “Tracking control of industrial manipulator based on adaptive RBF neural network with local model approximation,” Scientific Reports , vol. 16, no. 1, p. 4928, 2026. [18] M. H. Shahna, P. Mustalahti, and J. Mattila, “Anti-slip ai-driven model-free control with global exponential stability in skid-steering robots,” in 2025 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS) , pp. 6855–6862, IEEE, 2025. [19] M. H. Shahna and J. Mattila, “Exponential auto-tuning fault-tolerant control of n degrees-of-freedom manipulators subject to torque con-straints,” in 2024 IEEE 63rd Conference on Decision and Control (CDC) , pp. 7263–7270, IEEE, 2024. [20] M. Sung, S. H. Karumanchi, A. Gahlawat, and N. Hovakimyan, “Robust model based reinforcement learning using L1 adaptive control,” in The Twelfth International Conference on Learning Representations , 2024. [21] L. Zhao, K. Gatsis, and A. Papachristodoulou, “Stable and safe reinforcement learning via a barrier-lyapunov actor-critic approach,” in 
+
+2023 62nd IEEE Conference on Decision and Control (CDC) , pp. 1320– 1325, IEEE, 2023. [22] A. Abyaneh, M. Ghoddousi Boroujeni, H.-C. Lin, and G. Ferrari-Trecate, “Contractive dynamical imitation policies for efficient out-of-sample recovery,” in The Thirteenth International Conference on Learning Representations , 2025. [23] M. Ruderman, “Full- and reduced-order model of hydraulic cylinder for motion control.” arXiv:1705.00916v2, 2017. Revised July 24, 2017. Available: https://arxiv.org/abs/1705.00916v2. [24] M. H. Shahna, P. Mustalahti, and J. Mattila, “Robust torque-observed control with safe input–output constraints for hydraulic in-wheel drive systems in mobile robots,” Control Eng. Pract. , vol. 164, p. 106459, 2025. [25] M. H. Shahna, P. Mustalahti, and J. Mattila, “Robust model-free control framework with safety constraints for a fully electric linear actuator system,” in 2024 IEEE 21st International Power Electronics and Motion Control Conference (PEMC) , pp. 1–10, IEEE, 2024.

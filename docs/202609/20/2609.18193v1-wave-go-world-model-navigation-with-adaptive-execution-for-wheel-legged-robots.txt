@@ -1,0 +1,393 @@
+Title: WAVE-Go: World-Model Navigation with Adaptive Execution for Wheel-Legged Robots
+
+URL Source: https://arxiv.org/pdf/2609.18193v1
+
+Published Time: Thu, 17 Sep 2026 00:41:10 GMT
+
+Number of Pages: 9
+
+Markdown Content:
+# WAVE-Go: World-Model Navigation with Adaptive Execution for Wheel-Legged Robots 
+
+Mingyi Li 1, Ji Li 2,†, Zhihao Ouyang 3,†, Yage He 4, B¨ orje F. Karlsson 5
+
+> 1
+
+Beijing Institute of Technology 2The University of Hong Kong 
+
+> 3
+
+GAC R&D Center 
+
+> 4
+
+LimX Dynamics 5Beijing Academy of Artificial Intelligence (BAAI) 
+
+> †
+
+Equal contribution 
+
+Abstract — World models can anticipate the consequences of navigation actions, but predicted action sequences may become invalid during execution, especially when wheel-legged robots encounter dynamic obstacles or change locomotion modes. We propose WAVE-Go, an image-goal navigation framework that separates world–action prediction from interruptible command execution. Its executor adaptively selects an action prefix and cancels pending commands when updated observations invali-date execution. A conditional-risk formulation specifies prefix selection under an estimated cumulative failure budget, while posture and locomotion-mode transitions require clearance, stability, and task-evidence checks. In the reported navigation evaluation, WAVE-Go achieves 74.1% in-distribution success and 63.3% dynamic out-of-distribution success, exceeding the strongest baseline by 4.7 and 7.7 percentage points, respec-tively, while reducing collisions from 4.4 to 2.9 per 100 m. Compared with interruptible fixed four-command execution, WAVE-Go raises success by 4.0 percentage points while re-ducing replanning frequency by 51.2% and collision rate by 6.5%. Execution ablations also show that runtime interruption improves success, collision rate, and reaction latency at the cost of additional replanning. These results support adaptive, interruptible execution as a means of balancing navigation performance and planning overhead. Code is available at https: //github.com/vigorlee/wave-go. 
+
+Index Terms — Vision-Based Navigation; Legged Robots; Mo-tion and Path Planning; Deep Learning Methods 
+
+I. I NTRODUCTION 
+
+World models support visual navigation by predicting the consequences of robot actions [1]–[3]. Joint world–action models pair candidate commands with anticipated successor states [4]–[6]. For image-goal navigation, these predictions connect the current observation to a desired visual destina-tion. Their value, however, depends on whether the proposed commands remain appropriate as the robot moves and re-ceives new observations. Prediction and execution therefore require distinct decisions: proposing a plausible future does not determine how long the robot should follow it. This distinction matters for wheel-legged robots, whose executable motions depend on both scene geometry and locomotion mode. A sequence suitable for an open corridor may become invalid near clutter, after target occlusion, or during a posture transition. Long action chunks reduce planning frequency but prolong commitment to a prediction; short chunks permit frequent revision at additional inference cost. Mode changes add a discrete dependency: subsequent driving must await confirmation of the requested configura-tion. The central problem is to choose an execution length that balances this commitment against changing conditions, while retaining the ability to interrupt pending commands. Predictive uncertainty alone does not determine how long a robot should follow an action sequence. A confidently predicted motion may still approach an obstacle or violate a locomotion-mode constraint, whereas uncertain visual details may have little effect on a short motion through verified free space. Uncertainty-adaptive chunking adjusts execution length using prediction-confidence cues [7], but selecting an execution prefix also requires assessing the consequences of continuing under current conditions. WAVE-Go addresses this need by combining predictive cues with execution con-ditions to estimate failure risk over successive commands. Constraining cumulative risk over the prefix allows execution length to reflect both the likelihood of failure and the exposure introduced by continued execution. To address these challenges, we propose WAVE-Go, a navigation framework that couples joint world–action pre-diction with adaptive, interruptible execution. Conditioned on the goal image, recent observations and robot motion, and a structured semantic task state, the predictor generates candidate actions and their associated future-state features. The executor selects the longest valid prefix from 4, 8, and 16 commands under an estimated cumulative failure budget. This selection sets an execution limit rather than a commitment to complete the prefix: updated RGB-D/LiDAR observations can trigger cancellation of pending commands, while target and mode checks enforce task prerequisites. The executor requests a new prediction when a prefix ends or is interrupted; if execution involves a posture or locomotion-mode transition, it first confirms the resulting configuration so that subsequent actions reflect the robot’s updated state. By combining risk-based prefix selection with observation-based interruption, WAVE-Go adapts how long it follows a prediction while maintaining feedback throughout execution. Our contributions are:  
+
+> •
+
+Cumulative-risk prefix authorization: An execution formulation that combines conditional failure estimates and validity checks to determine how much of a pre-dicted action sequence to execute before replanning.  
+
+> •
+
+Interruptible, mode-aware execution: A command interface that revalidates pending actions and treats posture and locomotion-mode transitions as execution arXiv:2609.18193v1 [cs.RO] 16 Sep 2026 boundaries requiring configuration confirmation.  
+
+> •
+
+Performance–cost trade-offs: Results show improved navigation with fewer replanning calls than short fixed-prefix execution, while interruption improves command responsiveness at an additional replanning cost. II. R ELATED WORK 
+
+World models for navigation: World models support navigation by anticipating the outcomes of candidate ac-tions. NWM predicts future visual observations to support trajectory optimization and candidate ranking [1], while DINO-WM predicts pretrained visual features and opti-mizes action sequences toward a goal representation [2]. Related work explores representations and rollout strategies that address prediction cost and temporal consistency [8]– [10]. SparseVideoNav uses sparse future video generation to guide long-horizon navigation with reduced inference latency [11]. ImagiNav decouples visual planning from actuation by generating future videos and extracting executable tra-jectories through inverse dynamics [12]. Beyond navigation, Dreamer demonstrates world-model-based learning across diverse control tasks [13]. WAVE-Go addresses the execution interval following prediction, when new observations may invalidate previously selected commands. 
+
+Joint world–action prediction: Joint world–action mod-els couple future-state prediction with action generation. FutureNav combines complementary learning objectives for vision-and-language navigation [4], and NavWAM jointly models navigation states and actions [5]. WAM-Nav fur-ther distinguishes the horizons used for action generation and future-state prediction [6]. Related formulations extend to multimodal trajectory prediction in NavWM and aerial navigation in WorldVLN [14], [15]. Fast-WAM distinguishes video co-training from explicit test-time imagination, show-ing that competitive manipulation performance can be re-tained while omitting future generation at inference [16]. These results motivate distinguishing the benefits of pre-dictive representations from the cost and role of online prediction. Building on the joint prediction interface, WAVE-Go determines how much of a candidate action sequence to execute and when to interrupt it on a wheel-legged platform. 
+
+Action chunks and feedback control: Goal-conditioned navigation policies such as NoMaD emphasize closed-loop operation [17], while NavDP studies navigation across robot embodiments [18]. Action Chunking with Transformers gen-erates action sequences to reduce sequential policy decisions [19], and adaptive chunking uses predictive uncertainty to adjust execution horizons [7]. Real-time chunking over-laps action execution with inference and preserves com-mitted actions to maintain continuity across chunk bound-aries [20]. REMAC further addresses intra-chunk inconsis-tency between predicted actions and current observations through masked action chunking and learned corrections [21]. WAVE-Go combines risk-budgeted execution prefixes with validity checks before each command and early inter-ruption when execution conditions change. For posture and locomotion-mode transitions, these checks additionally in-corporate clearance, stability, and task readiness, followed by confirmation of the resulting configuration before subsequent motion. III. T ASK FORMULATION 
+
+We formulate image-goal navigation as a partially ob-served control problem. At time t, the observation ot =(It, D t, L t) contains an RGB image, depth, and local range measurements. The remaining inputs are a goal image I⋆,optional language ℓ, proprioceptive state xt, and locomotion mode mt ∈ M. The observation history cannot fully resolve occlusions or future scene changes, so execution uses updated observations rather than relying solely on a predicted trajectory. The model uses a semantic task state ct and a motion-context token μt. The former records goal progress and task dependencies; the latter encodes recent visual motion, proprioception, actions, and optional tracking features. We write qu:v = ( qu, . . . , q v ) for a time-indexed sequence and define 
+
+Hmot  
+
+> t
+
+= ( It−h:t, x t−h:t, a t−h:t−1, τ t−h:t),μt = Emot (Hmot  
+
+> t
+
+) ∈ R64 . (1) Here h is the number of preceding observation intervals and τ denotes optional target-tracking features. The history contains h + 1 observations and the h actions between them; it excludes the action to be selected at time t.The prediction context and joint rollout are defined as 
+
+Ct = ( ot−h:t, I ⋆, ℓ, c t, μ t, m t),
+
+ˆyt,j = (ˆ zt+j , ˆat+j−1, ˆmt+j−1, ˆνt+j−1),
+
+(ˆ yt, 1, . . . , ˆyt,H ) = Wθ (Ct).
+
+(2) For j = 1 , . . . , H , each predicted step pairs a candidate action ˆat+j−1 and its mode ˆmt+j−1 with the successor latent state ˆzt+j . The auxiliary features ˆνt+j−1 provide uncertainty and command-validity cues. We specify H = 16 . This joint-output interface does not imply conditioning on an externally prescribed action sequence. The executor selects at most 
+
+Kt ≤ H commands and cancels pending commands when updated observations invalidate execution. IV. M ETHOD 
+
+WAVE-Go connects joint world–action prediction to adap-tive, interruptible execution. Its core execution mechanism uses a trained and calibrated conditional-risk model to select action prefixes, checks updated observations to interrupt invalid commands, and verifies posture and locomotion-mode transitions before subsequent motion. We first intro-duce predictor adaptation, multimodal context encoding, and joint learning objectives, which define the candidate actions and future-state features available to the executor. We then describe our proposed hybrid command interface, risk-based prefix selection, transition checks, and multi-rate execution. (a) Multimodal Navigation Context (b) Cosmos3-Edge Navigation 
+
+> Tour Video Memory
+> 𝒎 𝟏 , 𝒎 𝟐 , … , 𝒎 𝒌
+> Current Observation
+> Goal Image Robot / State History
+> (𝒂 𝒕"𝒉 , 𝒔 𝒕"𝒉 ), … , (𝒂 𝒕"𝟏 , 𝒔 𝒕"𝟏 )
+> LiDAR Safety Cue
+> local scan / clearance map
+> Temporal Segmentation
+
+↓
+
+> ViT Embedding
+
+↓
+
+> Top-K Retrieval
+
+Video-Memory Reasoner (AR)      
+
+> 𝒎 𝟏 𝒎 𝟐 …𝒎 𝒌 𝒐 𝒕 𝒉 𝒕:𝒍
+
+Shared Multimodal Attention 
+
+> (causal self + full context)
+
+Action-conditioned World Generator (Diffusion)       
+
+> &𝒗 𝟏 𝒇 &𝒗 𝟐 𝒇 …&𝒗 𝒏 𝒇 (𝒔 𝟏 &𝒂 𝟏
+> Attention Mask (Queries Q)
+> m
+> 𝒐 𝒕
+> 𝒉 𝒕
+> #𝒗 𝒇
+> sâPrediction: full attention
+> Context: causal attention Prediction: full attention
+
+𝒐 𝒕&𝟏 , robot state, failure signal     
+
+> Navigation / History Video / Observation World Model / Future Action / Control Feedback / Failures
+
+(d) Risk-Aware Interruptible Execution 
+
+> Joint prediction (schematic), H = 16
+> Future latent Typed action
+> 1̂𝑧 &' (
+> drive
+> 2̂𝑧 &' )
+> drive
+> 3̂𝑧 &' *
+> posture
+> 4̂𝑧 &' +
+> drive
+> …
+
+……          
+
+> 16 ̂𝑧 &' (,
+> stop Predictive and current-state cues
+> World-model disagreement Action entropy Obstacle proximity Dynamic-scene evidence Mode / command validity Observation age
+> Conditional-risk estimator ̂𝑟 &'-: failure given prior survival
+> 𝑅 &(𝑘) = 1 − 1
+> - . ( /
+> (1 −̂ 𝑟 &' -)
+> Estimated cumulative failure probability
+> 16-command prefix
+> 𝑅 &(16) ≤ 𝛿 𝑎𝑛𝑑 𝐺 &(16) = 1
+> 8-command prefix
+> 𝑅 &(8) ≤ 𝛿 𝑎𝑛𝑑 𝐺 &(8) = 1
+> 4-command prefix
+> 𝑅 &(4) ≤ 𝛿 𝑎𝑛𝑑 𝐺 &(4) = 1
+> Select the longest admissible prefix
+> 𝐾 == 𝑚𝑎𝑥({𝑘 ∈ {4, 8, 16}: 𝑅 =(𝑘) ≤ 𝛿, 𝐺 =(𝑘) = 1} ∪ {0})
+> 𝛿 : estimated−risk budget 𝐺 &(𝑘) : execution−validity test Selected execution budget Latest observations
+> Up to 𝐾 &commands Runtime gate: check before each dispatch
+> Mode events: freshness / stability / clearance goal evidence / controller validity
+> Go2-W controller Dispatch one valid command
+> 𝐾 &= 0 / veto: cancel suffix Posture / switch: end prefix Confirm mode and re-predict Prefix exhausted New prediction
+> Runtime veto: clearance / stale sensing / task change / prediction residual
+> Selected prefix Stop, re-observe and replan
+
+(e) Robot Execution   
+
+> Go2-W locomotion
+> Selected [𝒗 𝒙 , 𝒗 𝒚 , 𝝎 𝒛 ]chunk
+> State Estimator
+> IMU · joint state · wheel speed · contact
+> Terrain-adaptive RL / MPC Policy 16-D Actuator Output
+> 12 leg joint targets + 4 wheel commands Local Avoidance 10–20 Hz Low-level Policy 50 Hz
+> Go2-W Execution
+> LUNA Route Visualization
+
+Fig. 1. WAVE-Go architecture: (a) multimodal context, (b) context fusion and joint world–action prediction, (c) predicted actions, successor latent states, modes, and auxiliary cues, (d) conditional-risk prefix selection and interruptible execution (Eqs. 7–9), and (e) the Go2-W control interface with Go2-W and LUNA execution illustrations. Runtime checks can cancel pending commands; posture or mode events require configuration confirmation and a new prediction. The rollout is schematic; images are simulator views. 
+
+A. Predictor Adaptation 
+
+The post-training formulation uses temporally aligned observation–action transitions: 
+
+Di = ( ot−h:t, I ⋆, ℓ, c t, x t, m t,at:t+H−1, m t:t+H−1, o t+1: t+H ). (3) Each tuple links an observation history to executed actions, locomotion modes, and the resulting observations. Goal images and terminal-event annotations distinguish reaching a visually similar location from completing the task. Failed transitions provide labels for consequence prediction and failure estimation when their causes are observable. We first adapt the baselines’ visual–language–action pairs to embodiment-specific transitions covering occlusions, dy-namic obstacles, target reacquisition, posture changes, and locomotion-mode transitions. This adaptation targets the ob-servation and action distribution of the wheel-legged plat-form. The available frozen-model trace does not measure the benefit of this curriculum. Transition sampling is stratified around target discovery, occlusion, obstacle appearance, stopping, and mode changes to limit the dominance of forward-motion examples. Matched successful and failed transitions provide additional supervi-sion where they are available. 
+
+B. Multimodal Context 
+
+The semantic reasoner combines the goal image, selected observations, optional language, the previous task state, and the available robot capabilities. Its output follows a fixed schema: 
+
+ct = ( pt, s t, u t, κ t, b t), (4) where pt, s t, u t, κ t, b t encode goal progress, accumulated evidence, the next subgoal, confidence, and ordered depen-dencies, respectively. A Qwen-3-VL backbone produces this state without generating high-rate velocity commands [22]. The goal, reasoner state, and motion token are fused by cross-attention: 
+
+ht = Evis (ot−h:t),
+
+˜ht = Attn ( ht, [Egoal (I⋆); Elang (ℓ, c t); μt]) . (5) The fused representation integrates current visual observa-tions with the navigation goal and recent robot motion, using a learned null token when language input is unavailable. Auxiliary objectives supervise proprioceptive state, short-range egomotion, and target displacement, while promoting consistency between actions and state transitions. The world– action head is conditioned on the structured task state, which encodes task-relevant information from semantic reasoning in a fixed schema. The proposed encoder applies stop-gradient operations to limit the encoding of goal identity in the motion token. Probes for motion and locomotion mode, together with a control that shuffles motion tokens, assess whether the representation captures motion information aligned with the observation history. 
+
+C. World–Action Learning 
+
+The predictive objective combines future-state modeling, inverse dynamics, action generation, and mode prediction: 
+
+L = λf Lfuture + λiLinverse + λaLaction 
+
++ λmLmode + λcLconsistency . (6) Here, Lfuture supervises future latent-state prediction, 
+
+Linverse supervises inverse dynamics, and Laction super-vises action generation. The mode loss Lmode supervises locomotion-mode prediction, while Lconsistency encourages consistency between predicted actions and their associated future states. This objective builds on joint world–action prediction formulations [4], [5]. 
+
+D. Hybrid Commands 
+
+The action interface integrates continuous drive and posture commands with discrete locomotion-mode events. Controller-specific validity masks enforce the command constraints associated with each mode. Posture and mode-transition events mark the end of the current execution prefix, as subsequent drive commands must be conditioned on the resulting robot configuration. 
+
+E. Conditional-Risk Prefix Selection 
+
+Longer action prefixes reduce planning frequency but extend execution without a new world–action prediction [7]. To balance planning frequency against the risk of continued execution, we estimate cumulative failure risk over each candidate prefix and use it to determine the execution length. Let Ft+j denote a failure event following command at+j−1,including collision, sustained lack of goal progress, or an invalid mode transition. These events are defined using thresholds fixed before calibration. A trained failure model estimates the conditional probability of failure at offset j,given that all preceding commands have completed without failure: 
+
+ˆrt+j = Pr 
+
+
+
+Ft+j = 1 ˜ht, ˆat:t+H−1,
+
+ˆνt:t+H−1, F t+1: t+j−1 = 0) . (7) The model combines world-model disagreement, action en-tropy, obstacle proximity, dynamic-scene evidence, mode status, and sensor age. The conditional survival probabilities yield the cumulative failure estimate for a length-k prefix: 
+
+Rt(k) = 1 −
+
+> k
+
+Y
+
+> j=1
+
+(1 − ˆrt+j ). (8) This formulation accounts for survival through preceding commands without assuming independent failures. Given the candidate lengths K = {4, 8, 16 }, the executor selects the longest prefix that satisfies the estimated risk budget δ and the validity test Gt(k):
+
+Kt = max  {k ∈ K : Rt(k) ≤ δ, Gt(k) = 1 } ∪ { 0}. (9) Here, Gt(k) checks command validity, mode preconditions, and observation freshness. If no candidate is admissible, 
+
+Kt = 0, and the executor requests a stop and renewed sensing. The selected Kt limits the number of command dispatches, while runtime checks can terminate execution earlier. Before each dispatch, the executor checks the latest observations for insufficient clearance, stale sensing, changed task state, or excessive prediction residuals; any violation cancels the remaining commands and triggers replanning. Posture and mode events also terminate the prefix, with subsequent driving requiring confirmation of the resulting configuration and a new prediction. Figure 1(d) summarizes this selection and interruption process. The selector uses a trained and calibrated conditional-risk model. The calibration protocol reserves a separate scene split and evaluates cumulative risk at each candidate length, since stepwise calibration alone does not ensure prefix-level calibration. Reliability diagrams and expected calibration error can quantify agreement between predicted and observed failure frequencies [23]. The resulting risk estimates depend on the learned conditional probabilities; δ therefore specifies an estimated failure budget rather than a certified physical collision bound. 
+
+F. Evidence-Gated Hybrid Transitions 
+
+Posture and locomotion-mode transitions alter the condi-tions under which subsequent commands can be executed. A transition graph defines admissible mode changes and their prerequisites. For example, crouching requires the robot to be stationary and stable, with sufficient clearance from nearby obstacles. Task-specific transitions additionally depend on current goal evidence and satisfaction of prior task dependen-cies. These requirements are combined in a binary transition gate: 
+
+Gmode  
+
+> t
+
+(m′) = gfresh  
+
+> t
+
+gstable  
+
+> t
+
+gclear 
+
+> t
+
+× ggoal  
+
+> t
+
+gvalid  
+
+> t
+
+(m′). (10) For a candidate mode m′, the five factors check observation freshness, stability, clearance, goal evidence, and controller validity, respectively. The gate contributes to the prefix-validity test Gt(k) in Eq. 9, allowing the executor to ver-ify each proposed transition independently before dispatch. Proposals rejected by the gate are recorded separately from transitions that fail after dispatch, so successful interventions are not counted as execution failures. The executor handles invalid commands according to their type: rejecting a drive command triggers renewed sensing, while rejecting a posture or mode token does not select a substitute mode. If the semantic state is malformed, the executor retains the last validated state and suspends task progression. For each command dispatched at offset j, an execution record links the observed outcome to the corresponding prediction, risk estimates, and runtime decisions: 
+
+Et,j =  ot+j , ˆzt+j , ˆat+j−1, a exec 
+
+> t+j−1
+
+,
+
+ˆrt+j , R t(j), α t,j −1, γ t,j −1, v t,j −1
+
+. (11) Here, α, γ, and v denote authorization, gate outcomes, and the veto code, respectively. Rejected commands are logged separately because no observed successor state can be attributed to their execution. These records distinguish pre-diction errors, runtime interventions, and command-tracking failures. 
+
+G. Multi-Rate Execution 
+
+To reduce repeated inference while preserving timely feedback, the runtime assigns distinct update schedules to command tracking, world–action prediction, and semantic reasoning. Command tracking and validity checks run at the controller frequency, world–action inference is triggered when a prefix expires or is cancelled, and semantic reason-ing updates when task evidence changes. Before reuse, a buffered prediction is checked against observation freshness, the current mode, and the task state. The key insight is that the frequency of feedback need not be tied to the frequency of prediction. A longer execution prefix can reduce model invocations while retaining checks TABLE I CLOSED -LOOP NAVIGATION RESULTS WITH 99 ROLLOUTS PER METHOD PER CONDITION (ID, SCENE -OOD, AND DYNAMIC -OOD). B EST AND SECOND -BEST VALUES ARE BOLD AND UNDERLINED , RESPECTIVELY .Method ID SR (%) ↑ ID SPL (%) ↑ Scene-OOD SR (%) ↑ Dynamic-OOD SR (%) ↑ Coll./100 m ↓                         
+
+> Action-only control 61 .855 .649 .241 .86.8
+> NWM + CEM [1] 64 .757 .955 .850 .25.1
+> FutureNav-style auxiliary WM [4] 66 .860 .654 .347 .55.6
+> NavWAM-style joint W–A [5] 69 .463 .059 .755 .64.4
+> WAVE-Go 74 .168 .064 .863 .32.9
+
+before every command, allowing new observations to invali-date pending actions without waiting for the prefix to expire. Mode transitions provide an additional trigger for renewed prediction because they change the conditions governing subsequent motion. This scheduling strategy addresses the trade-off identified in the introduction by separating the decision to continue execution from the decision to generate a new action chunk. TensorRT acceleration and reasoning-model quantization are deployment options whose effects require separate mea-surement. Runtime evaluation at batch size one should distin-guish model inference latency from observation-to-command latency and assess memory use and numerical agreement with the reference implementation. The reported action-selection rate includes task-level processing and therefore does not measure controller frequency or model throughput. V. E VALUATION 
+
+The evaluation addresses two questions: (1) Does WAVE-Go improve closed-loop navigation across different scene conditions? (2) How do execution-prefix selection and run-time interruption affect the trade-off between task perfor-mance and replanning frequency? We first introduce the experimental setup and evaluation metrics, then present quan-titative results (Table I) and execution-policy ablations (Ta-ble II). Finally, we present qualitative results and additional measurements of action selection and stopping behavior. 
+
+A. Experimental Setup Conditions and comparisons: The navigation com-parison distinguishes in-distribution (ID), scene-OOD, and dynamic-OOD conditions, covering familiar scene distribu-tions, unseen scenes, and changes in dynamic obstacles. Baselines comprise an action-only control, NWM with cross-entropy method planning [1], a FutureNav-style auxiliary world-model variant [4], and a NavWAM-style joint world– action variant [5]. The comparisons use scene-disjoint data splits and paired episodes with identical initial poses, goals, obstacle sched-ules, sensor access, command limits, and timeouts. All execution-policy variants share the same frozen predictor. To isolate the effect of runtime interruption, full WAVE-Go and the no-interruption variant use the same trained and calibrated conditional-risk model, with cancellation of pending commands disabled only in the latter. 
+
+Navigation metrics: An episode succeeds if it reaches the specified goal region within the timeout and satisfies any terminal-mode requirement. An internal completion predic-tion alone does not establish success. For N episodes with binary outcomes Si, success rate is SR = N −1 PNi=1 Si.Path efficiency is evaluated using success weighted by path length [24]: 
+
+SPL = 1
+
+N
+
+> N
+
+X
+
+> i=1
+
+Si
+
+l⋆i
+
+max( l⋆i , l i) , (12) where l⋆i > 0 is the shortest feasible reference path and 
+
+li is the executed path. Reference paths must respect the robot’s traversability constraints. Failed episodes contribute zero to both SR and SPL, while successful detours reduce SPL. When a valid reference path is unavailable, SPL should be omitted; completion time can instead characterize delays caused by dynamic obstacles. Tables report SR and SPL as percentages. 
+
+Collisions and mode transitions: The distance-normalized collision rate is 100 P 
+
+> i
+
+Ci/ P 
+
+> i
+
+li, where Ci
+
+counts unintended contacts in episode i and distances are measured in meters. The sums include failed episodes. Each continuous contact counts once until separation, excluding intended ground and docking contacts. Interpreting this rate alongside success helps distinguish improved navigation from reduced exposure caused by early stopping. For mode transitions, a proposal rejected before dispatch is distinct from a dispatched transition that fails its preconditions. The latter rate uses all dispatched transitions as its denomina-tor; separate rejection counts describe gate activity. These transition-level outcomes are not quantified in the current tables. Docking and sustained electrical charging require separate terminal-state evidence. 
+
+Execution metrics: Replanning frequency is the number of model invocations per 100 m traveled, including calls that produce discarded speculative predictions. This metric quantifies how often planning occurs, not the total time spent on inference. Reaction latency is measured from the avail-ability of an observation that invalidates pending commands to the publication of a stop or replacement command. We report its 95th percentile to characterize delayed command responses; physical stopping time additionally depends on robot dynamics. In the no-interruption condition, pending-command cancellation is disabled, while the independent emergency stop remains active. Command variation measures the mean second difference of normalized drive commands at a common interval ∆t:
+
+Vu = 1
+
+M − 2 
+
+> M−1
+
+X
+
+> j=2
+
+∥¯uj+1 − 2¯ uj + ¯ uj−1∥2, (13) TABLE II EXECUTION -POLICY ABLATION RESULTS FOR NAVIGATION SUCCESS , COLLISIONS , COMMAND VARIATION , REPLANNING , AND REACTION LATENCY .BEST AND SECOND -BEST VALUES ARE SHOWN IN BOLD AND UNDERLINED , RESPECTIVELY .Execution rule Interrupt SR (%) ↑ Coll./100 m ↓ Cmd. variation ↓ Replans/100 m ↓ Reaction p95 (s) ↓
+
+Fixed K = 4 Yes 70 .1 3.1 0.41 48 .6 0.18 
+
+Fixed K = 8 Yes 69 .4 4.4 0.34 29 .4 0.31 
+
+Fixed K = 16 Yes 66 .0 6.7 0.29 17 .8 0.58 
+
+Action entropy only Yes 70 .8 3.8 0.33 27 .0 0.29 
+
+World uncertainty only Yes 71 .9 3.4 0.32 25 .2 0.27 
+
+Calibrated risk No 70 .5 5.3 0.30 20 .1 0.54 
+
+Full WAVE-Go Yes 74 .1 2.9 0.31 23 .7 0.21 (a) Go2-W household search (b) LUNA corridor navigation (c) LUNA red-pillar traversal (d) Go2-W stair and obstacle traversal 
+
+Fig. 2. Qualitative simulation sequences: (a) Go2-W household search, (b) LUNA corridor navigation, (c) waypoint-controlled LUNA red-pillar traversal in MuJoCo, and (d) Go2-W stair and obstacle traversal. Frames are ordered from left to right; third-person views in panels (b) and (c) are used only for visualization, not as model inputs. 
+
+for a sequence of M ≥ 3 commands. Each drive channel is normalized by its common command limit, and differences are evaluated only within the same episode. This dimen-sionless measure captures variation in commanded motion; estimating physical jerk would additionally require measured motion and time scaling. Success, collisions, reaction latency, and replanning must be considered together, since smoother commands or fewer model calls alone do not establish better navigation. 
+
+B. Quantitative Results Success across scene conditions: Table I shows that WAVE-Go has the highest reported SR in all three conditions and the highest ID SPL. Relative to the strongest evaluated baseline, the absolute SR gains are 4.7% in ID, 5.1% in scene-OOD, and 7.7% in dynamic-OOD; ID SPL improves by an absolute 5.0%. The larger gain under dynamic-OOD conditions is consistent with the benefits of adaptive pre-fix selection and observation-based interruption: the former limits execution length as estimated risk increases, while the latter cancels pending commands when new observations invalidate the plan. Together, these mechanisms reduce con-tinued execution of outdated action sequences as obstacles move or execution conditions change. 
+
+Collisions and task completion: WAVE-Go also reduces the collision rate by 34.1% relative to the strongest baseline. Higher success alongside fewer collisions is more informa-tive than collision reduction alone, which could result from stopping without completing tasks. Nevertheless, the table gives one distance-normalized collision rate per method, rather than separate rates for each scene condition. Collision incidence, total distance, and deadlock counts are still needed to characterize this trade-off fully. 
+
+C. Execution-Policy Ablations Fixed execution lengths: Table II exposes the cost of selecting one execution length for all conditions. Increasing 
+
+K from 4 to 16 reduces replanning from 48.6 to 17.8 invocations per 100 m and lowers command variation, but de-creases success from 70.1% to 66.0% and increases collisions from 3.1 to 6.7 per 100 m. Thus, fewer planning calls and smoother commands alone do not imply better navigation. Reaction latency also increases with K, although all three variants retain runtime interruption. Explaining this trend requires examining the timing of observations and command dispatches. (a) Station approach (b) Approach and posture transition Fig. 3. Real-world station approach and posture-transition experiment. 0 1 2 3           
+
+> Time after zero (s)
+> 0.0 0.4 0.8 1.2
+> Speed (m/s)
+> (a) Stopping
+> vx(m/s) 0.15 0.30 0.45
+> .15 .30 .45
+> Command vx(m/s)
+> 012
+> Delay (s)
+> (b) Settling
+> 4816
+> Prefix K
+> 0.0 0.5 1.0 1.5
+> Delay (s)
+> (c) Response
+> Interrupt Complete pre fi x
+> Fig. 4. LUNA stopping measurements in simulation: (a) speed after zero commands, (b) settling delay at different commanded speeds, and (c) cancellation delay across prefix lengths with and without interruption. TABLE III ADDITIONAL MEASUREMENTS OF ACTION SELECTION .Episode duration (s) Action-selection rounds Mean selection rate (Hz) 297.891 121 0.4062
+
+Adaptive selection: Table II shows that adaptive selec-tion improves navigation outcomes while reducing replan-ning frequency compared with short fixed-prefix execution. Relative to fixed K = 4 , WAVE-Go increases success by an absolute 4.0% and reduces replanning by 51.2%, with fewer collisions per 100 m (2.9 versus 3.1). The trade-off is a 0.03 s increase in reaction p95, from 0.18 to 0.21 s. Thus, WAVE-Go more than halves planning calls per unit distance while improving task completion, with a modest increase in command-response latency. WAVE-Go also outperforms both single-cue adaptive se-lectors across all metrics in the table. Compared with world-uncertainty-only selection, it improves success by an absolute 2.2%, reduces collisions by 14.7%, and lowers both replan-ning frequency and reaction p95. This pattern is consistent with the benefit of combining predictive cues with execution conditions: uncertainty alone does not fully describe whether a command remains executable. 
+
+Runtime interruption: Reaction latency measures the time to issue a stop or replacement command. Comparing full WAVE-Go with the no-interruption variant evaluates the effect of cancelling pending commands when execution conditions change. Enabling interruption improves success by an absolute 3.6%, reduces collisions per 100 m by 45.3%, and lowers reaction p95 by 61.1%, at the cost of 17.9% more replanning calls per 100 m. By allowing new observations to trigger cancellation and replanning, runtime interruption improves task completion and responsiveness while reducing collisions, with a corresponding increase in planning fre-quency. 
+
+D. Qualitative Results 
+
+Figure 2 presents simulation experiments across robot embodiments and navigation settings. Panels (a) and (b) show Go2-W household search and LUNA corridor navi-gation, respectively. Panel (c) shows a continuous LUNA physics rollout through red pillars in MuJoCo, driven by a waypoint controller and the official walking policy. Panel (d) illustrates Go2-W stair and obstacle traversal. Navigat-ing narrow passages requires checking whether upcoming commands remain feasible as the robot approaches obstacles, while traversing stairs and uneven terrain requires account-ing for changes in posture and locomotion mode. These requirements motivate command checks based on updated observations and mode-dependent execution constraints in WAVE-Go. Figure 3 shows a real-world experiment in which the robot approaches the station, aligns with it, and lowers its posture. The experiment illustrates WAVE-Go’s ability to transition from navigation to a task stage requiring a specific robot posture or configuration. 
+
+E. Additional Measurements 
+
+Table III summarizes action-selection measurements from a long-horizon navigation experiment on Go2-W using a Cosmos3-Edge model [25] on an NVIDIA L20s GPU. The episode lasted 297.891 s over 121 action-selection rounds, with a mean selection rate of 0.4062 Hz. Figure 4 presents separate LUNA simulation trials, distinct from the Go2-W episode in Table III, to distinguish command cancellation from subsequent body settling. Across nine stopping trials, settling takes 1.38–2.26 s after zero-command publication, with longer delays at higher forward-command levels. In 18 scheduled-invalidation probes, waiting for prefix completion yields mean cancellation delays of 0.25, 0.65, and 1.45 s for K = 4, 8, 16 , respectively; interruption removes this wait while independent emergency checks remain active. These probes measure local software response to a sched-uled event, excluding sensing and physical braking. These measurements support WAVE-Go’s interruptible execution design by showing that pending commands can be cancelled without waiting for the selected prefix to finish. Notably, command cancellation remains prompt even with longer execution prefixes. For more details, see the supplementary videos. VI. C ONCLUSION 
+
+We presented WAVE-Go, an image-goal navigation frame-work that connects world–action prediction to adaptive, interruptible execution for wheel-legged robots. Its executor selects action prefixes under an estimated cumulative failure budget and command-validity constraints, while updated observations can cancel pending commands. Evidence-gated posture and locomotion-mode transitions require confirma-tion of the resulting configuration and renewed prediction before subsequent motion. This design makes execution length a feedback-informed decision, allowing the robot to adjust its commitment to a predicted action sequence as conditions change. The navigation results show higher success across the evaluated scene conditions and fewer collisions, including an absolute 7.7% gain in dynamic-OOD success and a 34.1% reduction in collisions per 100 m over the strongest baseline, together with an absolute 4.0% success gain and 51.2% fewer replanning calls relative to short fixed-horizon execution. Ablations further show that runtime interruption improves success, collision rate, and reaction latency at the cost of additional replanning. These results highlight the value of adapting execution commitments to changing conditions while retaining feedback throughout an action sequence. REFERENCES [1] A. Bar, G. Zhou, D. Tran, T. Darrell, and Y. LeCun, “Navigation world models,” in Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , 2025, pp. 15 791–15 801. [On-line]. Available: https://openaccess.thecvf.com/content/CVPR2025/ html/Bar Navigation World Models CVPR 2025 paper.html [2] G. Zhou, H. Pan, Y. LeCun, and L. Pinto, “DINO-WM: World models on pre-trained visual features enable zero-shot planning,” in Proceedings of the 42nd International Conference on Machine Learning , ser. Proceedings of Machine Learning Research, vol. 267. PMLR, 2025, pp. 79 115–79 135. [Online]. Available: https://proceedings.mlr.press/v267/zhou25t.html [3] J. Li, B. Wang, J. Xia, M. Li, and S. Hu, “HIMM: Human-inspired long-term memory modeling for embodied exploration and question answering,” arXiv preprint arXiv:2602.15513 , 2026. [Online]. Available: https://arxiv.org/abs/2602.15513 [4] L. Zhang, Z. Gong, X. Hao, H. Fu, Q. Zhang, M. Zhou, H. Ye, X. Liang, J. Liang, and W. Ding, “FutureNav: Unified world-action modeling for vision-and-language navigation,” arXiv preprint arXiv:2606.30367 , 2026. [Online]. Available: https://arxiv.org/abs/ 2606.30367 [5] D. Azuma, T. Miyanishi, K. Sakamoto, S. Kurita, Y. Zhu, P. Khrapchenkov, M. Kawanabe, Y. Iwasawa, and Y. Matsuo, “NavWAM: A navigation world action model for goal-conditioned visual navigation,” arXiv preprint arXiv:2606.13494 , 2026. [Online]. Available: https://arxiv.org/abs/2606.13494 [6] N. Yang, Y. Huang, K. Peng, Z. He, K. Wang, C. Miao, K. Lyu, G. Li, X. Wang, Z. Zhu, J. Liu, and N. Liu, “WAM-Nav: Asymmetric latent world-action modeling for unified visual navigation,” arXiv preprint arXiv:2606.04907 , 2026. [Online]. Available: https://arxiv.org/abs/2606.04907 [7] Y. Liang, X. Wang, K. Wang, S. Wang, X. Peng, H. Chen, D. K. H. Chua, and P. Vadakkepat, “Adaptive action chunking at inference-time for vision-language-action models,” in Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , 2026. [Online]. Available: https://arxiv.org/abs/2604.04161 [8] M. Zhang, W. Shen, F. Zhang, H. Qin, Z. Pei, and Z. Meng, “RAE-NWM: Navigation world model in dense visual representation space,” arXiv preprint arXiv:2603.09241 , 2026. [Online]. Available: https://arxiv.org/abs/2603.09241 [9] Y. Yang, Z. Fan, H. Li, A. Wang, L. Huang, H. Yu, H. Liu, X. Mao, J. Bao, L. Xu, B. Sun, and Y. Wang, “AR Forcing: Towards long-horizon robot navigation world model,” arXiv preprint arXiv:2605.31314 , 2026. [Online]. Available: https://arxiv.org/abs/ 2605.31314 [10] H. Yan, Z. Xiang, Z. Zhang, and H. Tang, “MWM: Mobile world models for action-conditioned consistent prediction,” arXiv preprint arXiv:2603.07799 , 2026. [Online]. Available: https://arxiv.org/abs/ 2603.07799 [11] H. Zhang, S. Liang, L. Chen, Y. Li, Y. Xu, Y. Zhong, F. Zhang, and H. Li, “Sparse video generation propels real-world beyond-the-view vision-language navigation,” arXiv preprint arXiv:2602.05827 , 2026. [Online]. Available: https://arxiv.org/abs/2602.05827 [12] J. Chen, Y. Cai, Y. Wang, R. Bai, Y. Cao, J. Li, Y. W. Yun, and G. Sartoretti, “ImagiNav: Scalable embodied navigation via generative visual prediction and inverse dynamics,” arXiv preprint arXiv:2603.13833 , 2026. [Online]. Available: https://arxiv.org/abs/ 2603.13833 [13] D. Hafner, J. Pasukonis, J. Ba, and T. Lillicrap, “Mastering diverse control tasks through world models,” Nature , vol. 640, pp. 647–653, 2025. [14] Y. Mei, L. Guo, M.-M. Yu, G. Zhao, X. He, and J. Liu, “NavWM: A unified navigation world model for foresight-driven planning,” arXiv preprint arXiv:2606.24101 , 2026, accepted to ECCV 2026. [Online]. Available: https://arxiv.org/abs/2606.24101 [15] B. Zhao, J. Xu, W. Feng, X. Zhang, Z. Wang, H. Wang, S. Ji, Z. Wang et al. , “WorldVLN: Autoregressive world action model for aerial vision-language navigation,” arXiv preprint arXiv:2605.15964 ,2026. [Online]. Available: https://arxiv.org/abs/2605.15964 [16] T. Yuan, Z. Dong, Y. Liu, and H. Zhao, “Fast-WAM: Do world action models need test-time future imagination?” arXiv preprint arXiv:2603.16666 , 2026. [Online]. Available: https://arxiv.org/abs/ 2603.16666 [17] A. Sridhar, D. Shah, C. Glossop, and S. Levine, “NoMaD: Goal masked diffusion policies for navigation and exploration,” in 2024 IEEE International Conference on Robotics and Automation , 2024. [Online]. Available: https://arxiv.org/abs/2310.07896 [18] W. Cai, J. Peng, Y. Yang, Y. Zhang, M. Wei, H. Wang, Y. Chen, T. Wang, and J. Pang, “NavDP: Learning sim-to-real navigation diffusion policy with privileged information guidance,” 
+
+arXiv preprint arXiv:2505.08712 , 2025. [Online]. Available: https: //arxiv.org/abs/2505.08712 [19] T. Z. Zhao, V. Kumar, S. Levine, and C. Finn, “Learning fine-grained bimanual manipulation with low-cost hardware,” in Robotics: Science and Systems , 2023. [20] K. Black, M. Y. Galliker, and S. Levine, “Real-time execution of action chunking flow policies,” in Advances in Neural Information Processing Systems , 2025. [Online]. Available: https://arxiv.org/abs/2506.07339 [21] H. Wang, G. Zhang, Y. Yan, Y. Shang, R. R. Kompella, and G. Liu, “Real-time robot execution with masked action chunking,” in International Conference on Learning Representations , 2026. [Online]. Available: https://openreview.net/forum?id=r0RGJ1j9on [22] S. Bai, K. Chen, X. Liu, J. Lin, W. Ge, S. Song, K. Dang, P. Wang et al. , “Qwen2.5-VL technical report,” arXiv preprint arXiv:2502.13923 , 2025. [Online]. Available: https://arxiv.org/abs/ 2502.13923 [23] C. Guo, G. Pleiss, Y. Sun, and K. Q. Weinberger, “On calibration of modern neural networks,” in Proceedings of the 34th International Conference on Machine Learning , ser. Proceedings of Machine Learning Research, vol. 70. PMLR, 2017, pp. 1321–1330. [Online]. Available: https://proceedings.mlr.press/v70/guo17a.html [24] P. Anderson, A. Chang, D. S. Chaplot, A. Dosovitskiy, S. Gupta, V. Koltun, J. Kosecka, J. Malik, R. Mottaghi, M. Savva, and A. R. Zamir, “On evaluation of embodied navigation agents,” 
+
+arXiv preprint arXiv:1807.06757 , 2018. [Online]. Available: https: //arxiv.org/abs/1807.06757 [25] NVIDIA, “Cosmos 3: Omnimodal world models for physical ai,” 
+
+arXiv preprint arXiv:2606.02800 , 2026. [Online]. Available: https: //research.nvidia.com/labs/cosmos-lab/cosmos3/technical-report.pdf

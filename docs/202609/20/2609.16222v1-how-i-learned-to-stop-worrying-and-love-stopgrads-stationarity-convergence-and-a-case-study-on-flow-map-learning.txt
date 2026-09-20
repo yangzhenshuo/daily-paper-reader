@@ -1,0 +1,2200 @@
+Title: How I learned to stop worrying and love StopGrads: Stationarity, Convergence, and a case study on Flow Map Learning
+
+URL Source: https://arxiv.org/pdf/2609.16222v1
+
+Published Time: Wed, 16 Sep 2026 00:11:00 GMT
+
+Number of Pages: 37
+
+Markdown Content:
+# How I learned to stop worrying and love StopGrads: Stationarity, Convergence, and a case study on Flow Map Learning 
+
+Max W. Shen ∗
+
+Frontiers Research, Prescient Design, Genentech 
+
+Mark Goldstein ∗
+
+Flatiron Institute 
+
+Zichu Wang 
+
+MIT 
+
+Aahlad Puli 
+
+NYU 
+
+Rajesh Ranganath 
+
+NYU 
+
+## Abstract 
+
+Stopgrads are widely used in training machine learning models, but stopgrads can alter the gradient, stationary points and convergence guarantees of the orig-inal objective, which can make stopgrad training theoretically ungrounded. We introduce a stopgrad regression principle , which identifies a general template for stopgrad objectives with a closed-form characterization of stationary points and their uniqueness, unifying stopgrad objectives for flow maps, reinforcement learning, and diffusion samplers. We provide theoretical grounding for optimizing stopgrad flow map objectives by showing their unique stationary point is the true flow map, and showing positive convergence results for Eulerian and Lagrangian objectives, including MeanFlow and improved MeanFlow. Remarkably, we show that under functional semi-gradient flow, the learned flow map has a closed-form expression composing the initial flow map and the true flow map. We additionally use our stopgrad regression principle to propose modified stopgrad placements for flow map objectives which reduce training memory by 2×.
+
+## 1 Introduction 
+
+Stop gradients ( stopgrad ) are a basic primitive in automatic differentiation packages like PyTorch and JAX. Stopgrads leave the forward pass unchanged, but in the backward pass, they return a zero gradient and block further gradient propagation. Stopgrads are widely used in machine learning, including in self-referential objectives where a model is supervised in terms of itself, as in self-distillation, reinforcement learning ( RL ) [43], consistency models and flow maps [41, 15], representation learning [33], as well as variational inference [35, 45]. For example, in RL , popular algorithms such as temporal-difference learning and actor-critic methods rely on stopgrads in practice [29, 25, 39, 42]. However, stopgrad objectives update models with semi-gradients (differentiating only some occur-rences of the model), which are not the gradient of the original objective [42]. Semi-gradient update fields may be non-conservative, meaning they may not be the gradient of any objective, and updates could follow a loop indefinitely without making progress. Whereas standard gradient descent is akin to marching through mountains and valleys, optimizing stopgrad objectives can be like wandering in Escher landscapes (Fig. 1). These concerns motivate understanding stopgrad optimization theory, which seeks to understand the stationary points and convergence of stopgrad objectives. Recently, stopgrads have featured prominently in methods for training flow maps , which learn to integrate probability-flow ODEs in few steps [41, 40, 28, 21, 37, 8, 36]. MeanFlow [15] introduced a stopgrad objective but did not analyze its stationary points or convergence. Boffi et al. [8, 9] introduced the Eulerian self-distillation ( ESD ) and Lagrangian self-distillation ( LSD ) objectives and                        
+
+> Preprint. arXiv:2609.16222v1 [cs.LG] 14 Sep 2026 g=∇L;flow →min ∇× g0;flow →min anyway ∇× g0;flow leaves min
+> trajectory color: t= 0 t=T
+> stable stationary pt. unstable stationary pt. attracting limit cycle trajectory start
+
+Figure 1: Gradient and non-gradient update fields. Left: Gradient fields are familiar valleys and mountains, while in stopgrad update fields, learning can make no progress and may not converge ( Relativity, M.C. Escher ). 
+
+Right: (a) A well-behaved gradient field. (b, c) Non-gradient fields can result from stopgrads. While (b) still has a stable stationary point at the minimum, (c) has an unstable stationary point; small perturbations move trajectories away from the minimum and toward the limit cycle. In this work, we study a class of loss functions and stopgrad placements that yield update fields that converge to desired stationary points. 
+
+proposed specific stopgrad placements; they show the non-stopgrad loss has a unique minimum, but did not characterize the stationary points or convergence of the stopgrad variants. Despite the ubiquity and empirical utility of stopgrads, no general theoretical grounding exists for stopgrad objectives. This paper formalizes stopgrads via the calculus of variations (§2) and studies the 
+
+stationary points and convergence of stopgrad objectives. Concretely, the paper makes the following contributions: 
+
+⋆ We introduce a stopgrad regression principle (§3), a general template for stopgrad objectives with a closed-form characterization of its stationary points as fixed points of the target operator. The template describes objectives where the learned model appears once outside the stopgrad, and regresses against targets that are affine in labels and stopgrad terms of the learned model. We also give a sufficient condition on the target operator under which a unique attainable minimizer of the ordinary (non-stopgrad) loss is the unique stationary point of the stopgrad loss, and we prove uniqueness directly for each flow map objective. The stopgrad regression principle is general, encompassing stopgrad objectives for flow maps, RL , and diffusion samplers [19]. The principle’s template is easy to check, so it assists in the design of new stopgrad objectives. 
+
+⋆ We apply the stopgrad regression principle to MeanFlow with stopgrad, and show that the true flow map is its unique stationary point , as desired. In contrast, removing the stopgrad removes the true flow map as a stationary point [8], showing that the stopgrad in MeanFlow is necessary for principled optimization (§4.1). 
+
+⋆ We show that the true flow map is the unique stationary point of improved MeanFlow (§4.2). 
+
+⋆ We derive two new stopgrad objectives by introducing stopgrads in placements prescribed by the regression principle template in the ESD and LSD flow map objectives (§4.3-4.4), without changing the unique stationarity of the true flow map. We call these slim ESD and LSD , as our stopgrads reduce training memory by 2×. Concurrent work has proposed equivalent objectives [22, 34], whereas we derive them in a principled manner from stopgrad optimization perspectives. We train flow maps and show that slim ESD and LSD match or improve on Fréchet inception distance (FID ) on CIFAR -10 and I MAGE NET .
+
+⋆ We show positive convergence results for MeanFlow, Improved MeanFlow ( IMF ), slim ESD ,slim LSD (§5). We verify that their semi-gradients are not gradients of any objective, which raises questions on convergence. For slim ESD , LSD , and IMF , we study convergence of distillation training following perfect flow-matching pretraining, whereas we study MeanFlow training from scratch. Remarkably, we show that under functional semi-gradient flow, the learned flow map is a closed-form composition of the initial flow map and the true flow map , with “hand-off time” varying with optimization time (Fig. 2). Under standard assumptions, convergence occurs exponentially fast. 2Figure 2: Convergence via closed-form composition (§5). Under functional semi-gradient flow, the learned flow map Fτ at optimization time τ is a composition of the initial F0 and the true flow map F ∗. As optimization time τ passes, the “hand-off” time rτ interpolates towards u for Eulerian and t for Lagrangian, giving convergence to the true flow map. 
+
+## 2 Stopgrads in ML: from PyTorch to Proofs 
+
+We formalize a mathematical definition of the stopgrad operator that is consistent with what is computed in practice. We start with stopgrads computed in programming libraries, move to directional derivatives, and then generalize to functional derivatives, which form the basis of our results. 
+
+Stopgrads in practice Autodifferentiation frameworks such as PyTorch [31] and JAX [10] evaluate expressions in a forward pass, then compute parameter gradients in a backward pass via the chain rule. The stopgrad (or detach ) operation acts as the identity in the forward pass but returns a zero gradient in the backward pass. Let SG denote stopgrad as a mathematical operator. The rule is: 
+
+> SG
+
+{fθ } := fθ , ∇torch  
+
+> θSG
+
+{fθ } := 0 . (1) As an example, consider: 
+
+Lex (θ) := E[∥fθ (x) − SG {∇ xfθ (x)}y∥2] (2) Due to the stopgrad, machine learning libraries would compute the parameter update direction: 
+
+∇torch  
+
+> θ
+
+Lex (θ) = 2 E[( fθ (x) − SG {∇ xfθ (x)}y) · ∇ θ fθ (x)] . (3) This update direction is not the gradient of Lex : the full gradient would also differentiate the Jacobian, computing ∇θ ∇xfθ . We give this update direction a formal name below. 
+
+Stopgrad for directional derivatives We now formalize the PyTorch stopgrad as a precise operation on directional derivatives. The directional derivative of L at θ in direction h is: 
+
+DhL(θ) = lim 
+
+> ϵ→0
+
+L(θ + ϵh ) − L (θ)
+
+ϵ = ddϵ L(θ + ϵh ) ϵ=0 
+
+. (4) We start by decomposing L into a function O of two copies of θ, with Θ1 tagging non-stopgrad occurrences and Θ2 tagging stopgrad occurrences. For the example in (3), 
+
+Oex [Θ 1, Θ2] = E[∥fΘ1 (x) − ∇ xfΘ2 (x)y∥2]. (5) We then write L(θ) = O[θ, SG {θ}] as shorthand for the two-step procedure: tag each occurrence of 
+
+θ as non-stopgrad ( Θ1) or stopgrad ( Θ2), then evaluate at Θ1 = Θ 2 = θ. The stopgrad rule then corresponds to differentiating only with respect to Θ1, i.e., perturbing only non-stopgrad parameters: 
+
+DhLex (θ) = ddϵ E[∥fθ+ϵh (x) − ∇ xfθ (x)y∥2] ϵ=0 = 2 E  fθ (x) − ∇ xfθ (x)y ∇θ fθ (x)⊤h,
+
+which has maximum magnitude for h in the direction ∇torch  
+
+> θ
+
+L, matching the PyTorch computation. 
+
+Functional derivatives To focus on the properties of objectives with stopgrads, we generalize from finite-dimensional parameters to function space. Working in function space makes the analysis coordinate-free: the first variation depends only on f and a perturbation h, not on any parameterization, and characterizes which solutions can be found in the idealized limit of infinite model capacity. We take H := L2(μ, Rd) as the pairing space where first variations are represented and semi-gradient residuals are compared. We take a linear subspace M ⊂ C1 ∩ H as the function or model class. We take D ⊂ M as the admissible perturbation class. 3Definition 1 (First variation) . The first variation of a functional L : M → R at f ∈ M in direction h ∈ D is 
+
+δL[f ; h] := ddϵ L[f + ϵh ] ϵ=0 . (6) For the functionals studied in this paper, direct computation (§A) shows that δL can be written as an inner product against an element g[f ] ∈ H:
+
+δL[f ; h] = E
+
+> μ
+
+ g[f ]( x) · h(x)  = ⟨g[f ], h ⟩H , ⟨ϕ, ψ ⟩H := E 
+
+> μ
+
+[ϕ(x) · ψ(x)] . (7) 
+
+g[f ] is the functional gradient of L at f . Whenever −g[f ] is itself an admissible direction, −g[f ] ∈ D ,it is the steepest-descent direction in ⟨· , ·⟩ μ. We write ⟨· , ·⟩ μ for ⟨· , ·⟩ H when the measure needs emphasis. 
+
+Stopgrads for functional derivatives We now generalize the two-argument construction from directional derivatives to functionals. Let us decompose L into a functional O of two functions f1
+
+and f2. We then write L[f ] = O[f, SG {f }] as shorthand for labeling all non-stopgrad occurrences as 
+
+f1 and stopgrad occurrences as f2, evaluating at f1 = f2 = f such that the value of L[f ] is O[f, f ],and computing the first variation by perturbing only the first argument: 
+
+δL[f ; h] = ddϵ O[f + ϵh, f ] ϵ=0 . (8) When O depends non-trivially on its second argument, the resulting functional gradient g such that 
+
+δL = ⟨g[f ], h ⟩ generally differs from the usual functional gradient; this is because the stopgrad rule perturbs only the first slot of O.We call this object g a semi-gradient , borrowing terminology from Sutton and Barto [42], where the term refers to the special case arising in TD learning. 
+
+Definition 2 (Semi-gradient) . Let L[f ] = O[f, SG {f }]. The semi-gradient of L at f is the element g[f ] ∈ H representing the first variation (8) : δL = ⟨g[f ], h ⟩.
+
+The semi-gradient flow ∂τ fτ = −g[fτ ] is the function space analogue of the autograd update direction; updates stop precisely where g = 0 .
+
+Definition 3 (Stationary point) . f ∗ is a stationary point of a functional L if δL[f ∗; h] = 0 for all h ∈ D .
+
+As shown by the fundamental lemma of variations (Lemma 1), δL = 0 for all h implies that g = 0 
+
+on supp μ. Our theoretical results thus characterize stationary points by computing δL using this stopgrad rule, and solving for g = 0 .
+
+## 3 Stopgrad Regression Principle 
+
+Here, we present a unifying stopgrad regression principle. This principle identifies a general template for stopgrad objectives where the learned function appears in only one term outside of stopgrads, though it can appear within stopgrads in multiple terms. When the stopgrad-ed operator takes a certain affine form, our stopgrad regression principle characterizes the stationary points as the fixed points of the target operator. Whether that fixed point is unique is a separate question: we give a sufficient condition in Corollary 1, and establish uniqueness for each flow map objective in §4. 4Theorem 1 (Stopgrad Regression Principle) . Let x denote the inputs, with distribution μ, and let y denote the labels. Assume μ has full support on an open set S ⊆ Rn (that is, μ(U ) > 0
+
+for every nonempty open U ⊆ S, and that supp μ ⊆ ¯S, the closure of S). Let T [f, y] be an operator that is affine in y, meaning 
+
+T [f, y]( x) = P [f ]( x) + Q[f ]( x) y + R(x) y (9) 
+
+for operators P, Q that depend on f but not on y, and R independent of both f and y.Consider the functional 
+
+L[f ] := 12 E
+
+> x,y
+
+h
+
+f (x) − SG {T [f, y]( x)} 2i
+
+. (10) 
+
+Let f ∗ ∈ M with L[f ∗] < ∞ and x 7 → T [f ∗, E[y | x]]( x) continuous on ¯S. Then f ∗ is a stationary point of L (Definition 3, with D ⊇ C1 
+
+> c
+
+(S), the C1 functions with compact support in S) if and only if 
+
+f ∗(x) = T [f ∗, E[y | x]]( x) for all x ∈ supp μ. (11) The proof is in §A. The key idea is that since f appears exactly once outside SG , the first variation is represented in H as δL[f ; h] = ⟨g[f ], h ⟩μ, where the semi-gradient g[f ] ∈ H is given pointwise by 
+
+g[f ]( x) = f (x) − T [f, E[y | x]]( x). Since g[f ] is continuous, the fundamental lemma of variations (Lemma 1) then shows that stationarity is equivalent to g[f ] = 0 on supp μ. In Table 1 and §D, we show that the stopgrad regression principle unifies objectives for flow maps, RL , and diffusion samplers. In general, the stationary set for (11) may have several solutions or none. Here, we provide a simple condition, called additive label noise , that characterizes uniqueness by Corollary 1. Additive label noise means the operator T [f, y] does not multiplicatively “mix” f and y.
+
+Definition 4 (Additive label noise) . The target operator T in (9) has additive label noise if 
+
+Q[f ] ≡ Q does not depend on f .
+
+This condition is common: it holds for slim LSD , slim ESD , IMF , and adjoint RAM ( Q ≡ 0 in Table 1), though it fails for MeanFlow and for TD (0)/Q-learning. When the label noise is not additive, uniqueness can still be established directly, as we do for MeanFlow (§4.1) and for the RL objectives (§D). In general, the loss can be decomposed as L[f ] = 12 ∥g[f ]∥2 
+
+> μ
+
++ V [f ], where V [f ] is a conditional-variance “floor” (Proposition 2, §A). In general V [f ] depends on f through Q[f ], so comparing loss values across candidates says nothing about which are stationary. Under additive noise, V [f ] is independent of f , allowing uniqueness to be read off the loss. 
+
+Corollary 1 (Uniqueness under additive label noise) . Assume the hypotheses of Theorem 1 hold for every f ∈ M , suppose T has additive label noise (Definition 4), and let V :=  
+
+> 12
+
+E (Q + R) ξ 2 with ξ = y − E[y | x] as above. Then L[f ] ≥ V for all f ∈ M , and 
+
+f ∈ M is a stationary point of L if and only if L[f ] = V . In particular, if L attains the value 
+
+V at exactly one f ∗ ∈ M , then f ∗ is the unique stationary point of L in M.
+
+The proof is in §A. Additive label noise excludes multiplying the noise by an f -dependent coefficient. 
+
+Connection to fixed-point iteration In reinforcement learning, the value function is the fixed point of the Bellman operator [4, 42, 5] in the TD (0) row of Table 1. How does this relate to stop-gradient regression? Taking the semi-gradient of the stop-gradient regression and applying a unit step yields 
+
+f ← f − (f − T [f, E[y|x]]) = T [f, E[y|x]] 
+
+which is exactly fixed-point iteration of T . The update vanishes precisely when f = T [f ], so the zeros of the semi-gradient coincide with the fixed-point of T by construction. In the RL case, this fixed point is the desired value function, and it is unique because the Bellman operator is a γ-contraction for γ < 1 [38, 7, 12] (§D). Our perspective highlights that this equivalence is not specific to Bellman 5Objective x y P [f ]( x) Q[f ]( x)y R(x)y Additive noise MeanFlow (t, u, x ) ˙xt (u − t) ∂tf (x) (u − t) ∂xf (x) ˙ xt ˙xt ✗                                                                     
+
+> Improved MeanFlow
+> (t, u, x )˙xt(u−t)∂tf(x) + (∂xf)( x)f(t, t, x )0˙xt✓
+> Slim LSD (ours) (t, u, x )0−(u−t)∂uf(x) +
+> f u, u, x + ( u−t)f(x)00✓
+> Slim ESD (ours) (t, u, x )0(u−t)∂tf(x) + (∂xF)( x)f(t, t, x )00✓
+> TD (0) s(r, δ St+1 ) 0 γRV(s′)δSt+1 (ds ′)r✗
+> Q-learning (s, a )(r, δ St+1 ) 0 γRmax a′q(s′, a ′)δSt+1 (ds ′)r✗
+> Adjoint RAM (x, t )∇g(X1)00−σ(t)∇g(X1)✓
+
+Table 1: Stopgrad objectives unified by our stopgrad regression principle (§D). We propose slim ESD and slim  
+
+> LSD
+
+by modifying existing flow map objectives to be in line with our stopgrad regression principle. The last column records whether the label noise is additive (Definition 4), i.e. whether the coefficient Q[f ] of the label is independent of f .
+
+iteration: semi-gradient updates of stop-gradient regression implement fixed-point iteration of the underlying operator, including for problems not typically framed in fixed-point terms, such as partial differential equation ( PDE )-based flow-map loss functionals. 
+
+## 4 Stationary Points of Stopgrad Flow Map Objectives 
+
+Flow maps learn to sample probability flow ordinary differential equations ( ODE s) in few steps, and are trained with objectives involving stopgrad operators. We now analyze the stationary points of these stopgrad flow map objectives. We begin by reviewing background. 
+
+Stochastic Interpolants Given simple x0 ∼ q0 and data x1 ∼ q1, stochastic interpolants [26, 1] define a density path by constructing xt = αt x0 + σt x1, for t ∈ [0 , 1] . Under this construction, there exists a velocity field v(t, x ) := E[ ˙ xt | xt = x] with ˙xt = ˙ αtx0 + ˙ σtx1, such that the ODE 
+
+dˆxt = v(t, ˆxt) dt has the same marginal densities as xt. The ODE connection provides a way to sample the marginals of xt while only having access to a sample of one endpoint and the velocity field v. In practice, v is learned by regressing a model vθ against ˙xt via the so-called flow-matching loss E[∥vθ (t, xt) − ˙xt∥2], and new samples are generated by discretizing the ODE .
+
+Flow maps and the transport equation Instead of learning vθ and then integrating it in an ODE ,one can sample by approximating the flow map F :
+
+F (t, u, ˆxt) := ˆ xt +
+
+Z ut
+
+v(s, ˆxs)ds = ˆ xt +
+
+Z ut
+
+v(s, F (t, s, ˆxt)) ds. (12) The flow map F describes where a particle at position x at time t reaches by time u when integrated along the probability flow ODE trajectories. Learning F directly enables few-step sampling [41, 21, 8, 9, 40, 15]. The flow map is characterized by a transport equation , which is a PDE acquired by using the Leibniz rule to take the time derivative of eq. (12): 
+
+∂tF (t, u, x ) + ( ∂xF )( t, u, x ) v(t, x ) = 0 , F (u, u, x ) = x. (13) The boundary condition says that a particle at position x at time u is already at its destination; it is satisfied automatically when parameterizing flow maps as 
+
+F (t, u, x ) = x + ( u − t) f (t, u, x ). (14) Rewriting (13) in terms of this f parameterization gives: 
+
+f = v + ( u − t) ∂tf + ( ∂xf ) v. (15) Flow-map training procedures are built from this identity and related rewritings. In practice, these methods often use stopgrads to avoid differentiating through model derivatives. In this work, we seek to understand what these stopgrads preserve and when their induced dynamics remain well behaved. In our flow map analyses, we assume regularity conditions (Remark 1), such as Lipschitz marginal velocities and square-integrable conditional velocities used in prior work [27]. 6Stationary points of flow map training with stopgrads. For MeanFlow and improved MeanFlow, we prove the true flow map is the unique stationary point with stopgrads. For LSD and ESD , the original stopgrad placements do not fit Theorem 1, so it is not obvious what their stationary points are. Theorem 1 inspires our slim stopgrad placements that yield known stationary points and reduce training memory by avoiding second-order derivatives. In each case Theorem 1 supplies the characterization of stationary points, and uniqueness of the true flow map is proved separately (§C) by reducing the stationarity equation to the transport equation (13) or the flow ODE and invoking uniqueness of their solutions. Throughout this section the time sampler satisfies t ≤ u. We write 
+
+Ω := {0 < t ≤ u < 1} × Rd for the time triangle including the diagonal {t = u}. The training distribution μ of (t, u, xt) has full support on the interior {t < u } of Ω and may also place mass on the diagonal; Remark 1 states the precise conditions, and a glossary of symbols is in the appendix. 
+
+4.1 MeanFlow 
+
+MeanFlow [15] learns the flow map by enforcing the transport PDE , using a stopgrad to avoid differ-entiating through Jacobian–vector product terms. Using the parameterization (14) and conditional velocity v from §4, the MeanFlow functional (16) (adapted to ∂t and forward-time; see §J) is an instance of (10) with x = ( t, u, xt), y = ˙ xt, and P [f ] = ( u − t)∂tf , Q[f ] = ( u − t)∂xf , and 
+
+R = I.
+
+LMF [f ] = 12 E
+
+h
+
+f (t, u, xt) − ˙xt − (u − t) SG {∂tf (t, u, xt) + ∂xf (t, u, xt) ˙ xt} 2i
+
+. (16) 
+
+Corollary 2 (MeanFlow) . Under the standing conditions (Remark 1), f ∈ M is a stationary point of LMF if and only if 
+
+f = v + ( u − t) ∂tf + ∂xf v  on Ω.
+
+This equation has exactly one solution in M, namely f ∗, defined by x + ( u − t)f ∗(t, u, x ) = 
+
+F ∗(t, u, x ). Hence the true flow map is the unique stationary point of LMF in M.
+
+The proof is in §C. The characterization is Theorem 1; the population stationarity equation for MeanFlow was also derived independently by Kim et al. [22]. Uniqueness does not follow from Theorem 1 or Corollary 1, since the label noise is not additive for MeanFlow ( Q[f ] = ( u − t)∂xf
+
+depends on f ); instead, the stationarity equation is the transport equation (13) with the boundary condition F (u, u, x ) = x, whose solution is unique (Lemma 2, §C). In §F, we further prove that the true flow map is not a stationary point of the simplified MeanFlow objective obtained by removing the stopgrad, i.e. the objective in which the sample velocity ˙xt
+
+replaces the marginal velocity v inside the Jacobian term [8]; the corresponding covariance correction also appears in Kim et al. [22]. Thus, the stopgrad in MeanFlow is what makes that simplified objective principled. 
+
+4.2 Improved MeanFlow 
+
+Improved MeanFlow [16] replaces the ˙xt term in the JVP with the model’s instantaneous velocity 
+
+f (t, t, xt):
+
+LiMF [f ] = 12 E
+
+h
+
+f (t, u, xt) − ˙xt − (u − t) SG {∂tf (t, u, xt) + ∂xf (t, u, xt) f (t, t, xt)} 2i
+
+. (17)  
+
+> IMF
+
+is an instance of (10) with x = ( t, u, xt), y = ˙ xt, P [f ] = ( u − t)∂tf + ( ∂xf ) f (t, t, ·),
+
+Q[f ] = 0 , and R = I.
+
+Corollary 3 (Improved MeanFlow) . Under the standing conditions (Remark 1), f ∈ M is a stationary point of LiMF if and only if 
+
+f = v + ( u − t) ∂tf + ( ∂xf ) f (t, t, ·) on Ω.
+
+When u = t, this condition implies f (t, t, ·) = v(t, ·). Substituting this into u̸ = t, we get the transport equation (13) with F (u, u, x ) = x, so the true flow map is the unique stationary point of LiMF in M.
+
+7The proof is in §C. The characterization follows from Theorem 1 with E[y | x] = v. At u = t, the stationarity equation gives f (t, t, ·) = v(t, ·), and substituting this into u̸ = t recovers the MeanFlow equation of Corollary 2. Thus uniqueness follows exactly as for MeanFlow (Lemma 2). Since Q ≡ 0, 
+
+> IMF
+
+also has additive label noise, so Corollary 1 applies: the true flow map is the unique point attaining the conditional-variance floor. To our knowledge, our work is the first to show the true flow map is the unique stationary point for improved MeanFlow. 
+
+4.3 Lagrangian Self-Distillation 
+
+The LSD family of losses is based on the Lagrangian flow map identity [8, 9], a rewrite of (13) that avoids spatial Jacobians. For the true flow map F ∗,
+
+∂uF ∗(t, u, x ) = v u, F ∗(t, u, x ). (18) Because the true velocity v is unknown, LSD replaces it with the model’s prediction f (u, u, ·),which equals v(u, ·) at the true flow map. The base LSD functional without stopgrads penalizes violation of (18). The velocity condition is enforced by adding the flow matching term LFM [f ] :=  
+
+> 12
+
+E ∥f (t, t, xt) − ˙xt∥2. 
+
+> LSD
+
+variants differ in where stopgrads are placed. The original variant [9]—also used in Terminal Velocity Matching [46]—places the stopgrad only around the evaluation at the transported point (19). This does not fit Theorem 1, so it is not obvious what its stationary points are. 
+
+LLSD -orig [f ] = 12 E
+
+h
+
+f (t, u, xt) + ( u − t)∂uf (t, u, xt) − SG {f  u, u, F (t, u, xt)} 2i
+
+. (19) 
+
+Slim stopgrad for LSD . Theorem 1 suggests an alternative stopgrad placement. This has two benefits: (i) it eliminates expensive second-order derivatives during training (hence the name “slim”); and (ii) it clarifies the stationary points, via Theorem 1. The slim-LSD is: 
+
+LLSD -slim [f ] = 12 E
+
+h
+
+f (t, u, xt) + ( u − t)SG {∂uf (t, u, xt)} − SG {f  u, u, F (t, u, xt)} 2i
+
+.
+
+(20) 
+
+Corollary 4 (slim LSD ). Under the standing conditions (Remark 1), f ∈ M is a stationary point of LLSD -slim if and only if 
+
+f + ( u − t) ∂uf = f  u, u, F (t, u, x ) on Ω, F := x + ( u − t)f, 
+
+equivalently ∂uF (t, u, x ) = f  u, u, F (t, u, x ), the Lagrangian identity (18) with the model velocity f (u, u, ·) in place of v(u, ·).
+
+The proof is in §C. Corollary 4 concerns the slim LSD term alone. We show in §C that f ∈ M is a stationary point of the combined objective LLSD -slim + LFM if and only if f (u, u, ·) = v(u, ·) and 
+
+∂uF (t, u, x ) = v u, F (t, u, x ) on Ω, and that the true flow map is the unique such f . The second condition is the flow ODE in u started at x at time t, whose solution is unique. The proof uses a splitting lemma (Lemma 3), which shows that the first variations of the two terms cannot cancel. 
+
+4.4 Eulerian Self-Distillation  
+
+> ESD
+
+is based on the transport equation (13). Like LSD , ESD replaces the velocity with the model’s prediction, and includes a flow matching term. The original stopgrad placement from [9] is: 
+
+LESD -orig [f ] = 12 E
+
+h
+
+∂tF (t, u, xt) + SG {(∂xF )( t, u, xt) f (t, t, xt)} 2i
+
+. (21) This does not fit the stopgrad regression principle, since (u − t) ∂tf − f appears outside the SG .
+
+Slim stopgrad for ESD . Theorem 1 suggests an alternative stopgrad placement. As before, this has two benefits: eliminating expensive second-order derivatives, and clarifying stationary points. 
+
+LESD -slim [f ] = 12 E
+
+h
+
+f (t, u, xt) − SG {(u − t) ∂tf (t, u, xt) + ( ∂xF )( t, u, xt) f (t, t, xt)} 2i
+
+.
+
+(22) 8Corollary 5 (slim ESD ). Under the standing conditions (Remark 1), f ∈ M is a stationary point of LESD -slim if and only if 
+
+f = ( u − t) ∂tf + ( ∂xF ) f (t, t, ·) on Ω, F := x + ( u − t)f, 
+
+equivalently ∂tF + ( ∂xF ) f (t, t, x ) = 0 : the transport equation (13) with the model velocity 
+
+f (t, t, ·) in place of v(t, ·).
+
+The proof is in §C. We show there that f ∈ M is a stationary point of the combined objective 
+
+LESD -slim + LFM if and only if f (t, t, ·) = v(t, ·) and ∂tF + ( ∂xF ) v = 0 on Ω, and that the true flow map is the unique such f . The second condition is the transport equation (13), whose solution with F (u, u, x ) = x is unique (Lemma 2). We summarize all flow map stopgrad objectives discussed in this work in Table 4. 
+
+## 5 Convergence of Functional Semi-Gradient Flow for Flow Map Objectives 
+
+It is well known that standard gradient descent converges to stationary points under standard smooth-ness and step-size conditions [20]. Without stopgrads, the functional gradient g likewise defines a descent direction (when −g[f ] ∈ D ), and flowing along it brings optimization to a stationary point in function space. However, for stopgrad objectives which have semi-gradient update fields, it is not obvious whether following the semi-gradient field arrives at a stationary point or not. Thus, our preceding characterization of stationary points for stopgrad flow map objectives must be paired with an analysis of convergence. Here we show two things. First, semi-gradients are generally not gradients of any scalar objective; we confirm this concretely for MeanFlow, IMF , slim-LSD , and slim-ESD , so standard optimization theory does not guarantee their convergence. Second, despite this, functional semi-gradient flow does converge for MeanFlow, IMF , slim-LSD , and slim-ESD .
+
+5.1 When is a semi-gradient the gradient of an objective? 
+
+A natural question is, when is the semi-gradient g also the gradient of some scalar functional 
+
+J : M → R—equivalently, whether g is a conservative vector field on M. Knowing that g is a gradient of some J would then mean that the updates still minimize some J that could be related to 
+
+L. This question is well-studied in the context of TD learning [6, 30]. Here, we provide a general result for functionals following the stopgrad regression principle. 
+
+Theorem 2 (Conservativeness) . Assume the hypotheses of Theorem 1 hold for every f ∈ M ,with M a linear subspace of C1 ∩ H and T Gateaux differentiable along M, and write 
+
+T [f ] for T [f, E[y | x]] . Suppose the semi-gradient g[f ] = f − T [f, E[y | x]] is the gradient in ⟨· , ·⟩ μ of a twice continuously differentiable scalar functional J : M → R, meaning 
+
+δJ [f ; h] = ⟨g[f ], h ⟩μ for all f, h ∈ M (precise hypotheses in §E). Then the Gateaux derivative DT [f ] h := ddϵ T [f + ϵh ] ϵ=0 is symmetric with respect to ⟨· , ·⟩ μ at every f ∈ M :
+
+⟨DT [f ] h1, h 2⟩μ = ⟨h1, DT [f ] h2⟩μ for all h1, h 2 ∈ M .
+
+The proof is in §E. Theorem 2 specializes the classical symmetry criterion for potential operators [44, Theorem 5.1] to stopgrad regression. It gives a necessary condition for g to be the gradient of some J: when the condition fails, the semi-gradient g has curl and is not the gradient of any scalar functional [3]. 
+
+Corollary 6. The semi-gradients of LMF , LiMF , LLSD -slim , and LESD -slim are not gradients of any twice continuously differentiable scalar functional J : M → R in ⟨· , ·⟩ μ (in the sense of Theorem 2). 
+
+The proof in §E exhibits, for each objective, a base point f0 and two directions h1, h 2 ∈ M at which DT [f0] is not symmetric. In light of Corollary 6, it is not a priori clear that following the semi-gradient field of MeanFlow, IMF , slim-ESD , or slim-LSD converges to the true flow map, which is the unique stationary point (Corollaries 2–5). Proposition 1 below shows that it does, by an explicit formula for the flow that does not rely on the uniqueness results. 95.2 Convergence of functional semi-gradient flow for MeanFlow, improved MeanFlow, slim  
+
+> ESD
+
+& LSD .
+
+In this section, we prove convergence results for functional semi-gradient flow for MeanFlow, improved MeanFlow, slim ESD , and slim LSD objectives with stopgrad. We study MeanFlow directly, while for IMF , slim ESD and LSD , we consider distillation training following perfect flow-matching pretraining. This choice directly treats the matter of flow map convergence for a given velocity field, and aligns with the separation of flow matching pretraining and flow map post-training setup often used in practice. We succinctly state our setup and results here, and relegate full derivations and proofs to §G. We have shown that Theorem 1 applies to MeanFlow, IMF , slim ESD , and slim LSD , so that under the functional inner product ⟨· , ·⟩ μ, the semi-gradient flow of each stopgrad term is ∂τ fτ = −g[fτ ], over optimization time τ . For clarity of exposition, we choose a setting where g : M → M , such that the semi-gradient flow on f ∈ M stays in M. Under perfect flow-matching pretraining, the diagonal 
+
+fτ (t, t, ·) = v(t, ·) is invariant along the flow for slim ESD and slim LSD (Lemma 5) and for IMF .Hence, the flow matching terms in slim ESD and slim LSD contribute no semi-gradient, and the IMF 
+
+flow coincides with the MeanFlow flow. We write the semi-gradient flow for the four objectives (eqs. 16, 17, 20, 22), assuming perfect flow-matching pretraining for slim ESD , slim LSD , and IMF but not for MeanFlow (§G.1). The Eulerian objectives (MeanFlow, IMF , slim ESD ) share an Eulerian semi-gradient flow, separate from the Lagrangian (slim LSD ) semi-gradient flow: Eulerian: ∂τ Fτ (t, u, x ) = ( u − t)
+
+
+
+∂tFτ (t, u, x ) + ( ∂xFτ )( t, u, x ) v(t, x )
+
+
+
+(23) Lagrangian: ∂τ Fτ (t, u, x ) = −(u − t)
+
+
+
+∂uFτ (t, u, x ) − v u, F τ (t, u, x )
+
+(24) We now give our main result: these functional semi-gradient flows converge to the true flow map. In particular, Fτ is a closed-form composition of the initial flow map and the true flow map, governed by a “hand-off” time varying by τ that transitions Fτ from F0 to F ∗ (Fig. 2). 
+
+Proposition 1 (Convergence) . Let A := {(t, u ) ∈ [0 , 1] 2 : t ≤ u}. Suppose the usual regularity conditions for flow maps (Remark 1), such that the velocity field generates a unique C1 flow map F ∗ : [0 , 1] 2 × Rd → Rd. Let F0 : A × Rd → Rd be C1 and satisfy 
+
+F0(t, t, x ) = x.Denote “hand-off” times sτtu := u − e−τ (u − t) and sτut := t + e−τ (u − t). Since 
+
+e−τ ∈ (0 , 1] , both sτtu and sτut are convex combinations of t and u.
+
+(a) Eulerian. Suppose ∂τ Fτ obeys equation 23. Then, 
+
+Fτ (t, u, x ) = F0
+
+ sτtu, u, F ∗(t, s τtu, x ). (25) 
+
+In particular, for every fixed (t, u, x ), we have Fτ (t, u, x ) → F ∗(t, u, x ) as τ → ∞ .
+
+(b) Lagrangian. Suppose ∂τ Fτ obeys equation 24. Then, 
+
+Fτ (t, u, x ) = F ∗ sτut, u, F 0(t, s τut, x ). (26) 
+
+In particular, for every fixed (t, u, x ), we have Fτ (t, u, x ) → F ∗(t, u, x ) as τ → ∞ .
+
+We provide the proof in §G.2. Under additional mild conditions, convergence occurs exponentially fast: ∥Fτ (t, u, x ) − F ∗(t, u, x )∥ ≤ ce −τ (u − t) for a positive constant c (Proposition 6, §G.3). We summarize our main convergence results for each objective: • Functional semi-gradient flow on the MeanFlow objective converges to the true flow map. • Functional semi-gradient flow on the Improved MeanFlow objective, initialized at 
+
+f0(t, t, ·) = v(t, ·) (i.e., the model’s instantaneous velocity matches the true marginal velocity; perfect flow matching pretraining) , converges to the true flow map. • Functional semi-gradient flow on the slim ESD objective, initialized at f0(t, t, ·) = v(t, ·),converges to the true flow map. • Functional semi-gradient flow on the slim LSD objective, initialized at f0(t, t, ·) = v(t, ·),converges to the true flow map. 10 6 Experiments 
+
+6.1 Numerical semi-gradient flow experiments 
+
+The result that Fτ has a closed-form expression in terms of F0 and F ∗ is remarkable. We perform nu-merical experiments to check this by simulating functional semi-gradient flow on Fτ using equations 23, 24, and comparing this simulated Fτ to its theoretical value. We model F on a discretized grid for (t, u, x ) in one to five spatial dimensions. See §I for further details. In Figure 3 left, we compare ∥Fτ (t, u, x )∥2 from simulation to the theoretical value from composing 
+
+F ∗ and F0. We observe a Pearson correlation of 1.000000 over 220M points, indicating good numerical agreement with the theoretical relationship. In Figure 3 right, we plot the evolution of the pointwise error from the true flow map. We see excellent agreement between the dashed (theoretical) and solid (simulated) lines, further supporting the validity of the theoretical relationship. 
+
+Figure 3: Numerical experiments for the theoretical evolution of Fτ . Left: Norms under simulated semi-gradient flow vs. theoretical value from the composition of F ∗ and F0, with four spatial dimensions. Right: Theoretical pointwise error to the true flow map (dashed) vs. simulated pointwise error (solid) in one spatial dimension. Each color denotes a distinct (F0, t, u, x ) over semi-gradient flow optimization time τ .
+
+6.2 Slim-ESD and LSD : Stopgrad variants of Lagrangian and Eulerian self-distillation 
+
+Theorem 1 motivated slim-ESD , or slim-LSD , which modified stopgrad placements avoiding second-order derivatives. We train models on CIFAR -10 with slim-ESD , or slim-LSD , and compare memory usage and performance to the original non-stopgrad ( ESD , LSD ) and stopgrad objectives ( ORIG SG )from Boffi et al. [9]. Each method is trained for 200k steps with checkpoints every 25k steps; for each sampling-step count we report the best EMA-model FID across checkpoints. We include more details in §K. The results are shown in Table 2. 
+
+CIFAR-10 Results. LSD SLIM tracks LSD ORIG SG at FID -10/50/100. ESD SLIM improves on ESD ORIG SG at every sampling budget. The one regime where ORIG SG retains an edge is single-step sampling in LSD , where SLIM reaches FID -1 of 47.6 versus 25.3 for ORIG SG . Our SLIM variants reduce memory usage by 2 × over LSD and ESD , and 1.5 × over ORIG SG variants. 
+
+Method FID -1 FID -10 FID -50 FID -100 Memory peak (GiB) ( ↓)Known stationary point No second-order deriva-tives  
+
+> ESD
+
+34 .3 ± 0.5 11 .8 ± 0.3 6.0 ± 0.2 4.9 ± 0.3 64.6 ✓ ✗ 
+
+> ESD ORIG SG
+
+122 .0 ± 24 .5 18 .7 ± 8.6 6.7 ± 1.3 5.8 ± 1.2 50.0 ? ✗ 
+
+> ESD SLIM SG
+
+25 .4 ± 2.8 4.2 ± 0.05 3.1 ± 0.05 2.8 ± 0.03 31.2 ✓ ✓ 
+
+> LSD
+
+291 .9 ± 6.5 10 .7 ± 1.9 4.2 ± 0.6 3.2 ± 0.4 60.8 ✓ ✗ 
+
+> LSD ORIG SG
+
+25 .3 ± 0.4 3.3 ± 0.09 2.8 ± 0.02 2.7 ± 0.004 41.0 ? ✗ 
+
+> LSD SLIM SG
+
+47 .6 ± 0.5 3.4 ± 0.07 3.0 ± 0.06 2.7 ± 0.05 26.9 ✓ ✓
+
+Table 2: FID on CIFAR -10. FID -X denotes X sampling steps; mean and std over three random seeds. ESD /LSD :Eulerian and Lagrangian self-distillation losses combined with flow matching (no stopgrad). ORIG SG : the stopgrad recommended by [9]. SLIM : our proposed stopgrad. 
+
+ImageNet Results. We train models on ImageNet with SD-VAE latents. We pretrain the MeanFlow-B4 model, a 90M diffusion transformer, with flow matching for 50k steps, then train with the full loss, and report one-step FID at 200k train steps (40 epochs). This setting compares objectives in shorter, ablation-style runs, with results in Table 3. After FM-only pretraining, one-step FID is 315, showing that all objectives except for LSD improve FID while training. We find that SLIM LSD is competitive with LSD ORIG , and SLIM ESD remains the best among ESD variants. 11 Method FID -1                   
+
+> ESD 287.6 ±2.0
+> ESD ORIG SG 195.1 ±49.2
+> ESD SLIM SG 128.7 ±1.3
+> LSD 390.8 ±23.5
+> LSD ORIG SG 152.8 ±3.0
+> LSD SLIM SG 159.5 ±8.6
+
+Table 3: FID on I MAGE NET . See Table 2 caption. Mean and std over three seeds. 
+
+## 7 Related work 
+
+Flow maps and consistency models. Flow maps and consistency models train networks to integrate probability-flow ODEs in few steps [41, 40, 28, 21, 37, 8, 36]. Many of these approaches use stopgrads to avoid backpropagating through model derivatives or nested model evaluations. We discuss the objectives of [9] and [15] in detail. Goldstein et al. [17] proved stationary-point results for SGFlow, a related stopgrad approach, but this approach still differentiates through forward-mode derivatives. In this work, we prove uniqueness of the true flow map as a stationary point for MeanFlow, improved MeanFlow, and our slim ESD /LSD variants, and additionally prove convergence of functional semi-gradient flow for these methods. 
+
+Stopgrads and semi-gradients. Semi-gradients have been studied extensively in RL [42, 2, 43, 6], where TD-style updates are not gradients of any fixed loss but nonetheless converge under conditions related to the structure of the Bellman operator and its fixed points [30, 14, 11, 32]. Non-conservative update fields also arise in differentiable games such as GAN s [3, 24]. We derive our functional stopgrad formalism from first principles—perturbing only non-stopgrad occurrences of f —and verify that it reduces to PyTorch’s detach in finite dimensions. The same construction is used in the context of fine-tuning and sampling in the proofs of adjoint matching and adjoint sampling [13, 19]. Ponce et al. [33] studies two-player settings used in self-supervised methods such as BYOL ; there, stopgrads prevent model collapse for objectives whose minima would otherwise be collapsed solutions. 
+
+## 8 Discussion 
+
+We formalized the stopgrad operator in the calculus of variations, and proved a general theorem (Theorem 1) characterizing stationary points of stopgrad functionals. We analyzed stationary points and convergence for flow map objectives with stopgrad, and proposed slim stopgrad placements for  
+
+> LSD
+
+and ESD that avoid differentiating through derivatives of f , reducing training memory by 2×.Looking forward, physics-informed neural networks (PINN) losses regress against PDE residuals and share structural similarities with flow map objectives [18]. Our stopgrad regression principle may be used to propose stopgrad placements for PINN losses. 
+
+Limitations. Our analysis is variational (infinite capacity, continuous optimization), so finite-width networks and stochastic gradient descent may behave differently. Our convergence results for IMF ,slim ESD and slim LSD assume perfect flow-matching pretraining. 12 Acknowledgments 
+
+The authors would like to thank Amirmojtaba Sabour and Eric Vanden-Eijden for extended discussion. The authors also thank the authors of [15] and [8, 9] for open-sourcing their code. Mark Goldstein thanks the Simons Foundation Flatiron Institute for funding and computational resources. Max Shen thanks Saeed Saremi for discussions. Zichu Wang is supported by the MIT Bose Presidential Fellowship. This work was partly supported by the NIH/NHLBI Award R01HL148248, NSF Award 1922658 NRT-HDR: FUTURE Foundations, Translation, and Responsibility for Data Sci- ence, NSF CAREER Award 2145542, ONR N00014-23- 1-2634, NIH R01CA296388, NSF 2404476, Optum, the Gates Foundation, and Apple. This work was also supported by IITP with a grant funded by the MSIT of the Republic of Korea in connection with the Global AI Frontier Lab International Collaborative Research. 
+
+## References 
+
+[1] Albergo, M. S., Boffi, N. M., and Vanden-Eijnden, E. (2023). Stochastic interpolants: A unifying framework for flows and diffusions. arXiv preprint arXiv:2303.08797 .[2] Baird, L. (1995). Residual algorithms: Reinforcement learning with function approximation. In 
+
+Proceedings of the Twelfth International Conference on Machine Learning , pages 30–37. [3] Balduzzi, D., Racaniere, S., Martens, J., Foerster, J., Tuyls, K., and Graepel, T. (2018). The mechanics of n-player differentiable games. In International Conference on Machine Learning ,pages 354–363. PMLR. [4] Bellman, R. (1954). The theory of dynamic programming. Bulletin of the American Mathematical Society , 60(6):503–515. [5] Bertsekas, D. P. (2025). Neuro-dynamic programming. In Encyclopedia of optimization , pages 1–6. Springer. [6] Bhandari, J., Russo, D., and Singal, R. (2018). A finite time analysis of temporal difference learning with linear function approximation. In Conference on learning theory , pages 1691–1692. PMLR. [7] Blackwell, D. (1965). Discounted dynamic programming. The Annals of Mathematical Statistics ,36(1):226–235. [8] Boffi, N. M., Albergo, M. S., and Vanden-Eijnden, E. (2024). Flow map matching. arXiv preprint arXiv:2406.07507 .[9] Boffi, N. M., Albergo, M. S., and Vanden-Eijnden, E. (2026). How to build a consistency model: Learning flow maps via self-distillation. In The Thirty-ninth Annual Conference on Neural Information Processing Systems .[10] Bradbury, J., Frostig, R., Hawkins, P., Johnson, M. J., Katariya, Y., Leary, C., Maclaurin, D., Necula, G., Paszke, A., VanderPlas, J., Wanderman-Milne, S., and Zhang, Q. (2018). JAX: composable transformations of Python+NumPy programs. [11] Brandfonbrener, D. and Bruna, J. (2020). Geometric insights into the convergence of nonlinear TD learning. In International Conference on Learning Representations .[12] Denardo, E. V. (1967). Contraction mappings in the theory underlying dynamic programming. 
+
+SIAM Review , 9(2):165–177. [13] Domingo-Enrich, C., Drozdzal, M., Karrer, B., and Chen, R. T. Q. (2025). Adjoint matching: Fine-tuning flow and diffusion generative models with memoryless stochastic optimal control. In 
+
+The Thirteenth International Conference on Learning Representations .[14] Fellows, M., Smith, M. J. A., and Whiteson, S. (2023). Why target networks stabilise temporal difference methods. In Proceedings of the 40th International Conference on Machine Learning ,volume 202 of Proceedings of Machine Learning Research , pages 9886–9909. PMLR. [15] Geng, Z., Deng, M., Bai, X., Kolter, J. Z., and He, K. (2025a). Mean flows for one-step generative modeling. arXiv preprint arXiv:2505.13447 .13 [16] Geng, Z., Lu, Y., Wu, Z., Shechtman, E., Kolter, J. Z., and He, K. (2025b). Improved mean flows: On the challenges of fastforward generative models. arXiv preprint arXiv:2512.02012 .[17] Goldstein, M., Uppal, A., Singhal, R., Puli, A. M., and Ranganath, R. (2026). Flow map learning via non-gradient vector flow. In The Fourteenth International Conference on Learning Representations .[18] Hao, Z., Yao, J., Su, C., Su, H., Wang, Z., Lu, F., Xia, Z., Zhang, Y., Liu, S., Lu, L., and Zhu, J. (2024). PINNacle: A comprehensive benchmark of physics-informed neural networks for solving PDEs. In The Thirty-eight Conference on Neural Information Processing Systems Datasets and Benchmarks Track .[19] Havens, A. J., Miller, B. K., Yan, B., Domingo-Enrich, C., Sriram, A., Levine, D. S., Wood, B. M., Hu, B., Amos, B., Karrer, B., Fu, X., Liu, G.-H., and Chen, R. T. Q. (2025). Adjoint sampling: Highly scalable diffusion samplers via adjoint matching. In Forty-second International Conference on Machine Learning .[20] Hestenes, M. R., Stiefel, E., et al. (1952). Methods of conjugate gradients for solving linear systems. Journal of research of the National Bureau of Standards , 49(6):409–436. [21] Kim, D., Lai, C.-H., Liao, W.-H., Murata, N., Takida, Y., Uesaka, T., He, Y., Mitsufuji, Y., and Ermon, S. (2023). Consistency trajectory models: Learning probability flow ode trajectory of diffusion. arXiv preprint arXiv:2310.02279 .[22] Kim, Y., Kim, D., Kim, W., and Park, J. (2026). Stabilizing consistency training: A flow map analysis and self-distillation. arXiv preprint arXiv:2601.22679 .[23] Krizhevsky, A., Hinton, G., et al. (2009). Learning multiple layers of features from tiny images. [24] Letcher, A., Balduzzi, D., Racaniere, S., Martens, J., Foerster, J., Tuyls, K., and Graepel, T. (2019). Differentiable game mechanics. Journal of Machine Learning Research , 20(84):1–40. [25] Lillicrap, T. P., Hunt, J. J., Pritzel, A., Heess, N., Erez, T., Tassa, Y., Silver, D., and Wierstra, D. (2016). Continuous control with deep reinforcement learning. In International Conference on Learning Representations (ICLR) .[26] Lipman, Y., Chen, R. T., Ben-Hamu, H., Nickel, M., and Le, M. (2022). Flow matching for generative modeling. arXiv preprint arXiv:2210.02747 .[27] Lipman, Y., Havasi, M., Holderrieth, P., Shaul, N., Le, M., Karrer, B., Chen, R. T. Q., Lopez-Paz, D., Ben-Hamu, H., and Gat, I. (2024). Flow matching guide and code. [28] Lu, C. and Song, Y. (2024). Simplifying, stabilizing and scaling continuous-time consistency models. arXiv preprint arXiv:2410.11081 .[29] Mnih, V., Kavukcuoglu, K., Silver, D., Rusu, A. A., Veness, J., Bellemare, M. G., Graves, A., Riedmiller, M., Fidjeland, A. K., Ostrovski, G., et al. (2015). Human-level control through deep reinforcement learning. nature , 518(7540):529–533. [30] Ollivier, Y. (2018). Approximate temporal difference learning is a gradient descent for reversible policies. arXiv preprint arXiv:1805.00869 .[31] Paszke, A., Gross, S., Massa, F., Lerer, A., Bradbury, J., Chanan, G., Killeen, T., Lin, Z., Gimelshein, N., Antiga, L., et al. (2019). Pytorch: An imperative style, high-performance deep learning library. Advances in neural information processing systems , 32. [32] Piché, A., Thomas, V., Marino, J., Pardinas, R., Marconi, G. M., Pal, C., and Khan, M. E. (2023). Bridging the gap between target networks and functional regularization. Transactions on Machine Learning Research .[33] Ponce, J., Terver, B., Hebert, M., and Arbel, M. (2026). Dual perspectives on non-contrastive self-supervised learning. In The Fourteenth International Conference on Learning Representations .[34] Potaptchik, P., Yim, J., Saravanan, A., Holderrieth, P., Vanden-Eijnden, E., and Albergo, M. S. (2026). Discrete flow maps. [35] Roeder, G., Wu, Y., and Duvenaud, D. K. (2017). Sticking the landing: Simple, lower-variance gradient estimators for variational inference. In Guyon, I., Luxburg, U. V., Bengio, S., Wallach, H., 14 Fergus, R., Vishwanathan, S., and Garnett, R., editors, Advances in Neural Information Processing Systems , volume 30. Curran Associates, Inc. [36] Sabour, A., Fidler, S., and Kreis, K. (2025). Align your flow: Scaling continuous-time flow map distillation. arXiv preprint arXiv:2506.14603 .[37] Salimans, T. and Ho, J. (2022). Progressive distillation for fast sampling of diffusion models. 
+
+arXiv preprint arXiv:2202.00512 .[38] Shapley, L. S. (1953). Stochastic games. Proceedings of the National Academy of Sciences ,39(10):1095–1100. [39] Silver, D., Schrittwieser, J., Simonyan, K., Antonoglou, I., Huang, A., Guez, A., Hubert, T., Baker, L., Lai, M., Bolton, A., et al. (2017). Mastering the game of go without human knowledge. 
+
+nature , 550(7676):354–359. [40] Song, Y. and Dhariwal, P. (2023). Improved techniques for training consistency models. arXiv preprint arXiv:2310.14189 .[41] Song, Y., Dhariwal, P., Chen, M., and Sutskever, I. (2023). Consistency models. arXiv preprint arXiv:2303.01469 .[42] Sutton, R. S. and Barto, A. G. (2018). Reinforcement Learning: An Introduction . The MIT Press, 2nd edition. [43] Tsitsiklis, J. N. and Van Roy, B. (1997). An analysis of temporal-difference learning with function approximation. IEEE Transactions on Automatic Control , 42(5):674–690. [44] Vainberg, M. M. (1964). Variational Methods for the Study of Nonlinear Operators . Holden-Day, San Francisco. Translated from the Russian. [45] Vaitl, L., Winkler, L., Richter, L., and Kessel, P. (2024). Fast and unified path gradient estimators for normalizing flows. In The Twelfth International Conference on Learning Representations .[46] Zhou, L., Parger, M., Haque, A., and Song, J. (2025). Terminal velocity matching. arXiv preprint arXiv:2511.19797 .15 Glossary of symbols 
+
+General setting (Theorem 1, Proposition 2) 
+
+x, y inputs and labels. μ = distribution of x.
+
+S open subset of Rn with μ(U ) > 0 for every nonempty open U ⊆ S.
+
+¯S closure of S. supp μ ⊆ ¯S.
+
+H L2(μ, Rd). ⟨ϕ, ψ ⟩μ := Eμ[ϕ(x) · ψ(x)] , ∥ϕ∥2 
+
+> μ
+
+:= ⟨ϕ, ϕ ⟩μ.
+
+M model class. M ⊂ C1 ∩ H.
+
+D perturbation class. C1 
+
+> c
+
+(S) ⊆ D ⊂ M ; for flow maps (§C) C1 
+
+> c
+
+(Ω) ⊆ D .
+
+C1 
+
+> c
+
+(S) C1 functions with compact support in S.
+
+T [f, y] P [f ] + Q[f ] y + R y (9). 
+
+g[f ] f − T [f, E[y | x]] ∈ H. δL[f ; h] = ⟨g[f ], h ⟩μ.
+
+ξ y − E[y | x].
+
+V [f ] 12 E ∥(Q[f ] + R) ξ∥2 (31). additive noise Definition 4: Q[f ] ≡ Q independent of f .
+
+Flow maps (§4, §C) 
+
+xt, ˙xt interpolant and its time derivative. 
+
+v v(t, x ) = E[ ˙ xt | xt = x].
+
+F, f F (t, u, x ) = x + ( u − t)f (t, u, x ) (14). F ∗, f ∗ = true flow map. 
+
+Ω◦ {0 < t < u < 1} × Rd. Open. μ has full support on Ω◦. In Theorem 1, S = Ω ◦.
+
+Ω {0 < t ≤ u < 1} × Rd. Relatively open in {t ≤ u}. Contains the diagonal {t = u}.
+
+¯Ω {0 ≤ t ≤ u ≤ 1} × Rd. Closure of Ω◦ and of Ω. supp μ ⊆ ¯Ω = ¯S.
+
+μ distribution of (t, u, xt). May have an atom on {t = u}.
+
+Ω∆ (0 , 1) × Rd.
+
+ν distribution of (t, xt). Full support on Ω∆.
+
+H∆ L2(ν), with inner product ⟨· , ·⟩ ν .
+
+h∆ h∆(t, x ) := h(t, t, x ) for h ∈ D .
+
+gSD [f ] semi-gradient of a stopgrad (self-distillation) term. 
+
+gFM [f ] gFM [f ]( t, x ) = f (t, t, x ) − v(t, x ).
+
+Ev [f ] ∂tF + ( ∂xF ) v (§G.1). 
+
+Lv [f ] ∂uF − v(u, F ) (§G.1). 
+
+C∞ 
+
+> pol
+
+smooth functions all of whose derivatives grow at most polynomially in x, uniformly over 
+
+(t, u ) ∈ ¯Ω (§G). 
+
+A set of (t, u ) in Proposition 1. 
+
+sτtu u − e−τ (u − t).
+
+sτut t + e−τ (u − t).
+
+## A Proof of Theorem 1 (Stopgrad Regression Principle) 
+
+We first state the fundamental lemma of the calculus of variations, which the proof invokes to pass from a vanishing inner product (against all test functions) to pointwise vanishing. 
+
+Lemma 1 (Fundamental lemma of the calculus of variations) . Let X be a random variable on Rn with distribution μ having full support on an open set S ⊆ Rn, i.e. μ(U ) > 0 for every nonempty open U ⊆ S. Let g : S → Rd be continuous. If 
+
+E g(X) · h(X) = 0 for all h ∈ C1 
+
+> c
+
+(S, Rd), (27) 
+
+then g = 0 on S.Proof. Suppose g(x0)̸ = 0 for some x0 ∈ S. By continuity, there exist a neighborhood U ∋ x0 and a unit vector e such that g(x) · e > c > 0 for all x ∈ U . Choose h(x) = φ(x) e where φ ∈ C∞ 
+
+> c
+
+(U )
+
+is a nonnegative bump function with φ(x0) > 0. Then h ∈ C1 
+
+> c
+
+and 
+
+E[g(X) · h(X)] = E[φ(X) g(X) · e] ≥ c E[φ(X) 1[X ∈ U ]] > 0, (28) since {φ > 0} is a nonempty open subset of S and therefore has positive μ-mass by the full-support assumption. This contradicts E[g · h] = 0 .16 Proof of Theorem 1. Let f ϵ = f + ϵh for admissible h ∈ D . By the stopgrad definition (§2), T [f, y]
+
+is not perturbed. We compute the first variation as the limit of (L[f ϵ] − L [f ]) /ϵ as ϵ → 0. For the difference, we have: 
+
+L[f ϵ] − L [f ] = 12 E
+
+> x,y
+
+h
+
+f (x) + ϵh (x) − T [f, y]( x) 2 − f (x) − T [f, y]( x) 2i
+
+.
+
+= ϵ E
+
+> x,y
+
+h f (x) − T [f, y]( x) · h(x)
+
+i
+
++ ϵ2
+
+2 E
+
+> x
+
+∥h(x)∥2.
+
+By the square-integrability assumption, both expectations are finite: the first by Cauchy–Schwarz, 
+
+E
+
+> x,y
+
+h  f (x) − T [f, y]( x) · h(x)
+
+i
+
+≤
+
+
+
+E
+
+> x,y
+
+∥f (x) − T [f, y]( x)∥21/2
+
+E
+
+> x
+
+∥h(x)∥21/2
+
+< ∞,
+
+and the second since h ∈ D ⊂ H = L2(μ). Therefore we may divide by ϵ and let ϵ → 0, obtaining the first variation 
+
+δL[f ; h] = E
+
+> x,y
+
+h f (x) − T [f, y]( x) · h(x)
+
+i
+
+. (29) We now apply the tower property Ex,y[·] = Ex
+
+ Ey | x[·]. Since f (x) and h(x) are deterministic given x,
+
+δL[f ; h] = E
+
+> x
+
+h
+
+h(x) · E  
+
+> y|x
+
+f (x) − T [f, y]( x)i
+
+= E
+
+> x
+
+h
+
+h(x) ·  f (x) − E  
+
+> y|x
+
+[T [f, y]( x)] i
+
+.
+
+Since T is affine in y,
+
+E  
+
+> y|x
+
+[T [f, y]( x)] = P [f ]( x) + Q[f ]( x) E[y | x] + R(x) E[y | x] = T [f, E[y | x]]( x).
+
+Hence 
+
+δL[f ; h] = E
+
+> x
+
+h
+
+h(x) ·  f (x) − T [f, E[y | x]]( x)i
+
+. (30) Define g(x) := f (x)−T [f, E[y | x]]( x) = E f (x)−T [f, y]( x) x. Since conditional expectation is a contraction on L2, ∥g∥μ ≤   Ex,y ∥f (x) − T [f, y]( x)∥21/2 = (2 L[f ]) 1/2 < ∞, so g ∈ H
+
+and the first variation is represented in H as δL[f ; h] = ⟨g, h ⟩μ for all h ∈ D . Stationarity requires 
+
+⟨g, h ⟩μ = 0 for all h ∈ D , in particular for all h ∈ C1 
+
+> c
+
+(S) ⊆ D . By the continuity hypothesis of the theorem, g is continuous on ¯S, and since μ has full support on the open set S, the fundamental lemma of the calculus of variations (Lemma 1) implies g = 0 on S; by continuity, g = 0 on ¯S ⊇ supp μ,i.e., f ∗(x) = T [f ∗, E[y | x]]( x) for all x ∈ supp μ. This gives one direction of the if and only if. The other direction is immediate: if (11) holds, then g = 0 μ-a.e., so δL[f ; h] = ⟨g, h ⟩μ = 0 for all 
+
+h ∈ D .We now state the loss decomposition behind Corollary 1. 
+
+Proposition 2 (Conditional-variance floor) . Assume the hypotheses of Theorem 1 hold for every f ∈ M , let ξ := y − E[y | x], so that E[ξ | x] = 0 , and let g[f ]( x) := f (x) −
+
+T [f, E[y | x]]( x). Then g[f ] ∈ H and 
+
+L[f ] = 12 ∥g[f ]∥2 
+
+> μ
+
++ V [f ], V [f ] := 12 E
+
+> x,y
+
+ Q[f ]( x) + R(x) ξ 2, (31) 
+
+where ∥ϕ∥2 
+
+> μ
+
+:= Eμ ∥ϕ(x)∥2. Consequently: 
+
+(i) every stationary point f ∗ ∈ M satisfies L[f ∗] = V [f ∗];
+
+(ii) if Q[f ] ≡ Q does not depend on f (additive label noise, Definition 4), then V [f ] ≡ V is a constant and the stationary set is exactly {f ∈ M : L[f ] = V }. In particular, if L attains the value V at exactly one f ∗ ∈ M , then f ∗ is the unique stationary point in M, and if 
+
+inf f ∈M L[f ] > V then L has no stationary point in M.
+
+17 Proof of Proposition 2. With ξ = y − E[y | x] and the affine form (9), 
+
+f (x) − T [f, y]( x) =  f (x) − T [f, E[y | x]]( x) −  Q[f ]( x) + R(x) ξ
+
+= g[f ]( x) −  Q[f ]( x) + R(x) ξ. 
+
+Expanding the square in (10), 
+
+L[f ] = 12 E 
+
+> x
+
+∥g[f ]( x)∥2 + 12 E 
+
+> x,y
+
+(Q[f ]( x) + R(x)) ξ 2 − E
+
+> x,y
+
+h
+
+g[f ]( x) ·  Q[f ]( x) + R(x) ξ
+
+i
+
+,
+
+where all three expectations are finite: g[f ] ∈ H by the contraction argument in the proof of Theorem 1, (Q[f ] + R)ξ = g[f ] − (f − T [f, y]) is a difference of two square-integrable quantities, and the cross term is then finite by Cauchy–Schwarz. For the cross term, condition on x: g[f ]( x),
+
+Q[f ]( x) and R(x) are deterministic given x, and E[ξ | x] = 0 , so by the tower property the cross term equals Ex
+
+g[f ]( x) · (Q[f ]( x) + R(x)) E[ξ | x] = 0 . This proves (31). (i) By Theorem 1, f ∗ ∈ M is stationary iff g[f ∗] = 0 on supp μ, which gives ∥g[f ∗]∥μ = 0 and hence L[f ∗] = V [f ∗]. Conversely, if L[f ] = V [f ] then ∥g[f ]∥μ = 0 ; as g[f ] is continuous on ¯S and 
+
+μ has full support on the open set S, g[f ] = 0 on S and hence on ¯S ⊇ supp μ, so f is stationary. Thus the stationary set is {f ∈ M : L[f ] = V [f ]}.(ii) Under additive label noise, V [f ] = 12 E ∥(Q(x) + R(x)) ξ∥2 =: V does not depend on f , so by (i) the stationary set is {f ∈ M : L[f ] = V }. Since L[f ] ≥ V for all f ∈ M , this is the set of minimizers of L over M that attain the value V . If exactly one f ∗ ∈ M attains it, f ∗ is the unique stationary point in M; if no f ∈ M attains it (i.e. inf M L > V ), there is no stationary point in 
+
+M.
+
+Proof of Corollary 1. Under additive label noise, V [f ] ≡ V with V as in the corollary, so (31) gives 
+
+L[f ] = 12 ∥g[f ]∥2 
+
+> μ
+
++ V ≥ V for all f ∈ M . The remaining claims are Proposition 2(ii). 
+
+## B Standing Regularity Conditions for Flow Maps 
+
+Remark 1 (Standing regularity conditions) . All results on flow maps assume the following conditions: 1. Model and perturbation classes. f ∈ M : f is C1 in all arguments (t, u, x ), with f and its first partial derivatives ∂tf , ∂uf , ∂xf continuous up to the boundary of the closed time triangle {0 ≤ t ≤ u ≤ 1} × Rd, and f ∈ H = L2(μ). Perturbations range over a class 
+
+D ⊂ M that contains C1 
+
+> c
+
+(Ω) , the C1 functions with compact support in Ω, and whose diagonal restrictions h(t, t, ·) lie in L2(ν). Because Ω contains the diagonal, such supports may meet {t = u}; this matters because the flow matching term depends on f only through 
+
+f (t, t, ·), so test functions supported in the open triangle {t < u } alone cannot detect it (Lemma 3, Step 3). 2. Velocity regularity. The marginal velocity v(t, x ) = E[ ˙ xt | xt = x] is C1 in (t, x ) and Lipschitz in x uniformly in t.3. Integrability. E[∥ ˙xt∥2] < ∞, and all expectations appearing in the functionals are finite. 4. Sampling distributions. Times satisfy t ≤ u. The training distribution μ of (t, u, xt) has full support on the open set Ω◦ := {(t, u, x ) : 0 < t < u < 1} × Rd, has finite second moments, and is supported in the closed time triangle, supp μ ⊆ ¯Ω := {(t, u, x ) : 0 ≤ t ≤ u ≤
+
+1} × Rd; it may place mass on the diagonal {t = u}. We write Ω := {(t, u, x ) : 0 < t ≤
+
+u < 1} × Rd, which is relatively open in the half-space {t ≤ u} and contains the diagonal. The flow-matching distribution ν of (t, xt) has full support on Ω∆ := (0 , 1) × Rd.5. Admissibility of the target. The true flow map lies in the model class: f ∗ ∈ M , where 
+
+F ∗ = x + ( u − t)f ∗.These are standard conditions for flow matching [27]. (1) holds for smooth neural architectures on compact domains under bounded weights; (2) holds for standard interpolation processes (e.g., 
+
+xt = (1 − t)x0 + tx1 with sub-Gaussian marginals); (3) is needed for the squared functionals, 
+
+18 such as the loss, to be finite. (4) holds for the usual time samplers (e.g. t, u uniform or logit-normal on the triangle, with an atom at t = u) because xt has a positive density whenever q0
+
+does. (5) holds for M = C1 ∩ L2(μ) under (2) and (4): F ∗ is C1 on the closed triangle, so 
+
+f ∗ = R 10 v t + r(u − t), F ∗(t, t + r(u − t), x ) dr is C1 up to the boundary, including the diagonal; and by Grönwall (as in Lemma 6, using ∥v(s, y )∥ ≤ ∥ v(s, 0) ∥ + L∥y∥) there are constants 
+
+a, b depending only on L and sup s ∥v(s, 0) ∥ with ∥F ∗(t, u, x ) − x∥ ≤ (u − t) ( a∥x∥ + b), so 
+
+f ∗ = ( F ∗ − x)/(u − t) has at most linear growth in x uniformly in (t, u ) and lies in L2(μ) whenever 
+
+μ has finite second moments. If M is taken to be C∞ 
+
+> pol
+
+∩ L2(μ) (§G), (5) holds when v ∈ C∞
+
+> pol
+
+,by smooth dependence of ODE solutions on initial data together with Grönwall bounds on all derivatives. These regularity conditions imply that the model and targets are continuous, and losses are finite, satisfying the conditions needed for Theorem 1, and that the full-support hypothesis of Theorem 1 holds with S = Ω ◦ and supp μ ⊆ ¯Ω = ¯S.
+
+## C Uniqueness of stationary points for flow map objectives 
+
+Throughout this section we assume the standing conditions of Remark 1, so times satisfy t ≤ u, μ has full support on Ω◦ = {0 < t < u < 1} × Rd with supp μ ⊆ ¯Ω = {0 ≤ t ≤ u ≤ 1} × Rd, and ν has full support on Ω∆ = (0 , 1) × Rd; as in Remark 1, Ω = {0 < t ≤ u < 1} × Rd denotes the relatively open part of the triangle that contains the diagonal. We write F (t, u, x ) = x + ( u − t)f (t, u, x ), and use the derivative identities 
+
+∂tF = −f + ( u − t) ∂tf, ∂uF = f + ( u − t) ∂uf, ∂xF = I + ( u − t) ∂xf. (32) Because M ⊂ C1 with derivatives continuous up to the boundary of the closed triangle ¯Ω (Re-mark 1(1)) and v is C1, every residual below is continuous on ¯Ω; hence a residual that vanishes on 
+
+Ω◦, which is dense in ¯Ω, vanishes on all of ¯Ω. We use this extension without further comment. All stationarity statements are with respect to perturbations h ∈ D ⊇ C1 
+
+> c
+
+(Ω) , and “unique” means unique in M.
+
+Lemma 2 (Uniqueness for the transport equation) . Suppose v is continuous and Lipschitz in x
+
+uniformly in t ∈ [0 , 1] , so that for every (t, x ) the ODE ˙Xs = v(s, X s), Xt = x, has a unique 
+
+C1 solution on [0 , 1] , and F ∗(t, s, x ) := Xs is the true flow map. Let F ∈ C1( ¯Ω; Rd) satisfy 
+
+∂tF (t, u, x ) + ∂xF (t, u, x ) v(t, x ) = 0 and F (u, u, x ) = x for all (t, u, x ) ∈ ¯Ω.
+
+Then F = F ∗ on ¯Ω.Proof. Fix (t, u, x ) ∈ ¯Ω and let Xs be the solution of the ODE with Xt = x. Define φ(s) := 
+
+F (s, u, X s) for s ∈ [t, u ]; note (s, u, X s) ∈ ¯Ω for such s. By the chain rule and the ODE ,
+
+φ′(s) = ∂1F (s, u, X s) + ∂3F (s, u, X s) ˙Xs = ∂1F (s, u, X s) + ∂3F (s, u, X s) v(s, X s) = 0 ,
+
+where ∂1, ∂ 3 denote the partial derivatives with respect to the first and third arguments. Hence φ is constant on [t, u ], and 
+
+F (t, u, x ) = φ(t) = φ(u) = F (u, u, X u) = Xu = F ∗(t, u, x ).
+
+The flow matching term is LFM [f ] := 12 E(t, xt)∼ν ∥f (t, t, xt) − ˙xt∥2, paired in H∆ := L2(ν) with inner product ⟨· , ·⟩ ν ; the diagonal restriction h 7 → h(t, t, ·) is applied pointwise to h ∈ D ⊂ C1, not as an operator on H. Stationarity of a sum does not follow from stationarity of each term, since the two first variations could be nonzero and cancel. The following lemma rules this out. 19 Lemma 3 (Splitting / non-cancellation) . Let LSD [f ] := 12 E(t,u, xt)∼μ ∥f (t, u, xt) −
+
+> SG
+
+{T [f ]( t, u, xt)}∥ 2 be of the form (10) with μ of full support on Ω◦ and supp μ ⊆ ¯Ω,and let gSD [f ]( t, u, x ) := f (t, u, x ) − T [f ]( t, u, x ) be its semi-gradient, assumed continuous on ¯Ω. Let LFM be as above, and assume f ∈ M with LSD [f ] + LFM [f ] < ∞. Then f is a stationary point of LSD + LFM (with perturbations h ∈ D ⊇ C1 
+
+> c
+
+(Ω) ) if and only if 
+
+gSD [f ] = 0 on ¯Ω and f (t, t, x ) = v(t, x ) on Ω∆.
+
+Proof of Lemma 3. Let h ∈ D and write h∆(t, x ) := h(t, t, x ) for its diagonal restriction, a pointwise operation on the C1 function h; if h ∈ C1 
+
+> c
+
+(Ω) then h∆ ∈ C1 
+
+> c
+
+(Ω ∆). The FM term depends on f only through f (t, t, ·), so by the tower property (replacing ˙xt by v(t, xt) = E[ ˙ xt | xt] exactly as in the proof of Theorem 1) its first variation is ⟨gFM [f ], h ∆⟩ν with gFM [f ]( t, x ) := f (t, t, x ) − v(t, x );here gFM [f ] ∈ H∆ = L2(ν) by the same contraction argument as in the proof of Theorem 1, since 
+
+LFM [f ] < ∞, and h∆ ∈ H∆ since LFM [f + ϵh ] < ∞ for small ϵ. Together with Theorem 1 for the  
+
+> SD
+
+term (whose first variation is represented in H = L2(μ)), 
+
+δ(LSD + LFM )[ f ; h] = ⟨gSD [f ], h ⟩μ + ⟨gFM [f ], h ∆⟩ν . (33) (⇐) If gSD [f ] = 0 on ¯Ω and gFM [f ] = 0 on Ω∆, then by continuity gFM [f ] = 0 on ¯Ω∆ =[0 , 1] × Rd ⊇ supp ν, and ¯Ω ⊇ supp μ, so both inner products in (33) vanish for every h ∈ D .(⇒) Suppose (33) is zero for all h ∈ D ; in particular for all h ∈ C1 
+
+> c
+
+(Ω) ⊆ D , which is all that the three steps below use. 
+
+Step 1 (off-diagonal test functions). For h ∈ C1 
+
+> c
+
+(Ω ◦) we have h∆ ≡ 0, so (33) reduces to 
+
+⟨gSD [f ], h ⟩μ = 0 . Since gSD [f ] is continuous and μ has full support on the open set Ω◦, Lemma 1 gives gSD [f ] = 0 on Ω◦.
+
+Step 2 (extension to the closed triangle). gSD [f ] is continuous on ¯Ω and vanishes on the dense subset 
+
+Ω◦, so gSD [f ] = 0 on ¯Ω ⊇ supp μ, diagonal included. Hence ⟨gSD [f ], h ⟩μ = 0 for every h ∈ D ,regardless of whether μ places mass on the diagonal. The two inner products in (33) therefore cannot cancel: the first is identically zero. 
+
+Step 3 (near-diagonal test functions). It remains to show gFM [f ] = 0 on Ω∆. Fix ψ ∈ C1([0 , ∞)) 
+
+with ψ(0) = 1 and ψ ≡ 0 on [ε, ∞). For ϕ ∈ C1 
+
+> c
+
+(Ω ∆) define h(t, u, x ) := ϕ(t, x ) ψ(u − t)
+
+on ¯Ω. Choosing ε smaller than the distance in t from the compact set supp ϕ ⊂ (0 , 1) × Rd to 
+
+{1} × Rd ensures h ∈ C1 
+
+> c
+
+(Ω) (it is supported where (t, x ) ∈ supp ϕ and t ≤ u < t + ε < 1), and 
+
+h∆(t, x ) = ϕ(t, x )ψ(0) = ϕ(t, x ). By Step 2, (33) reduces to ⟨gFM [f ], ϕ ⟩ν = 0 for all ϕ ∈ C1 
+
+> c
+
+(Ω ∆).Since gFM [f ] is continuous ( f ∈ C1, v continuous) and ν has full support on the open set Ω∆,Lemma 1 gives gFM [f ] = 0 on Ω∆, i.e. f (t, t, x ) = v(t, x ).
+
+Proof of Corollary 2 (MeanFlow). Characterization. LMF is of the form (10) with x = ( t, u, xt),
+
+y = ˙ xt, P [f ] = ( u − t)∂tf , Q[f ] = ( u − t)∂xf , R = I, so E[y | x] = v(t, xt) and T [f, E[y | x]] = 
+
+v + ( u − t)( ∂tf + ∂xf v ), which is continuous on ¯Ω by Remark 1. Theorem 1 (with S = Ω ◦,
+
+supp μ ⊆ ¯Ω = ¯S) gives: f is stationary iff f = v + ( u − t)( ∂tf + ∂xf v ) on supp μ, hence on Ω◦
+
+and by continuity on ¯Ω. (On the diagonal the equation reads f (t, t, ·) = v(t, ·), since the (u − t)
+
+prefactor vanishes; when μ places mass on {t = u}, as in our experiments, Theorem 1 enforces this directly rather than by continuity.) Using (32), this equation is equivalent to ∂tF + ( ∂xF ) v = 0 (cf. (69)). 
+
+Uniqueness. Let f ∈ M be stationary. The transport equation holds on ¯Ω, and the boundary condition 
+
+F (u, u, x ) = x holds by the parameterization (14). Lemma 2 gives F = F ∗, i.e. f = f ∗ where 
+
+F ∗ = x + ( u − t)f ∗.
+
+Existence. f ∗ ∈ M by Remark 1(5), and F ∗ satisfies (13) (§4), so gMF [f ∗] = 0 on ¯Ω and f ∗ is stationary by Theorem 1. Hence f ∗ is the unique stationary point in M.
+
+Proof of Corollary 3 (Improved MeanFlow). Characterization. LiMF is of the form (10) with x =(t, u, xt), y = ˙ xt, P [f ] = ( u − t) ∂tf + ( ∂xf ) f (t, t, ·), Q = 0 , R = I, so E[y | x] = v(t, xt) and 
+
+T [f, E[y | x]] = v+( u−t) ∂tf +( ∂xf ) f (t, t, ·), which is continuous on ¯Ω by Remark 1. Theorem 1 20 (with S = Ω ◦, supp μ ⊆ ¯Ω = ¯S) gives: f is stationary iff f = v + ( u − t)( ∂tf + ( ∂xf ) f (t, t, ·)) 
+
+on supp μ, hence on Ω◦ and by continuity on ¯Ω.
+
+Uniqueness. Let f ∈ M be stationary. Setting u = t gives f (t, t, x ) = v(t, x ) for all (t, x ) ∈
+
+[0 , 1] × Rd. Substituting this into the equation gives f = v + ( u − t)( ∂tf + ( ∂xf ) v) on ¯Ω, which by (32) is ∂tF + ( ∂xF ) v = 0 , with F (u, u, x ) = x by (14). Lemma 2 gives F = F ∗.
+
+Existence. f ∗ ∈ M by Remark 1(5); f ∗(t, t, x ) = ∂uF ∗(t, t, x ) = v(t, x ); and F ∗ satisfies (13). Hence giMF [f ∗] = gMF [f ∗] = 0 on ¯Ω and f ∗ is stationary by Theorem 1. Hence f ∗ is the unique stationary point of LiMF in M.
+
+Proof of Corollary 4 (slim LSD ). Characterization. LLSD -slim is of the form (10) with y ≡ 0 and 
+
+T [f ]( t, u, x ) = −(u−t) ∂uf (t, u, x )+ f  u, u, F (t, u, x ), continuous on ¯Ω by Remark 1. Theorem 1 gives: f is stationary for the slim-LSD term iff f + ( u − t)∂uf = f (u, u, F ) on supp μ, hence on ¯Ω,i.e. by (32) ∂uF (t, u, x ) = f  u, u, F (t, u, x ).
+
+Combined objective. Lemma 3 applies: f is stationary for LLSD -slim + LFM iff f (u, u, ·) = v(u, ·) on 
+
+Ω∆ and ∂uF (t, u, x ) = f (u, u, F (t, u, x )) on Ω. Substituting the first into the second and extending by continuity, 
+
+∂uF (t, u, x ) = v u, F (t, u, x ) for all (t, u, x ) ∈ ¯Ω, F (t, t, x ) = x. 
+
+Uniqueness. Let f ∈ M be stationary for the combined objective. For fixed (t, x ), u 7 → F (t, u, x ) is a C1 solution on [t, 1] of the ODE ˙Xu = v(u, X u) with Xt = x. Since v is Lipschitz in x uniformly in u, the solution is unique (Picard–Lindelöf), so F (t, u, x ) = F ∗(t, u, x ).
+
+Existence. f ∗ ∈ M by Remark 1(5). Since F ∗(t, u, x ) = x+( u−t)f ∗(t, u, x ), we have f ∗(t, t, x ) = 
+
+∂uF ∗(t, t, x ) = v(t, x ), so gFM [f ∗] = 0 ; and ∂uF ∗ −f ∗(u, u, F ∗) = ∂uF ∗ −v(u, F ∗) = 0 by (18), so gsLSD [f ∗] = 0 . By Lemma 3, f ∗ is stationary. Hence the true flow map is the unique stationary point of the combined objective in M.
+
+Global minimizer. Both terms have additive label noise (Definition 4): the slim term has y ≡ 0
+
+and floor 0, and the flow matching term has T [f, y] = y and floor VFM := 12 E ∥ ˙xt − v(t, xt)∥2,independent of f . By Proposition 2 applied to each term, LLSD -slim [f ] + LFM [f ] = 12 ∥gsLSD [f ]∥2 
+
+> μ
+
++ 
+
+> 12
+
+∥gFM [f ]∥2 
+
+> ν
+
++ VFM . The combined loss therefore attains the value VFM exactly when both residuals vanish, which by the above happens only at f ∗. So the true flow map is also the unique global minimizer of the combined objective in M, and the combined loss minus VFM is the stopgrad-free  
+
+> LSD
+
+objective with the marginal velocity v in place of ˙xt [9]. This does not replace Lemma 3: identifying the minimizers with the stationary points still requires that the two first variations cannot cancel. 
+
+Proof of Corollary 5 (slim ESD ). Characterization. LESD -slim is of the form (10) with y ≡ 0 and 
+
+T [f ]( t, u, x ) = ( u − t) ∂tf (t, u, x ) + ( ∂xF )( t, u, x ) f (t, t, x ), continuous on ¯Ω by Remark 1. Theo-rem 1 gives: f is stationary for the slim-ESD term iff f = ( u − t)∂tf + ( ∂xF ) f (t, t, ·) on ¯Ω, i.e. by (32) ∂tF + ( ∂xF ) f (t, t, x ) = 0 .
+
+Combined objective. Lemma 3 applies: f is stationary for LESD -slim + LFM iff f (t, t, ·) = v(t, ·) on 
+
+Ω∆ and ∂tF +( ∂xF )f (t, t, ·) = 0 on Ω. Substituting and extending by continuity, ∂tF +( ∂xF ) v = 0 
+
+on ¯Ω with F (u, u, x ) = x.
+
+Uniqueness. Let f ∈ M be stationary for the combined objective. Lemma 2 gives F = F ∗.
+
+Existence. f ∗ ∈ M by Remark 1(5). As in the proof of Corollary 4, f ∗(t, t, ·) = v(t, ·), and F ∗
+
+satisfies (13), so both residuals vanish at f ∗ and f ∗ is stationary by Lemma 3. Hence the true flow map is the unique stationary point of the combined objective in M.
+
+Global minimizer. Exactly as for slim LSD , both terms have additive label noise, so with gsESD [f ] := 
+
+f − T [f ] the slim ESD residual, LESD -slim [f ] + LFM [f ] = 12 ∥gsESD [f ]∥2 
+
+> μ
+
++ 12 ∥gFM [f ]∥2 
+
+> ν
+
++ VFM 
+
+with VFM independent of f . The combined loss attains VFM exactly when both residuals vanish, which happens only at f ∗. So the true flow map is also the unique global minimizer of the combined objective in M, and the combined loss minus VFM is the stopgrad-free ESD objective with v in place of ˙xt [9]. 21 D Unifying stopgrad objectives under the stopgrad regression principle 
+
+In this section, we highlight the generality of the stopgrad regression principle by showing that it applies to stopgrad objectives not just for flow map training, but also for reinforcement learning and diffusion sampler training. Theorem 1 works with continuous, smooth functions and distribution μ
+
+on inputs with full support. As such, we consider settings that match the presentation of Theorem 1, such as continuous states, actions, and rewards in reinforcement learning. 
+
+Measure-valued targets In the reinforcement learning examples below, we use the random Dirac measure δSt+1 on the random next state St+1 in the target y. The proof of Theorem 1 extends to such measure-valued targets because it only uses linearity of conditional expectations and affine dependence of T on y. In particular, the conditional expectation of a random Dirac measure is the transition kernel: E[δSt+1 | St = s] = P (· | s).
+
+D.1 Temporal difference learning: TD(0) 
+
+We consider a continuous-state Markov reward process on an open set S ⊂ Rd. Let P (ds ′ | s) be the transition kernel and let ¯r(s) := E[Rt+1 | St = s] be the conditional mean reward. We assume: 1. V ∈ C1(S).2. The training state distribution μ has full support on S, and supp μ ⊆ ¯S.3. ¯r is continuous. 4. P is Feller: for every bounded continuous ϕ, the map s 7 → R ϕ(s′) P (ds ′ | s) is continuous. 5. The residual in the objective below is square-integrable. Consider the semi-gradient TD(0) functional [42] 
+
+LTD [V ] := 12 E
+
+h V (St) − SG {Rt+1 + γV (St+1 )}2i
+
+.
+
+To place this in the form of the stopgrad regression principle, let x = St, y = ( Rt+1 , δ St+1 ), and define 
+
+T [V, y]( s) = r + γ
+
+Z
+
+> S
+
+V (s′) δSt+1 (ds ′).
+
+This is affine in y = ( r, δ St+1 ), with 
+
+P [V ]( s) = 0 , Q[V ]( s) ( r, δ St+1 ) = γ
+
+Z
+
+> S
+
+V (s′) δSt+1 (ds ′), R(s) ( r, δ St+1 ) = r. 
+
+Moreover, E[y | x = s] =  ¯r(s), P (· | s), so TV, E[y | x = s](s) = ¯ r(s) + γ R 
+
+> S
+
+V (s′) P (ds ′ | s).By continuity of ¯r, continuity of V , and the Feller property, the map s 7 → TV, E[y | x = s](s) is continuous. Thus the assumptions of Theorem 1 are satisfied. 
+
+Corollary 7 (Semi-gradient TD(0)) . Under the assumptions above, V ∗ is a stationary point of LTD if and only if 
+
+V ∗(s) = ¯ r(s) + γ
+
+Z
+
+> S
+
+V ∗(s′) P (ds ′ | s) for all s ∈ S .
+
+That is, the stationary points are exactly the solutions of the Bellman evaluation equation. 
+
+Theorem 1 characterizes the stationary points as solutions of the Bellman equation; uniqueness is not a consequence of Theorem 1 (the label noise is not additive, since Q[V ] involves V ) but is classical: for γ < 1 the Bellman evaluation operator V 7 → ¯r + γ R V dP (· | s) is a γ-contraction in the sup norm on bounded functions [38, 7, 12], so it has exactly one fixed point, the true value function. Uniqueness in this setting is not a contribution of this work. 22 D.2 Q-learning 
+
+We next consider a continuous-state, continuous-action Markov decision process with state space 
+
+S ⊂ Rd open and action space A ⊂ Rm compact. Let P (ds ′ | s, a ) be the transition kernel and let 
+
+¯r(s, a ) := E[Rt+1 | St = s, A t = a] be the conditional mean reward. We assume: 1. q ∈ C1(S × A ).2. The training distribution of (St, A t) has full support on S × A , with support contained in 
+
+¯S × A .3. ¯r is continuous on S × A .4. P is Feller on state-action pairs: for every bounded continuous ϕ, the map (s, a ) 7 →R ϕ(s′) P (ds ′ | s, a ) is continuous. 5. The residual in the objective below is square-integrable. Define 
+
+Mq (s) := max  
+
+> a′∈A
+
+q(s, a ′).
+
+Because A is compact and q is continuous, Mq is continuous. Now consider the semi-gradient Q-learning functional [42] 
+
+LQ[q] := 12 E
+
+h q(St, A t) − SG {Rt+1 + γM q (St+1 )}2i
+
+.
+
+To write this in terms of the stopgrad regression principle, let x = ( St, A t), y = ( Rt+1 , δ St+1 ), and define 
+
+T [q, y]( s, a ) = r + γ
+
+Z
+
+> S
+
+Mq (s′) δSt+1 (ds ′).
+
+This is affine in y = ( r, δ St+1 ), with 
+
+P [q]( s, a ) = 0 , Q[q]( s, a ) ( r, δ St+1 ) = γ
+
+Z
+
+> S
+
+Mq (s′) δSt+1 (ds ′), R(s, a ) ( r, δ St+1 ) = r. 
+
+Moreover, E[y | x = ( s, a )] =  ¯r(s, a ), P (· | s, a ), so Tq, E[y | x = ( s, a )] (s, a ) = ¯ r(s, a ) + 
+
+γ R 
+
+> S
+
+Mq (s′) P (ds ′ | s, a ). By continuity of ¯r, continuity of Mq , and the Feller property, this map is continuous on S × A . Thus Theorem 1 applies. 
+
+Corollary 8 (Q-learning) . Under the assumptions above, q∗ is a stationary point of LQ if and only if 
+
+q∗(s, a ) = ¯ r(s, a ) + γ
+
+Z
+
+> S
+
+max  
+
+> a′∈A
+
+q∗(s′, a ′) P (ds ′ | s, a ) for all (s, a ) ∈ S × A .
+
+That is, the stationary points are exactly the solutions of the Bellman optimality equation. 
+
+As for TD (0), uniqueness is not a consequence of Theorem 1 (the label noise is not additive, since 
+
+Q[q] involves q) but is classical: for γ < 1 the Bellman optimality operator is a γ-contraction in the sup norm on bounded functions [38, 7, 12], so it has exactly one fixed point, the optimal action-value function. 
+
+D.3 Adjoint matching: the inner RAM objective 
+
+Consider the inner regression step used in adjoint matching and adjoint sampling [13, 19]. Let 
+
+g : Rd → R be a terminal objective. The inner RAM objective regresses a control field u(x, t )
+
+toward the target −σ(t)∇g(X1), on stopgrad’d samples (Xt, X 1) ∼ pu, the stochastic process for the learned control u. The stopgrad avoids backpropagating through pu, and is denoted by ¯u. The RAM loss functional can be written as an expectation on u as: 
+
+LRAM [u] := 
+
+Z 10
+
+E
+
+> (Xt,X 1)∼put, 1
+
+h 12 u(SG {Xt}, t ) + SG {σ(t)∇g(X1)} 2i
+
+dt. 
+
+23 Equivalently, rewriting the expectation to be on ¯u, and absorbing the time integral into the expectation: 
+
+LRAM [u; ¯ u] = 12 E
+
+> t, (Xt,X 1)∼p¯ut, 1
+
+h
+
+u(Xt, t ) − SG {− σ(t)∇g(X1)} 2i
+
+.
+
+Set x = ( Xt, t ), y = ∇g(X1) and define T [u, y]( x, t ) = −σ(t) y. Then this is affine in y, with 
+
+P [u]( x, t ) = 0 , Q[u]( x, t ) y = 0 , R(x, t ) y = −σ(t) y.
+
+Moreover, E[y | x = ( x, t )] = E[∇g(X1) | Xt = x] = m(x, t ), so Tu, E[y | x = ( x, t )] (x, t ) = 
+
+−σ(t) m(x, t ) which is continuous by assumption. Hence Theorem 1 applies directly. 
+
+Corollary 9 (Adjoint matching inner RAM step) . Under the assumptions above, u∗ is a stationary point of LRAM if and only if 
+
+u∗(x, t ) = −σ(t) E[∇g(X1) | Xt = x] for all (x, t ) ∈ X × (0 , 1) .
+
+## E The update direction may not be the gradient of any scalar functional 
+
+We restate and prove Theorem 2. Throughout, ⟨ϕ, ψ ⟩μ := Eμ[ϕ(x) · ψ(x)] is the inner product of 
+
+H = L2(μ), and M ⊂ C1 ∩ H is a linear subspace, so that f + ϵh ∈ M for f, h ∈ M . For a map 
+
+G : M → H, the Gateaux derivative at f in direction h is DG [f ] h := lim ϵ→0(G[f + ϵh ] − G[f ]) /ϵ ,the limit taken in H. Directions range over all of M, not only over the perturbation class D used to define stationary points; this is what admits the polynomial witnesses below. We restate Theorem 2 with its hypotheses explicit. 
+
+Theorem (Conservativeness of the semi-gradient g). Assume the hypotheses of Theorem 1 hold for every f ∈ M , with M a linear subspace of C1 ∩ H, and suppose that T is Gateaux differentiable along M: for all f, h ∈ M the limit DT [f ] h := lim ϵ→0
+
+ T [f +ϵh, E[y | x]] −
+
+T [f, E[y | x]] /ϵ exists in H. If the semi-gradient g[f ] = f − T [f, E[y | x]] is the gradient in ⟨· , ·⟩ μ of a scalar functional J : M → R, meaning δJ [f ; h] = ⟨g[f ], h ⟩μ for all f, h ∈ M ,with (ϵ1, ϵ 2) 7 → J[f + ϵ1h1 + ϵ2h2] twice continuously differentiable near (0 , 0) for all 
+
+f, h 1, h 2 ∈ M , then DT [f ] is symmetric with respect to ⟨· , ·⟩ μ at every f ∈ M :
+
+⟨DT [f ] h1, h 2⟩μ = ⟨h1, DT [f ] h2⟩μ for all h1, h 2 ∈ M .
+
+Proof of Theorem 2. By Theorem 1, g[f ] = f − T [f, E[y | x]] , so g : M → H is Gateaux differentiable along M with 
+
+Dg [f ] h = h − DT [f ] h. (34) Lemma 4 below, applied with V = M, gives ⟨Dg [f ] h1, h 2⟩μ = ⟨h1, Dg [f ] h2⟩μ for all h1, h 2 ∈ M .Subtracting the identity ⟨h1, h 2⟩μ = ⟨h1, h 2⟩μ gives ⟨DT [f ] h1, h 2⟩μ = ⟨h1, DT [f ] h2⟩μ.
+
+Lemma 4 (Symmetry of the second variation) . Let H be a real inner-product space (not necessarily complete) and V ⊆ H a linear subspace. Let J : V → R and g : V → H
+
+satisfy δJ [f ; h] = ⟨g[f ], h ⟩ for all f, h ∈ V . Fix f, h 1, h 2 ∈ V . Assume that Dg [f ] hi := lim ϵ→0(g[f + ϵh i] − g[f ]) /ϵ exists in H for i = 1 , 2, and that the map ϕ(ϵ1, ϵ 2) := J[f +
+
+ϵ1h1 + ϵ2h2] is C2 on a neighborhood of (0 , 0) . Then 
+
+⟨Dg [f ] h1, h 2⟩ = ⟨h1, Dg [f ] h2⟩.
+
+Proof of lemma 4. Fix f ∈ V and h1, h 2 ∈ V , and let ϕ(ϵ1, ϵ 2) := J[f + ϵ1h1 + ϵ2h2]. By the hypothesis on J,
+
+∂ϵ2 ϕ(ϵ1, 0) = δJ [f + ϵ1h1; h2] = ⟨g[f + ϵ1h1], h 2⟩. (35) Differentiating in ϵ1 at 0: the difference quotient  g[f + ϵ1h1] − g[f ]/ϵ 1 converges to Dg [f ] h1
+
+in H, so by Cauchy–Schwarz ∂ϵ1 ∂ϵ2 ϕ(0 , 0) = ⟨Dg [f ] h1, h 2⟩. Exchanging the roles of h1 and h2,
+
+∂ϵ2 ∂ϵ1 ϕ(0 , 0) = ⟨Dg [f ] h2, h 1⟩. Since ϕ is C2 near (0 , 0) , Schwarz’s theorem on R2 gives equality of the mixed partials, and inner-product symmetry gives ⟨Dg [f ] h1, h 2⟩ = ⟨h1, Dg [f ] h2⟩.24 Remarks. The converse, that symmetry of Dg implies the existence of a potential J[f ] =
+
+R 10 ⟨g[sf ], f ⟩ ds on a star-shaped domain, is Vainberg’s criterion for potential operators [44, Theo-rem 5.1 and Corollary 5.1]; it needs additional regularity of g along segments and is not used here. Only the forward direction is needed to show that a semi-gradient is not a gradient, and it requires neither completeness of V nor boundedness of Dg . When H = Rn with the dot product, Dg [f ] is the Jacobian matrix of g at f and the lemma is equality of mixed partials of a C2 scalar; this is the curl perspective on game dynamics in Balduzzi et al. [3]. We restate Corollary 6. 
+
+Corollary. The semi-gradients of LMF , LiMF , LLSD -slim , and LESD -slim are not gradients of any twice continuously differentiable scalar functional J : M → R in ⟨· , ·⟩ μ (in the sense of Theorem 2). Proof of Corollary 6. Suppose g = f − T [f, E[y | x]] were the gradient of a scalar functional 
+
+J : M → R with the regularity stated in Theorem 2. Lemma 4, applied at a base point f0 ∈M in two directions h1, h 2 ∈ M at which DT [f0] h1 and DT [f0] h2 exist in H, would give 
+
+⟨DT [f0] h1, h 2⟩μ = ⟨h1, DT [f0] h2⟩μ. It therefore suffices to exhibit one such f0, h 1, h 2 at which 
+
+⟨DT [f0] h1, h 2⟩μ̸ = ⟨h1, DT [f0] h2⟩μ. (36) For the witnesses below, existence of DT [f0] hi is immediate: they are polynomials in (t, u ) with no x-dependence, so the terms of T that are nonlinear in f (the products (∂xf ) f (t, t, ·) in iMF and slim ESD , and the composition f (u, u, F ) in slim LSD ) contribute nothing to T [ϵh i] − T [0] , which is exactly linear in ϵ and bounded on the closed triangle. For each method we use the base point f0 ≡ 0, which corresponds to the identity flow map 
+
+F0(t, u, x ) = x under the parameterization F = x + ( u − t)f and lies in M. At this f0 the spatial-Jacobian terms in DT [f ] vanish, ∂xF0 = I, and f0(t, t, ·) = 0 , leaving: MeanFlow: DT [f0] h = ( u − t) ∂th + ( ∂xh) v(t, x ), (37) iMF: DT [f0] h = ( u − t) ∂th, (38) slim ESD: DT [f0] h = ( u − t) ∂th + h(t, t, x ), (39) slim LSD: DT [f0] h = −(u − t) ∂uh + h(u, u, x ). (40) For witnesses we take h1, h 2 that are low-degree polynomials in t, u with no x-dependence, times a fixed unit vector e ∈ Rd that we suppress in the notation; they are bounded on the closed time triangle, hence lie in M for either choice of model class ( C1 ∩ H or C∞ 
+
+> pol
+
+∩ H), and so do DT [f0] hi.Constant-in-x perturbations annihilate the ∂xh term in MeanFlow, and the resulting μ-inner products reduce to integrals against the time-marginal μ(t,u ). Throughout, we use the assumption 
+
+μ(t,u )
+
+ {0 ≤ t < u ≤ 1} > 0, (41) which holds whenever the diagonal {t = u} does not have full mass under μ(t,u ), in particular under Remark 1(4). 
+
+MeanFlow. Take h1(t, u, x ) = t2 and h2(t, u, x ) = t. Both are constant in x, so ∂xhi = 0 and (37) simplifies to DT [f0] h1 = 2 t(u − t) and DT [f0] h2 = ( u − t). Then 
+
+⟨DT [f0] h1, h 2⟩μ − ⟨ h1, DT [f0] h2⟩μ = Eμ(t,u )
+
+(u − t)(2 t · t − t2 · 1)  = Eμ(t,u )
+
+(u − t) t2.
+
+The integrand is nonnegative on {t ≤ u} and strictly positive on the open set {0 < t < u }, which has positive μ(t,u )-mass because μ has full support on Ω◦ (Remark 1(4)). Hence the expectation is strictly positive. □
+
+Improved MeanFlow. With the same h1 = t2, h2 = t, (38) gives DT [f0] h1 = 2 t(u − t) and 
+
+DT [f0] h2 = ( u − t), exactly as for MeanFlow, so the asymmetry is again Eμ(t,u ) [( u − t) t2] > 0. □
+
+Slim ESD. Take h1(t, u, x ) = u and h2(t, u, x ) = 1 . Both are constant in x, and ∂th1 = ∂th2 = 0 ,so the transport term in (39) vanishes for both. The evaluation-shift term gives h1(t, t, x ) = t and 
+
+h2(t, t, x ) = 1 . Hence 
+
+⟨DT [f0] h1, h 2⟩μ − ⟨ h1, DT [f0] h2⟩μ = Eμ(t,u )
+
+t · 1 − u · 1 = Eμ(t,u )
+
+t − u.
+
+The integrand is nonpositive on {t ≤ u} and strictly negative on {t < u }. By (41), the expectation is strictly negative. □
+
+25 Slim LSD. Take h1(t, u, x ) = t and h2(t, u, x ) = 1 . Both are constant in x, and ∂uh1 = ∂uh2 = 0 ,so the transport term in (40) vanishes for both. The evaluation-shift term gives h1(u, u, x ) = u and 
+
+h2(u, u, x ) = 1 . Hence 
+
+⟨DT [f0] h1, h 2⟩μ − ⟨ h1, DT [f0] h2⟩μ = Eμ(t,u )
+
+u · 1 − t · 1 = Eμ(t,u )
+
+u − t.
+
+The integrand is nonnegative on {t ≤ u} and strictly positive on {t < u }. By (41), the expectation is strictly positive. □
+
+Conclusion. For each T ∈ { TMF , T iMF , T slim ESD , T slim LSD } we have exhibited f0 ∈ M and 
+
+h1, h 2 ∈ M at which (36) holds. By the contrapositive of Theorem 2, the semi-gradients 
+
+gMF , g iMF , g slim ESD , g slim LSD are not gradients of any scalar functional J : M → R in ⟨· , ·⟩ μ.
+
+## F MeanFlow without stopgrad loses stationarity at the true flow map 
+
+Proposition 3. Consider the MeanFlow functional without stopgrads: 
+
+Lnosg [f ] = E
+
+h
+
+f − ˙xt − (u − t) ∂tf + ∂xf ˙xt
+
+ 2i
+
+, (42) 
+
+where all functions are evaluated at (t, u, xt), f, h : [0 , 1] 2 × Rd → Rd, and ∂xf, ∂ xh ∈
+
+Rd×d are Jacobians in the spatial argument. Define the posterior covariance V (t, x ) := 
+
+Cov ( ˙ xt | xt = x) ∈ Rd×d, which measures the residual randomness in ˙xt after conditioning on xt. At the true flow map F ∗, the first variation in direction h is 
+
+δLnosg [f ∗; h] = 2 E
+
+> t,u, xt
+
+h
+
+(u − t) tr  ∂xh(t, u, xt) V (t, xt) ∂xF ∗(t, u, xt)⊤i
+
+, (43) 
+
+where F ∗ = x + ( u − t)f ∗ and ∂xF ∗ = I + ( u − t)∂xf ∗.Proof of Proposition 3. Let f ϵ = f + ϵh . Since there are no stopgrads, this is the usual first variation: every occurrence of f is perturbed. The quantity inside the norm is 
+
+R(ϵ) := f ϵ − ˙xt − (u − t) ∂tf ϵ + ∂xf ϵ ˙xt
+
+ ∈ Rd. (44) Its ϵ-derivative is 
+
+R′(ϵ) = h − (u − t) ∂th + ∂xh ˙xt
+
+ ∈ Rd. (45) The first variation is the scalar δL = 2 E[⟨R(0) , R ′(0) ⟩].
+
+Evaluating R(0) at f ∗. Write ˙xt = v + ξ where v = v(t, xt) = E[ ˙ xt | xt] and ξ = ˙ xt − v has 
+
+E[ξ | xt] = 0 and Cov (ξ | xt) = V (t, xt). Then 
+
+R(0) = f ∗ − (v + ξ) − (u − t) ∂tf ∗ + ∂xf ∗ (v + ξ) (46) 
+
+= f ∗ − v − (u − t)( ∂tf ∗ + ∂xf ∗ v)| {z } 
+
+> =0 (flow map eqn)
+
+− I + ( u − t)∂xf ∗ξ (47) 
+
+= − ∂xF ∗ ξ, (48) recalling that ∂xF ∗ = I + ( u − t)∂xf ∗.
+
+Evaluating R′(0) . Similarly decompose: 
+
+R′(0) = h − (u − t)( ∂th + ∂xh v )| {z } 
+
+> =: ϕ
+
+−(u − t) ∂xh ξ. (49) Here ϕ ∈ Rd is deterministic given (t, u, xt).
+
+Computing E[⟨R(0) , R ′(0) ⟩]. Expanding the inner product, 
+
+⟨R(0) , R ′(0) ⟩ = − ⟨ ∂xF ∗ ξ, ϕ ⟩ + ( u − t) ⟨∂xF ∗ ξ, ∂ xh ξ ⟩. (50) 26 For the first term, condition on (t, u, xt): ∂xF ∗ and ϕ are deterministic, and E[ξ | xt] = 0 . Hence 
+
+E[⟨∂xF ∗ ξ, ϕ ⟩] = 0 by the tower property. For the second term, we use the identity ⟨Aξ, Bξ ⟩ = ξ⊤A⊤B ξ = tr( A⊤B ξξ ⊤). Conditioning on 
+
+(t, u, xt), the matrices A = ∂xF ∗ and B = ∂xh are deterministic and E[ξξ ⊤ | xt] = V (t, xt), so 
+
+E (u − t) ⟨∂xF ∗ ξ, ∂ xh ξ ⟩ = E
+
+h
+
+(u − t) tr  (∂xF ∗)⊤ ∂xh E[ξξ ⊤ | xt]i
+
+(51) 
+
+= E
+
+h
+
+(u − t) tr  ∂xh V (t, xt) ( ∂xF ∗)⊤i
+
+, (52) using cyclicity of the trace. Hence δLnosg [f ∗; h] = 2 E (u − t) tr( ∂xh V (∂xF ∗)⊤).The key observation is that in standard flow matching, the integrand is linear in ˙xt, so replacing the marginal velocity v with ˙xt only adds a constant (the conditional variance) and preserves stationary points. In MeanFlow without stopgrads, the term ∂xf ˙xt makes the integrand nonlinear in ˙xt: substituting ˙xt for v implicitly pulls an expectation outside a square and drops a conditional-covariance term, so Lnosg is a different objective from the one whose minimizer is F ∗, and its full gradient faithfully optimizes that different objective (this covariance correction was also noted by Boffi et al. [8] and derived in Kim et al. [22]). We emphasize that this is a property of the simplified objective, not of full gradients versus semi-gradients: full gradients of correctly specified losses are entirely sound. The stopgrad happens to repair exactly this defect, because it prevents the interaction between h and ˙xt through ∂xf and restores the linearity that makes the replacement free; its stationary-point equation is the transport equation, whose solution is the minimizer of the properly specified objective with v in place of ˙xt.We now specialize to a 1D Gaussian to show the first variation is explicitly nonzero. In one dimension, 
+
+V (t, xt) is a scalar and the trace in (43) reduces to ordinary multiplication. 
+
+Proposition 4. Let x0 ∼ N (0 , 1) and x1 ∼ N (μ, λ 2) with λ > 0. Let xt = (1 − t)x0 + tx1
+
+and ˙xt = x1 − x0. Then the true flow map F ∗ is not a stationary point of Lnosg .
+
+The failure is caused by the posterior variance V (t) = λ2/σ 2 
+
+> t
+
+> 0. When stopgrads are applied (as in the actual MeanFlow method), the ∂xh · ˙xt interaction is severed, the ξ2 cross-term disappears, and by Corollary 2, the true flow map becomes the unique stationary point. 
+
+Proof of Proposition 4. We recall the closed-form Gaussian quantities. The marginal variance is 
+
+σ2 
+
+> t
+
+= (1 − t)2 + t2λ2. The velocity is v(t, x ) = α(t)( x − tμ ) + μ where α(t) = ( tλ 2 − (1 − t)) /σ 2 
+
+> t
+
+.The flow map is F ∗(t, u, x ) = m(t, u )( x − tμ ) + uμ where m(t, u ) = σu/σ t. The Jacobian is 
+
+∂xF ∗(t, u, x ) = m(t, u ).
+
+Posterior variance. We compute V (t) := Var ( ˙ xt | xt). Since ˙xt = x1 −x0 and xt = (1 −t)x0 +tx1
+
+with x0 ⊥ x1:
+
+Var ( ˙ xt) = 1 + λ2, Cov ( ˙ xt, xt) = tλ 2 − (1 − t), Var (xt) = σ2 
+
+> t
+
+. (53) By the Gaussian conditional variance formula: 
+
+V (t) = Var ( ˙ xt) − Cov ( ˙ xt, xt)2
+
+Var (xt) = (1 + λ2) − (tλ 2 − (1 − t)) 2
+
+σ2
+
+> t
+
+= λ2
+
+σ2
+
+> t
+
+. (54) (The last equality follows from expanding: (1 + λ2)σ2 
+
+> t
+
+− (tλ 2 − (1 − t)) 2 = λ2.) In particular, 
+
+V (t) > 0 for all t ∈ [0 , 1] when λ > 0.
+
+Choice of admissible perturbation. Admissible perturbations are C1 
+
+> c
+
+functions, so we cannot use 
+
+h(t, u, x ) = x directly. Instead, fix a smooth cutoff χ ∈ C∞ 
+
+> c
+
+(R) with χ ≡ 1 on [−1, 1] , χ ≡ 0
+
+outside [−2, 2] , and 0 ≤ χ ≤ 1. For R > 0, define 
+
+hR(t, u, x ) := x χ (x/R ). (55) Then hR ∈ C1 
+
+> c
+
+and 
+
+∂xhR(x) = χ(x/R ) + xR χ′(x/R ). (56) 27 Note 0 ≤ ∂xhR(x) → 1 pointwise as R → ∞ , and |∂xhR(x)| ≤ 1 + ∥sχ ′(s)∥∞ =: C < ∞
+
+uniformly in R.
+
+Evaluating the first variation. By Proposition 3, the first variation at F ∗ in direction hR is 
+
+δLnosg [f ∗; hR] = 2 λ2 E
+
+> t,u, xt
+
+ (u − t) m(t, u )
+
+σ2
+
+> t
+
+∂xhR(xt)
+
+
+
+. (57) The integrand is bounded in absolute value by C (u − t) m(t, u )/σ 2 
+
+> t
+
+, which is bounded on {0 ≤ t ≤
+
+u ≤ 1} since σ2 
+
+> t
+
+= (1 − t)2 + t2λ2 ≥ λ2/(1 + λ2) > 0. By dominated convergence, 
+
+lim  
+
+> R→∞
+
+δLnosg [f ∗; hR] = 2 λ2 E
+
+> t,u
+
+ (u − t) m(t, u )
+
+σ2
+
+> t
+
+
+
+. (58) Since λ > 0, (u − t) ≥ 0 on {t ≤ u} with strict inequality on the positive-measure set {t < u },
+
+m(t, u ) = σu/σ t > 0, and σt > 0, the integrand on the right-hand side is nonnegative and strictly positive on a set of positive measure, so the limit is strictly positive. Therefore there exists R large enough that δLnosg [f ∗; hR] > 0, with hR ∈ C1 
+
+> c
+
+admissible. The first variation is nonzero on the admissible class, so F ∗ is not a stationary point of Lnosg .
+
+## G Proofs for convergence of functional semi-gradient flow 
+
+For our convergence arguments, we choose for clarity of exposition to work in a functional analytic setting where g : M → M , such that semi-gradient flow on f ∈ M stays in M. This is more narrow than the functional analytic setting introduced in §2. Sufficient conditions for g : M → M are: 
+
+M ⊂ C∞ 
+
+> pol
+
+∩ H where C∞ 
+
+> pol
+
+is the class of smooth functions such that every derivative has at most polynomial growth in x uniformly over t, u , and H is L2(μ); v ∈ C∞ 
+
+> pol
+
+and globally Lipschitz in x
+
+uniformly in time, and μ has all polynomial moments. These assumptions cover a broad class of flow maps and models of interest, such as linear interpolants between smooth positive data densities and a Gaussian base, and neural networks with activations with bounded derivatives. Nevertheless, g : M → M is chosen for clarity of exposition: its assumptions are stricter than absolutely necessary for the convergence arguments, and could be weakened. 
+
+G.1 Form of functional semi-gradient flows 
+
+We use the parameterization relationship F (t, u, x ) = x + ( u − t)f (t, u, x ). The residuals from applying Theorem 1 to each objective are: 
+
+gMF [f ]( t, u, x ) = f (t, u, x ) − v(t, x ) − (u − t)
+
+
+
+∂tf (t, u, x ) + ( ∂xf )( t, u, x ) v(t, x )
+
+
+
+(59) 
+
+gsESD [f ]( t, u, x ) = f (t, u, x ) − (u − t) ∂tf (t, u, x ) − (∂xF )( t, u, x ) f (t, t, x ) (60) 
+
+gsLSD [f ]( t, u, x ) = f (t, u, x ) + ( u − t) ∂uf (t, u, x ) − f  u, u, F (t, u, x ) (61) and recall that the semi-gradient flows are, for each g: ∂τ fτ = −g[fτ ]. Consider the Eulerian and Lagrangian residuals, which are the residual errors for the standard backward equation and forward equation for a flow map, respectively. 
+
+Ev [f ]( t, u, x ) := ∂tF (t, u, x ) + ( ∂xF )( t, u, x ) v(t, x ), (Eulerian) 
+
+Lv [f ]( t, u, x ) := ∂uF (t, u, x ) − v u, F (t, u, x ). (Lagrangian) We will show that 
+
+gMF [f ]( t, u, x ) = − Ev [f ]( t, u, x ). (62) Furthermore, assume perfect flow-matching pretraining. At a high level, this will let us replace model instantaneous velocities f (t, t, x ) with the true marginal velocity v. Then, when post-training with slim ESD and LSD , we will show that: 
+
+gsESD [f ]( t, u, x ) = − Ev [f ]( t, u, x ), (63) 28 gsLSD [f ]( t, u, x ) = Lv [f ]( t, u, x ). (64) Since ∂τ Fτ = ∂τ
+
+ x+( u−t)fτ
+
+ = ( u−t) ∂τ fτ , and ∂τ fτ = −g[fτ ], we get ∂τ Fτ = −(u−t) g[fτ ].The learned flow map F evolves over semi-gradient flow optimization time τ as: Eulerian (MF, s-ESD ): ∂τ Fτ = ( u − t) Ev [fτ ], (65) Lagrangian (s-LSD ): ∂τ Fτ = −(u − t) Lv [fτ ]. (66) 
+
+Derivation. To perform this rewriting for slim ESD and LSD , we need to handle the fact that they are distillation-like objectives which use the model’s own prediction f (t, t, x ) instead of ˙xt. We will replace these diagonal predictions with v by assuming perfect flow-matching pretraining, such that 
+
+f0(t, t, x ) = v(t, x ) for all (t, x ). (67) By noting a diagonal invariance property of slim ESD and LSD (Lemma 5), we will obtain that during post-training: 
+
+fτ (t, t, x ) = v(t, x ) for all (τ, t, x ).
+
+In particular the semi-gradient of the flow matching term, fτ (t, t, ·) − v(t, ·), vanishes identically along the flow, so the semi-gradient flow of the combined objective LSD + LFM coincides with that of the stopgrad term alone; this is why only gsESD and gsLSD appear below. MeanFlow does not require this assumption because it uses ˙xt, so that under Theorem 1, its residual (59) is already in terms of v, as desired. 
+
+Lemma 5 (Diagonal invariance for slim ESD and slim LSD ). For every f ∈ M , the slim residuals (60) and (61) vanish on the diagonal: gsESD [f ]( t, t, x ) = gsLSD [f ]( t, t, x ) = 0 
+
+for all (t, x ). Consequently, along semi-gradient flows ∂τ fτ = −gsESD [fτ ] or ∂τ fτ =
+
+−gsLSD [fτ ], the diagonal values do not change: ∂τ fτ (t, t, x ) = 0 . Furthermore, Under the perfect-FM-pretraining assumption (67) ,
+
+fτ (t, t, x ) = v(t, x ) for all (τ, t, x ). (68) 
+
+Proof. For slim ESD , set u = t in (60). Since the prefactor u − t vanishes and F (t, t, x ) = x, we have (∂xF )( t, t, x ) = I, because F (t, t, x ) = x identically in x. Therefore gsESD [f ]( t, t, x ) = 
+
+f (t, t, x ) − I f (t, t, x ) = 0 .For slim LSD , set u = t in (61). The prefactor u − t vanishes, and since F (t, t, x ) = x,
+
+gsLSD [f ]( t, t, x ) = f (t, t, x ) − f  t, t, F (t, t, x ) = f (t, t, x ) − f (t, t, x ) = 0 . Therefore, in ei-ther post-training flow, ∂τ fτ (t, t, x ) = −g[fτ ]( t, t, x ) = 0 , so the diagonal values are invariant in 
+
+τ .We now rewrite the post-training residual for each method in terms of the Eulerian transport residual 
+
+Ev [f ] or the Lagrangian residual Lv [f ].
+
+Proposition 5 (Residual forms in f -coordinates) . For slim ESD and LSD , assume perfect flow-matching pretraining, so that (68) holds. Then, we have: 
+
+gMF [f ]( t, u, x ) = − Ev [f ]( t, u, x ), (69) 
+
+gsESD [f ]( t, u, x ) = − Ev [f ]( t, u, x ), (70) 
+
+gsLSD [f ]( t, u, x ) = Lv [f ]( t, u, x ). (71) 
+
+Proof. We repeatedly use the parametrization F (t, u, x ) = x + ( u − t)f (t, u, x ) whose derivatives are 
+
+∂tF (t, u, x ) = −f (t, u, x ) + ( u − t) ∂tf (t, u, x ), (∂tF )
+
+∂uF (t, u, x ) = f (t, u, x ) + ( u − t) ∂uf (t, u, x ), (∂uF )
+
+∂xF (t, u, x ) = I + ( u − t) ∂xf (t, u, x ). (∂xF )29 (a) MeanFlow. By definition, 
+
+Ev [f ]( t, u, x ) = ∂tF (t, u, x ) + ( ∂xF )( t, u, x ) v(t, x ).
+
+Substitute ( ∂tF ) and ( ∂xF ): 
+
+Ev [f ]( t, u, x ) = 
+
+
+
+−f (t, u, x ) + ( u − t) ∂tf (t, u, x )
+
+
+
++
+
+
+
+I + ( u − t) ∂xf (t, u, x )
+
+
+
+v(t, x )= −f (t, u, x ) + ( u − t) ∂tf (t, u, x ) + v(t, x ) + ( u − t)( ∂xf )( t, u, x ) v(t, x )= −
+
+
+
+f (t, u, x ) − v(t, x ) − (u − t) ∂tf (t, u, x ) + ( ∂xf )( t, u, x ) v(t, x )
+
+= − gMF [f ]( t, u, x ).
+
+(b) Slim ESD . By diagonal invariance and perfect FM pretraining, f (u, u, y ) = v(u, y ) for all (u, y )
+
+throughout post-training. Therefore 
+
+gsESD [f ]( t, u, x ) = f (t, u, x ) − (u − t) ∂tf (t, u, x ) − (∂xF )( t, u, x ) v(t, x ).
+
+Using ( ∂xF ), 
+
+(∂xF )( t, u, x ) v(t, x ) = 
+
+
+
+I + ( u − t) ∂xf (t, u, x )
+
+
+
+v(t, x )= v(t, x ) + ( u − t)( ∂xf )( t, u, x ) v(t, x ).
+
+Hence 
+
+gsESD [f ]( t, u, x ) = f (t, u, x ) − v(t, x ) − (u − t)
+
+
+
+∂tf (t, u, x ) + ( ∂xf )( t, u, x ) v(t, x )
+
+
+
+= gMF [f ]( t, u, x ) = − Ev [f ]( t, u, x ).
+
+(c) Slim LSD . By diagonal invariance and perfect FM pretraining, f (u, u, y ) = v(u, y ) for all (u, y )
+
+throughout post-training. Therefore 
+
+gsLSD [f ]( t, u, x ) = f (t, u, x ) + ( u − t) ∂uf (t, u, x ) − v u, F (t, u, x ).
+
+Using ( ∂uF ), we combine the first two terms on the right-hand side: 
+
+gsLSD [f ]( t, u, x ) = ∂uF (t, u, x ) − v u, F (t, u, x ) = Lv [f ]( t, u, x ).
+
+G.2 Proof for proposition 1 
+
+We prove the Eulerian and Lagrangian cases separately, though the arguments are similar. The key idea is introducing a combined map that composes the learned flow with the true flow map. The core insight is the combined map obeys a transport equation. In general, a transport equation says that a function f (t, x ) is conserved over time t along trajectories of x following a velocity field v.This transport equation, wherein a certain quantity is conserved over optimization time τ , lets us characterize the semi-gradient flow evolution of the combined map, and then of the learned flow map. The proof uses backwards evaluations of the true flow map, which exist and are correct under the standing regularity conditions, but does not evaluate Fτ outside t ≤ u.
+
+Proof. (a) Eulerian case. Define a “double-forward” combined map 
+
+aτ (t, u, z ) := Fτ
+
+ t, u, F ∗(0 , t, z ).
+
+This combined map says: first, starting from z, transport it with the true flow map from time 0 → t,then take the output and transport it with the learned flow map from t → u.Differentiate with respect to t. By the chain rule for the total derivative, 
+
+∂taτ (t, u, z ) = ∂1Fτ
+
+ t, u, F ∗(0 , t, z ) + ( ∂3Fτ ) t, u, F ∗(0 , t, z ) ∂tF ∗(0 , t, z ).
+
+where we use ∂1 and ∂3 to denote the partial derivative with respect to first, and third, input variables for Fτ .30 Since F ∗(0 , t, z ) is the exact flow of v, we have: ∂tF ∗(0 , t, z ) = v t, F ∗(0 , t, z ). Using this: 
+
+∂taτ (t, u, z ) = ∂1Fτ
+
+ t, u, F ∗(0 , t, z ) + ( ∂3Fτ ) t, u, F ∗(0 , t, z ) v t, F ∗(0 , t, z )
+
+= Ev [fτ ] t, u, F ∗(0 , t, z ). (72) Next differentiate aτ with respect to τ . Since F ∗(0 , t, z ) is independent of τ ,
+
+∂τ aτ (t, u, z ) = ∂τ Fτ
+
+ t, u, F ∗(0 , t, z ).
+
+Using ∂τ Fτ = ( u − t) Ev [fτ ],
+
+∂τ aτ (t, u, z ) = ( u − t) Ev [fτ ] t, u, F ∗(0 , t, z )
+
+= ( u − t) ∂taτ (t, u, z ), (73) where the last step uses (72). Now, we will rewrite the PDE in the gap variable q := u − t. Define 
+
+cτ (q, u, z ) := aτ (u − q, u, z ) = aτ (t, u, z ).
+
+Then, 
+
+∂q cτ (q, u, z ) = ∂q aτ (t, u, z )
+
+ ∂t ∂q 
+
+
+
+= −∂taτ (t, u, z ).
+
+Therefore (73) becomes 
+
+∂τ aτ (t, u, z ) = ( u − t) ∂taτ (t, u, z )
+
+∂τ cτ (q, u, z ) − q ∂ taτ (t, u, z ) = 0 
+
+∂τ cτ (q, u, z ) + q ∂ q cτ (q, u, z ) = 0 (74) We recognize (74) as a transport equation in the gap variable q = u − t:
+
+∂τ cτ (q, u, z ) + q ∂ q cτ (q, u, z ) = 0 .
+
+In general, a transport equation ∂tF (t, x ) + v(t, x )∂xF (t, x ) = 0 says that F (t, x ) is conserved over time t along trajectories of x following dx/dt = v. In our case, we have that cτ (q, u, z ) is conserved over time τ along trajectories of q following dq/dτ = q. Its forward characteristics satisfy 
+
+dq dτ = q, q(τ ) = eτ q0,
+
+and cτ is constant along these curves: 
+
+cτ (q(τ ), u, z ) = c0(q0, u, z ).
+
+Equivalently, to evaluate the solution at a fixed point (τ, q ), we trace the characteristic backward to the initial line τ = 0 , which gives 
+
+q0 = e−τ q. 
+
+Hence 
+
+cτ (q, u, z ) = c0(e−τ q, u, z ).
+
+Thus, cτ (q, u, z ) is exponentially compressed toward the value c0(q = 0 , u, z ) as τ → ∞ . Returning to (t, u ),
+
+aτ (t, u, z ) = cτ (u − t, u, z )= c0
+
+ e−τ (u − t), u, z 
+
+= a0
+
+ u − e−τ (u − t), u, z 
+
+Thus, semi-gradient flow evolves a as: 
+
+aτ (t, u, z ) = a0
+
+ sτtu, u, z . (75) To recover Fτ , start from the definition of aτ , then set z = F ∗(t, 0, x ), equivalently x = F ∗(0 , t, z ).Use the composition property of the true flow map: F ∗(s, t, F ∗(0 , s, x )) = F ∗(0 , t, x ).
+
+Fτ (t, u, F ∗(0 , t, z )) = aτ (t, u, z )
+
+31 Fτ (t, u, F ∗(0 , t, F ∗(t, 0, x ))) = aτ (t, u, F ∗(t, 0, x )) 
+
+Fτ (t, u, x ) = aτ
+
+ t, u, F ∗(t, 0, x )
+
+= a0
+
+ sτtu, u, F ∗(t, 0, x )
+
+= F0
+
+
+
+sτtu, u, F ∗(0 , s τtu, F ∗(t, 0, x )) 
+
+
+
+Thus: 
+
+Fτ (t, u, x ) = F0
+
+ sτtu, u, F ∗(t, s τtu, x ). (76) This proves (25). Finally, as τ → ∞ , sτtu → u. Therefore 
+
+F ∗(t, s τtu, x ) → F ∗(t, u, x ).
+
+Using continuity of F0 and the diagonal identity F0(u, u, y ) = y,
+
+Fτ (t, u, x ) = F0
+
+ sτtu, u, F ∗(t, s τtu, x ) → F0
+
+ u, u, F ∗(t, u, x ) = F ∗(t, u, x ).
+
+(b) Lagrangian case. Define a “backtracking” combined map: 
+
+bτ (t, u, x ) := F ∗(u, t, F τ (t, u, x )) .
+
+This combined map says: first, transport x using the learned flow map from t → u, then take the output and transport it with the true flow map back from u → t.We first compute ∂ubτ . We use the transport equation obeyed by the true flow map: 
+
+∂uF ∗(u, t, z ) + ∂z F ∗(u, t, z ) v(u, z ) = 0 . (77) Differentiate bτ with respect to u. By the chain rule for the total derivative, (77), and using ∂1 and ∂3
+
+to denote the partial derivative with respect to the first and third input variables: 
+
+∂ubτ (t, u, x ) = ∂1F ∗ u, t, F τ (t, u, x ) + ∂3F ∗(u, t, F τ (t, u, x )) ∂uFτ (t, u, x )= −∂3F ∗(u, t, F τ (t, u, x )) v u, F τ (t, u, x ) + ∂3F ∗ u, t, F τ (t, u, x ) ∂uFτ (t, u, x )= ∂3F ∗(u, t, F τ (t, u, x )) 
+
+
+
+∂uFτ (t, u, x ) − v u, F τ (t, u, x )
+
+= ∂3F ∗(u, t, F τ (t, u, x )) Lv [fτ ]( t, u, x ). (78) Differentiate bτ with respect to τ . Since F ∗(u, t, ·) is independent of τ ,
+
+∂τ bτ (t, u, x ) = ∂3F ∗(u, t, F τ (t, u, x )) ∂τ Fτ (t, u, x ). (79) Using ∂τ Fτ = −(u − t) Lv [fτ ],
+
+∂τ bτ (t, u, x ) = −(u − t) ∂3F ∗(u, t, F τ (t, u, x )) Lv [fτ ]( t, u, x )= −(u − t) ∂ubτ (t, u, x ). (80) where the last step uses (78). To rewrite the PDE in the gap variable q = u − t, define 
+
+dτ (t, q, x ) := bτ (t, t + q, x ) = bτ (t, u, x ).
+
+Then 
+
+∂q dτ (t, q, x ) = ∂ubτ (t, t + q, x )
+
+ ∂q ∂u 
+
+
+
+= ∂ubτ (t, t + q, x ),
+
+so (80) becomes 
+
+∂τ bτ (t, u, x ) = −(u − t) ∂ubτ (t, u, x )
+
+∂τ bτ (t, u, x ) + q ∂ ubτ (t, u, x ) = 0 
+
+∂τ dτ (t, q, x ) + q ∂ q dτ (t, q, x ) = 0 . (81) We recognize this as a transport equation. In general, a transport equation ∂tF (t, x ) + 
+
+v(t, x )∂xF (t, x ) = 0 says that F (t, x ) is conserved over time t along trajectories of x follow-ing dx/dt = v. In our case, we have that dτ (t, q, x ) is conserved over time τ along trajectories of q
+
+following dq/dτ = q.32 Solve this exactly as in the Eulerian case: 
+
+dτ (t, q, x ) = d0
+
+ t, e −τ q, x .
+
+Therefore 
+
+bτ (t, u, x ) = dτ (t, u − t, x )= d0
+
+ t, e −τ (u − t), x 
+
+= b0
+
+ t, t + e−τ (u − t), x 
+
+Thus, semi-gradient flow evolves b as: 
+
+bτ (t, u, x ) = b0
+
+ t, s τut, x . (82) To recover Fτ , apply F ∗(t, u, ·) to both sides: 
+
+F ∗(u, t, F τ (t, u, x )) = bτ (t, u, x )
+
+Fτ (t, u, x ) = F ∗(t, u, b τ (t, u, x )) = F ∗(t, u, b 0(t, s τut, x )) = F ∗(t, u, F ∗(sτut, t, F 0(t, s τut, x ))) 
+
+Thus: 
+
+Fτ (t, u, x ) = F ∗(sτut, u, F 0(t, s τut, x )) , (83) by the semigroup property F ∗(t, u, ·) ◦ F ∗(s, t, ·) = F ∗(s, u, ·). This proves (26). Finally, as τ → ∞ , sτut → t. By continuity of F0 and the diagonal identity F0(t, t, x ) = x,
+
+Fτ (t, u, x ) = F ∗(sτut, u, F 0(t, s τut, x )) → F ∗(t, u, F 0(t, t, x )) = F ∗(t, u, x ). (84) 
+
+G.3 Exponential convergence rates under bounded derivatives. 
+
+In this section, we prove that convergence occurs exponentially fast when the true velocity field has bounded derivatives. Before presenting the main proposition for exponential convergence, we first provide a lemma that we will use in the Lagrangian case. 
+
+Lemma 6. Suppose that the true velocity field v is globally L-Lipschitz in x, uniformly in time (e.g., by the standing regularity conditions, Remark 1): 
+
+∥v(s, x ) − v(s, y )∥ ≤ L ∥x − y∥ for all s ∈ [0 , 1] , x, y ∈ Rd. (85) 
+
+Then the exact flow map F ∗(t, u, ·) is eL(u−t)-Lipschitz in its initial condition. Proof. Let y1, y 2 ∈ Rd, and consider two trajectories Zi(s) := F ∗(t, s, y i) for i = 1 , 2. By definition of the exact flow, each Zi solves dds Zi(s) = v s, Z i(s) with Zi(t) = yi. Subtract the two ODEs: 
+
+dds 
+
+ Z1(s) − Z2(s) = v s, Z 1(s) − v s, Z 2(s).
+
+Taking norms and using the global Lipschitz bound (85), 
+
+dds ∥Z1(s) − Z2(s)∥ ≤ L ∥Z1(s) − Z2(s)∥.
+
+Grönwall’s inequality then yields 
+
+∥Z1(u) − Z2(u)∥ ≤ eL(u−t)∥Z1(t) − Z2(t)∥ = eL(u−t)∥y1 − y2∥.
+
+Since Zi(u) = F ∗(t, u, y i), we conclude that 
+
+∥F ∗(t, u, y 1) − F ∗(t, u, y 2)∥ ≤ eL(u−t)∥y1 − y2∥. (86) 33 Proposition 6 (Exponential convergence rates) . Assume the hypotheses of Proposition 1. Assume in addition that the true velocity field v is globally L-Lipschitz in x, uniformly in time, such that the exact flow map F ∗(t, u, ·) is eL(u−t)-Lipschitz in its initial condition. 
+
+(a) Eulerian case (MeanFlow and simplified ESD ). Assume 
+
+Ma := sup 
+
+> 0≤t≤u≤1
+
+sup 
+
+> z∈Rd
+
+∂ta0(t, u, z ) < ∞. (87) 
+
+Then 
+
+∥Fτ (t, u, x ) − F ∗(t, u, x )∥ ≤ Ma e−τ (u − t). (88) 
+
+(b) Lagrangian case (simplified LSD ). Assume 
+
+Mb := sup 
+
+> 0≤t≤u≤1
+
+sup 
+
+> x∈Rd
+
+∂ub0(t, u, x ) < ∞. (89) 
+
+Then 
+
+∥Fτ (t, u, x ) − F ∗(t, u, x )∥ ≤ eL(u−t) Mb e−τ (u − t). (90) 
+
+Proof. We again treat the Eulerian and Lagrangian cases separately. 
+
+(a) Eulerian case. 
+
+By (75), aτ (t, u, z ) = a0
+
+ sτtu, u, z . Also, a0(u, u, z ) = F0
+
+ u, u, F ∗(0 , u, z ) = F ∗(0 , u, z ),because every admissible flow-map parametrization satisfies F0(u, u, y ) = y.We now compare aτ (t, u, z ) and a0(u, u, z ). The point is that, for fixed u and z, the map σ 7 →
+
+a0(σ, u, z ) is a C1 function of one real variable on the interval [0 , u ]. Therefore the fundamental theorem of calculus gives 
+
+a0
+
+ sτtu, u, z  − a0(u, u, z ) = −
+
+Z usτtu
+
+∂1a0(σ, u, z ) dσ. (91) Taking norms and using the uniform bound ∥∂ta0(t, u, z )∥ ≤ Ma,
+
+∥aτ (t, u, z ) − F ∗(0 , u, z )∥ = a0
+
+ sτtu, u, z  − a0(u, u, z )
+
+≤
+
+Z usτtu
+
+∥∂1a0(σ, u, z )∥ dσ 
+
+≤
+
+Z usτtu
+
+Ma dσ 
+
+= Ma
+
+ u − sτtu
+
+. (92) Using sτtu = u − e−τ (u − t), so u − sτtu = e−τ (u − t), we get: 
+
+∥aτ (t, u, z ) − F ∗(0 , u, z )∥ ≤ Ma e−τ (u − t). (93) We now convert this bound back to the original (t, u, x )-variables, by setting z = F ∗(t, 0, x ). Since 
+
+aτ was defined by aτ (t, u, z ) = Fτ
+
+ t, u, F ∗(0 , t, z ), and since F ∗(0 , t, F ∗(t, 0, x )) = x, we obtain 
+
+aτ
+
+ t, u, F ∗(t, 0, x ) = Fτ (t, u, x ). Similarly, F ∗(0 , u, F ∗(t, 0, x )) = F ∗(t, u, x ) by the semigroup property of the true flow. Therefore, (93) becomes 
+
+∥Fτ (t, u, x ) − F ∗(t, u, x )∥ ≤ Ma e−τ (u − t),
+
+which is exactly (88). 
+
+(b) Lagrangian case. 
+
+By (82), bτ (t, u, x ) = b0
+
+ t, s τut, x . Also, b0(t, t, x ) = F ∗(t, t, F 0(t, t, x )) = x. As in the Eulerian case, we now make the one-variable estimate explicit. For fixed t and x, the map σ 7 → b0(t, σ, x ) is a 
+
+C1 function of one real variable on the interval [t, 1] . Therefore the fundamental theorem of calculus gives 
+
+b0
+
+ t, s τut, x  − b0(t, t, x ) = 
+
+Z sτut
+
+> t
+
+∂2b0(t, σ, x ) dσ. (94) 34 Taking norms and using the uniform bound ∥∂ub0(t, u, x )∥ ≤ Mb,
+
+∥bτ (t, u, x ) − x∥ = b0
+
+ t, s τut, x  − b0(t, t, x ) ≤
+
+Z sτut
+
+> t
+
+∥∂2b0(t, σ, x )∥ dσ 
+
+≤
+
+Z sτut
+
+> t
+
+Mb dσ = Mb
+
+ sτut − t.
+
+Using sτut = t + e−τ (u − t), we get: 
+
+∥bτ (t, u, x ) − x∥ ≤ Mb e−τ (u − t). (95) Since Fτ (t, u, x ) = F ∗(t, u, b τ (t, u, x )) , we may apply the Lipschitz estimate (86) with initial points 
+
+bτ (t, u, x ) and x:
+
+∥Fτ (t, u, x ) − F ∗(t, u, x )∥ = F ∗(t, u, b τ (t, u, x )) − F ∗(t, u, x )
+
+≤ eL(u−t) ∥bτ (t, u, x ) − x∥≤ eL(u−t) Mb e−τ (u − t), (96) which proves (90). 
+
+## H Stationary points and convergence of Improved MeanFlow 
+
+Improved MeanFlow (iMF) [16] is the objective (17). Its stationary points are characterized in Corollary 3, proved in §C: the true flow map is the unique stationary point in M. Since Q ≡ 0, the label noise is additive and Corollary 1 applies: the true flow map is the unique point of M attaining the conditional-variance floor. For convergence, the semi-gradient given by Theorem 1 is 
+
+giMF [f ]( t, u, x ) = f (t, u, x ) − v(t, x ) − (u − t)
+
+
+
+∂tf (t, u, x ) + ( ∂xf )( t, u, x ) f (t, t, x )
+
+
+
+. (97) On the diagonal, giMF [f ]( t, t, x ) = f (t, t, x ) − v(t, x ). Hence along the semi-gradient flow ∂τ fτ =
+
+−giMF [fτ ] the diagonal obeys the linear equation ∂τ
+
+ fτ (t, t, x )−v(t, x ) = − fτ (t, t, x )−v(t, x ),so 
+
+fτ (t, t, x ) − v(t, x ) = e−τ  f0(t, t, x ) − v(t, x ). (98) Under perfect flow-matching pretraining (67), fτ (t, t, ·) = v(t, ·) for all τ , the analogue of Lemma 5. Substituting into (97), 
+
+giMF [fτ ] = gMF [fτ ] = − Ev [fτ ] (99) by (69), so Fτ obeys the Eulerian flow (65). Proposition 1(a) and Proposition 6 therefore apply verbatim: Fτ is the closed-form composition (25) of F0 and F ∗, and converges to F ∗.
+
+## I Numerical experiments on convergence 
+
+We numerically simulate functional semi-gradient flow from an initial F0 over optimization time τ
+
+according to equations 23, 24. We compare the numerically simulated Fτ to its theoretical value from equations 25 and 26. We model F on a discretized tensor grid for (t, u, x ), and compute 
+
+∂tF, ∂ uF, ∂ xF using finite differences. These enable computing ∂τ Fτ . We use fourth-order Runge-Kutta to simulate the semi-gradient flow PDE in τ . At each step, we enforce the diagonal identity 
+
+Fτ (t, t, x ) = x exactly by overwriting elements in the tensor grid where t = u. We perform experiments in 1 to 5 spatial dimensions, for 3 to 7 total dimensions, as grid discretization makes compute cost scale exponentially with the number of dimensions. Our experiments took seconds to minutes to run on one A100. 
+
+Velocity field. We use an affine velocity field: v(x) = Ax + b, which allows the exact flow map 
+
+F ∗(t, u, x ) to be computed efficiently in closed form via a matrix exponential. 
+
+Initial flow maps. We construct F0(t, u, x ) = F ∗(t, u, x )+( u−t)δ(t, u, x ) so that F0(t, t, x ) = x
+
+automatically. We choose δ to be smooth trigonometric factors in t, u, and x.35 J Differentiating w.r.t. t versus u
+
+In this work, F (t, u, x ) maps forward in time from Xt = x to Xu along the flow dX s = v(s, X s). In Meanflow [15], the map is written in reverse time. The transport PDE can be obtained by differentiating the forward-time flow map with respect to t, or the reverse-time flow map with respect to u. In both cases, let t ≤ u:
+
+Ffwd (t, u, x ) = x +
+
+Z ut
+
+v(s, X s) = x +
+
+Z ut
+
+v(s, F fwd (t, s, x )) ds (100) On the other hand, if moving in reverse time: 
+
+Frev (t, u, x ) = x +
+
+Z tu
+
+v(s, X s) = x −
+
+Z ut
+
+v(s, F rev (s, u, x )) ds (101) Differentiating via Leibniz rule yields: 
+
+∂tFfwd (t, u, x ) + ( ∂xFfwd )( t, u, x )v(t, x ) = 0 (102) 
+
+∂uFrev (t, u, x ) + ( ∂xFrev )( t, u, x )v(u, x ) = 0 (103) In both cases, the PDE is backward transport in the time variable carrying the spatial argument x; the other time index is a parameter. 
+
+## K Experimental Methods 
+
+K.1 CIFAR-10 Experiments Data. We use the CIFAR-10 dataset [23]. 
+
+Architecture. We use the Song U-Net used in [15]. We use image resolution 32, in channels 3, out channels 3, model channels 18, num blocks 4, channel mult noise 2, resample filter [1,3,3,1], channel mult [2,2,2], encoder type standard, and decoder type standard. 
+
+Compute. We ran each experiment (a given method) for 200k gradient steps. To accomplish this, for each experiment we used 8x A100 GPUs. Each method was able to reach 200k steps with 96 hours of training. 
+
+Training Details. 
+
+• Dataloading. We use pin-mem = True and 4 workers. • Time sampling. We use min times 1e-4 and max times 1 - 1e-4 for both training and sampling. We use probability t equals u set to 0.25. • EMA. We use EMA decay 0.9999. We start the EMA model at the 40k training steps model, and update once per gradient step thereafter. • Batch Size. We use batch size 64 per GPU and use 8 GPUs, meaning the effective batch size is 64*8=512. • Optimization. We use the AdamW optimizer with betas (0.9, 0.999). We use base learning rate 2e-4. We use linear warmup from 1e-6 up to the base learning rate for the first 20,000 steps. After warmup, the learning rate is constant at the base learning rate. • Seed. We use seed 0. • Velocity Warmup. We do not use any velocity warmup steps, similar to [15] and unlike [9]. • Dropout. We use dropout 0.20 • Adaptive Loss Weight. We use the adaptive loss reweighting from [15] with norm-p set to 0.75 and norm-eps set to 1e-3. 
+
+Evaluation Details. We evaluate FID from the non-EMA and EMA models every 25,000 steps. We evaluate this FID for several different sampling step counts per checkpoint, with number of function evaluations in {1,10,50,100}. We compute FID with the standard 50,000 samples using batch size 128. To compute FID, we use torchmetrics.image.fid.FrechetInceptionDistance .36 K.2 ImageNet Experiments 
+
+We use the B4 model from the meanflow-jax github repository which is a 90M diffusion transformer. We adopt their default settings, which uses patch size 4, learning rate of 0.0001, batch size 256, adam b2 of 0.95, and adaptive L2 weighting norm power of 1.0. We run flow-matching warmup for 10 epochs, and train for a total of 40 epochs. We use gradient surgery, prioritizing the diagonal gradient. Each run trained on 4x B200s, and training took about 8 hours. 
+
+## L Table of all Flow Map Objectives 
+
+In Table 4, we provide a table of all flow map objectives discussed in this work, along with derivative cost (first order or second order), whether stationary points were previously characterized, unknown, or characterized in this work, and whether the objective was introduced in prior work or this work.                                                                                                     
+
+> Method Objective Derivative cost order Stationary point Novelty
+> MeanFlow E∥f(t, u, x )−˙xt−(u−t)SG {∂tf(t, u, x ) + ( ∂xf)( t, u, x ) ˙ xt}∥ 2First This work [15] Improved Mean-Flow
+> E∥f(t, u, x )−˙xt−(u−t)SG {∂tf(t, u, x ) + ( ∂xf)( t, u, x )f(t, t, x )}∥ 2First This work [16] ESD E∥∂tF(t, u, x ) + ( ∂xF)( t, u, x )f(t, t, x )∥2+LFM Second Known [9] ESD original SG
+> E∥∂tF(t, u, x ) + SG {(∂xF)( t, u, x )f(t, t, x )}∥ 2+LFM Second Unknown [9] Slim ESD E∥f(t, u, x )−SG {f(t, t, x ) + ( u−t)( ∂tf(t, u, x ) + ( ∂xf)( t, u, x )f(t, t, x )) }∥ 2
+> +LFM
+> First This work This work LSD E∥∂uF(t, u, x )−f(u, u, F (t, u, x )) ∥2+LFM Second Known [9] LSD original SG
+> E∥f(t, u, x ) + ( u−t)∂uf(t, u, x )−SG {f(u, u, F (t, u, x )) }∥ 2+LFM Second Unknown [9] Slim LSD E∥f(t, u, x ) + ( u−t)SG {∂uf(t, u, x )} − SG {f(u, u, F (t, u, x )) }∥ 2+LFM First This work This work
+
+Table 4: Comparison of flow-map objectives, using F (t, u, x ) = x + ( u − t)f (t, u, x ) and the interpolation convention that t = 1 is the data endpoint. 37

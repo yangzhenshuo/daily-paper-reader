@@ -1,0 +1,1330 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-09-20T21:59:06.613940+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 7,
+    "deep_divecandidates": 10,
+    "deep_cap": 12,
+    "deep_selected": 10,
+    "quick_candidates": 32,
+    "quick_skim_target": 17,
+    "quick_selected": 17
+  },
+  "deep_dive": [
+    {
+      "id": "2609.18197v1",
+      "source": "arxiv",
+      "title": "WholeBodyWAM: Learning Whole-Body World Action Models with Scalable Motion Priors",
+      "abstract": "Humanoid whole-body manipulation requires coordinated whole-body dynamics, yet large-scale trajectories from a target robot are expensive to collect and difficult to scale. In contrast, whole-body motion from human and humanoid sources is abundantly available, although such data cannot be directly used as embodiment-specific robot actions. This work asks whether these scalable motion resources can instead provide a transferable predictive prior for humanoid world-action modeling. We introduce WholeBodyWAM, a humanoid world-action model that learns whole-body dynamics from large-scale heterogeneous motion before target-robot training. We curate UniMotion-4K, a motion corpus spanning more than 4K hours from human videos, native 3D motion datasets, and heterogeneous humanoid platforms, and canonicalize these diverse sources into a unified motion space. A language-conditioned Motion Expert is then pretrained to predict future whole-body motion without target-robot action supervision. During robot post-training, the pretrained Motion Expert is integrated with Video and Action Experts through asymmetric Mixture-of-Transformers (MoT) attention, enabling predictive scene dynamics and whole-body motion to jointly inform embodiment-specific action generation. Experiments show that WholeBodyWAM consistently benefits from increased motion-pretraining scale, improves future-motion prediction and downstream task performance, and transfers effectively to real-world humanoid manipulation. Moreover, the pretrained motion prior substantially improves data efficiency under limited target-robot demonstrations.",
+      "authors": [
+        "Bowei Zhang",
+        "Qiyao Zhang",
+        "Shuanghao Bai",
+        "Xinhua Wang",
+        "Meng Li",
+        "Yilei Wang",
+        "Leiwang Zhang",
+        "Jian Tang",
+        "Lu Zhou",
+        "Lei Sun",
+        "Zhengping Che"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-09-16T06:32:21+00:00",
+      "link": "https://arxiv.org/pdf/2609.18197v1",
+      "tags": [
+        "keyword:VLA-WM",
+        "keyword:gen-imit",
+        "keyword:rmgp",
+        "keyword:world-model",
+        "query:FewStepGen",
+        "query:VLA-WM",
+        "query:gen-imit",
+        "query:gen-models",
+        "query:rmgp",
+        "query:world-model"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "humanoid world-action model predicting whole-body dynamics from scalable motion priors",
+      "llm_evidence_cn": "人形世界动作模型预测全身动力学",
+      "llm_evidence": "人形世界动作模型预测全身动力学",
+      "canonical_evidence": "人形世界动作模型预测全身动力学",
+      "llm_tldr_en": "WholeBodyWAM learns a humanoid world-action model that first captures whole-body dynamics from large-scale heterogeneous human motion as a transferable predictive prior, then adapts to the target robot, supported by the 4K-hour UniMotion-4K corpus.",
+      "llm_tldr_cn": "人形机器人全身操作需要协调的全身动力学，但目标机器人上的大规模轨迹采集昂贵且难以扩展，而人类与人形来源的全身运动虽丰富却无法直接当作特定本体的机器人动作。本文提出WholeBodyWAM，一种人形世界-动作模型，先在大规模异构运动上学习全身动力学作为可迁移的预测先验，再进行目标机器人训练，并构建了超4千小时的UniMotion-4K运动语料库。该工作探索了以运动先验驱动人形世界动作建模的路径。",
+      "llm_tldr": "人形机器人全身操作需要协调的全身动力学，但目标机器人上的大规模轨迹采集昂贵且难以扩展，而人类与人形来源的全身运动虽丰富却无法直接当作特定本体的机器人动作。本文提出WholeBodyWAM，一种人形世界-动作模型，先在大规模异构运动上学习全身动力学作为可迁移的预测先验，再进行目标机器人训练，并构建了超4千小时的UniMotion-4K运动语料库。该工作探索了以运动先验驱动人形世界动作建模的路径。",
+      "llm_tags": [
+        "query:vla-wm"
+      ],
+      "matched_query_tag": "query:vla-wm",
+      "matched_query_text": "world action model predicting future states and actions",
+      "matched_requirement_id": "req-29",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.20776v1",
+      "source": "arxiv",
+      "title": "GeoAAC: Geometry-Based Adaptive Action Chunking from Denoising Trajectories in VLA Policies",
+      "abstract": "Action chunking is widely used for action generation and execution in Vision-Language-Action (VLA) policies, yet existing approaches commonly use a fixed action horizon. During a rollout, different task stages may require different levels of action continuity, control precision, and closed-loop feedback, making a fixed horizon unable to accommodate changing control requirements. We propose \\textbf{GeoAAC}, a geometry-based adaptive action chunking method for flow-based VLA policies that adjusts the action horizon according to the reliability of the current action prediction. We show that the geometry of Flow Matching denoising trajectories provides process-level information for characterizing prediction reliability, with geometric variation across action prefixes remaining positively correlated with predictive uncertainty. GeoAAC uses this prefix-wise geometry to construct a horizon-wise geometric profile and adaptively determine the action horizon from a single generation without additional training. Experiments with GR00T N1.5 and π0.5 on LIBERO, LIBERO-Pro, RoboCasa365, and real-world manipulation tasks show consistent improvements over fixed-action-horizon baselines and existing adaptive methods, including up to 8.7 percentage points in simulation and an increase in average real-world success rate from 53.3\\% to 74.4\\%.",
+      "authors": [
+        "Xin Chen",
+        "Sen Chen",
+        "Yujuan Ding",
+        "Jian Liu",
+        "Guoqing Wang",
+        "Wei Ye",
+        "Heng Tao Shen",
+        "Yi Bin"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "cs.AI",
+        "cs.LG"
+      ],
+      "published": "2026-09-17T17:48:07+00:00",
+      "link": "https://arxiv.org/pdf/2609.20776v1",
+      "tags": [
+        "keyword:FewStepGen",
+        "keyword:VLA-WM",
+        "keyword:gen-imit",
+        "keyword:gen-models",
+        "keyword:pol-vision",
+        "keyword:rmgp",
+        "keyword:world-model",
+        "query:FewStepGen",
+        "query:VLA-WM",
+        "query:gen-imit",
+        "query:gen-models",
+        "query:rmgp",
+        "query:world-model"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "geometry-based adaptive action chunking for flow-based VLA policies",
+      "llm_evidence_cn": "面向流匹配VLA策略的几何自适应动作分块",
+      "llm_evidence": "面向流匹配VLA策略的几何自适应动作分块",
+      "canonical_evidence": "面向流匹配VLA策略的几何自适应动作分块",
+      "llm_tldr_en": "Action chunking in VLA policies usually uses a fixed horizon, which cannot adapt to changing control needs. GeoAAC adjusts the action horizon using the geometry of Flow Matching denoising trajectories as a reliability signal.",
+      "llm_tldr_cn": "动作分块广泛用于视觉-语言-动作策略的动作生成与执行，但现有方法多采用固定动作时域，难以适应不同任务阶段对动作连续性、控制精度与闭环反馈的不同需求。本文提出GeoAAC，一种面向流匹配VLA策略的几何自适应动作分块方法，利用Flow Matching去噪轨迹的几何信息刻画当前动作预测的可靠性，据此动态调整动作时域。该工作表明去噪轨迹几何可作为过程级可靠性信号，为闭环操作提供更灵活的动作生成与执行策略。",
+      "llm_tldr": "动作分块广泛用于视觉-语言-动作策略的动作生成与执行，但现有方法多采用固定动作时域，难以适应不同任务阶段对动作连续性、控制精度与闭环反馈的不同需求。本文提出GeoAAC，一种面向流匹配VLA策略的几何自适应动作分块方法，利用Flow Matching去噪轨迹的几何信息刻画当前动作预测的可靠性，据此动态调整动作时域。该工作表明去噪轨迹几何可作为过程级可靠性信号，为闭环操作提供更灵活的动作生成与执行策略。",
+      "llm_tags": [
+        "query:vla-wm"
+      ],
+      "matched_query_tag": "query:vla-wm",
+      "matched_query_text": "action chunk prediction for robot manipulation",
+      "matched_requirement_id": "req-32",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.15123v1",
+      "source": "arxiv",
+      "title": "Refinement-based Flow Policy Optimization",
+      "abstract": "Flow-based policies offer an expressive representation for online reinforcement learning, but conventional flow matching requires samples drawn from the distribution to be modeled. This poses a challenge when the desired action distribution is defined only implicitly by a Q-function, since directly sampling actions from the resulting distribution is generally intractable. We propose Refinement-Based Flow Policy Optimization (RFPO), a novel framework for training a flow policy in online reinforcement learning by alternating between Q-guided sample refinement and self-target flow matching. RFPO first generates actions from Gaussian noise using the current flow policy and then uses a finite-step stochastic refinement procedure to move them toward an energy-based distribution induced by the Q-function. Each refined action is then paired with its corresponding initial noise sample and used as a fixed target for flow-matching training. By repeatedly refining its own outputs and learning from the resulting targets, RFPO incorporates Q-guidance into the policy without requiring direct samples from the target distribution, while retaining the capacity to represent multiple action modes. We further provide a theoretical analysis of the distributional dynamics induced by RFPO. Across six continuous-control tasks, RFPO matches or outperforms a standard Gaussian-policy baseline on almost every task. Experiments on six synthetic two-dimensional target distributions with diverse geometries demonstrate that RFPO captures complex multimodal structure without mode collapse.",
+      "authors": [
+        "Bumgeun Park",
+        "Hyukjun Yang",
+        "Donghwan Lee"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-09-14T06:56:33+00:00",
+      "link": "https://arxiv.org/pdf/2609.15123v1",
+      "tags": [
+        "keyword:FewStepGen",
+        "keyword:VLA-WM",
+        "keyword:gen-imit",
+        "keyword:gen-models",
+        "keyword:rmgp",
+        "keyword:world-model",
+        "query:FewStepGen",
+        "query:VLA-WM",
+        "query:gen-imit",
+        "query:gen-models",
+        "query:rmgp",
+        "query:world-model"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "flow-based policy for action generation via flow matching",
+      "llm_evidence_cn": "基于流匹配的动作生成策略",
+      "llm_evidence": "基于流匹配的动作生成策略",
+      "canonical_evidence": "基于流匹配的动作生成策略",
+      "llm_tldr_en": "RFPO trains a flow policy for online RL by alternating Q-guided sample refinement with self-target flow matching, avoiding intractable sampling from an implicit Q-defined distribution.",
+      "llm_tldr_cn": "针对流策略在在线强化学习中难以从隐式Q函数定义的分布直接采样的问题，本文提出基于精化的流策略优化框架RFPO。该方法交替执行Q引导的样本精化与自目标流匹配，先从高斯噪声生成动作再经有限步随机精化推向能量分布。实验表明该框架能在隐式目标下有效训练流策略，为机器人连续动作生成提供了新的流匹配训练范式。",
+      "llm_tldr": "针对流策略在在线强化学习中难以从隐式Q函数定义的分布直接采样的问题，本文提出基于精化的流策略优化框架RFPO。该方法交替执行Q引导的样本精化与自目标流匹配，先从高斯噪声生成动作再经有限步随机精化推向能量分布。实验表明该框架能在隐式目标下有效训练流策略，为机器人连续动作生成提供了新的流匹配训练范式。",
+      "llm_tags": [
+        "query:gen-imit"
+      ],
+      "matched_query_tag": "query:gen-imit",
+      "matched_query_text": "flow matching generative models for robotics",
+      "matched_requirement_id": "req-12",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.17287v1",
+      "source": "arxiv",
+      "title": "Same Flow, Different Paths: Variance Reduction in Flow Matching",
+      "abstract": "In flow matching (FM), a velocity model $v_θ$ is trained using a predefined path $g_t$ that connects data and noise samples (e.g., $g_t(x_0, x_1) = (1 - t) x_0 + t x_1$). In this work, we study the choice of this path from an optimization perspective by analyzing the variance of stochastic gradients. We consider the class $G(p_t,v^\\star_t)$ of paths that induce the same marginal distributions $p_t$ and marginal velocity field $v^\\star_t$, and therefore the same FM objective. Our main finding is that the choice of path $g_t$ can fundamentally change the convergence rate of SGD, even when the FM objective remains exactly the same. (i) For a linear velocity model and one-dimensional Gaussian data, we derive a tight bound on the SGD iteration complexity up to logarithmic factors and find an analytically optimal path that minimizes this bound among linear paths inducing the same FM problem. (ii) We then extend the variance analysis to general FM problems and formulate path selection at a fixed $θ$ as the variance-minimization problem PathOpt$_θ$, constrained to $g_t\\in G(p_t,v^\\star_t)$. We show that this constraint is essential: reducing variance without it can lead to slower convergence. (iii) Since the constraint $g_t \\in G(p_t,v^\\star_t)$ cannot generally be verified directly, we derive an equivalent formulation with constraints that can be estimated from samples, allowing paths to be found numerically. Our theoretical results are supported by experiments with Gaussian data, Gaussian mixture models, and real datasets.",
+      "authors": [
+        "Alexander Tyurin"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "math.OC"
+      ],
+      "published": "2026-09-15T15:01:04+00:00",
+      "link": "https://arxiv.org/pdf/2609.17287v1",
+      "tags": [
+        "keyword:FewStepGen",
+        "keyword:gen-imit",
+        "keyword:gen-models",
+        "keyword:pol-vision",
+        "query:FewStepGen",
+        "query:gen-models",
+        "query:pol-vision"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "optimization analysis of flow matching path choice",
+      "llm_evidence_cn": "流匹配路径选择的优化分析",
+      "llm_evidence": "流匹配路径选择的优化分析",
+      "canonical_evidence": "流匹配路径选择的优化分析",
+      "llm_tldr_en": "Flow matching trains a velocity model along a predefined path, but the path choice is understudied. This work analyzes stochastic gradient variance and shows that paths inducing the same FM objective can yield fundamentally different SGD convergence rates.",
+      "llm_tldr_cn": "流匹配通过连接数据与噪声的预定义路径训练速度模型，但路径选择对优化的影响尚不清晰。本文从随机梯度方差的角度研究路径选择，考虑能诱导相同边缘分布与边缘速度场、因而具有相同流匹配目标的路径类。核心发现是：即便流匹配目标完全相同，路径选择仍会根本性改变随机梯度下降的收敛速率。作者在一维高斯数据与线性速度模型下给出了紧致的迭代复杂度界，为更优路径设计提供理论指导。",
+      "llm_tldr": "流匹配通过连接数据与噪声的预定义路径训练速度模型，但路径选择对优化的影响尚不清晰。本文从随机梯度方差的角度研究路径选择，考虑能诱导相同边缘分布与边缘速度场、因而具有相同流匹配目标的路径类。核心发现是：即便流匹配目标完全相同，路径选择仍会根本性改变随机梯度下降的收敛速率。作者在一维高斯数据与线性速度模型下给出了紧致的迭代复杂度界，为更优路径设计提供理论指导。",
+      "llm_tags": [
+        "query:gen-models"
+      ],
+      "matched_query_tag": "query:gen-models",
+      "matched_query_text": "flow matching conditional flow matching and optimal transport path",
+      "matched_requirement_id": "req-39",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.18232v1",
+      "source": "arxiv",
+      "title": "UMI-Bridge: Action-Anchored Latent Alignment across Human and Robot Manipulation Data",
+      "abstract": "Real-robot demonstrations are limited, motivating the use of human manipulation data collected without robots, including egocentric videos and handheld Universal Manipulation Interface (UMI) demonstrations. However, differences in viewpoint, embodiment, and available action supervision make it difficult to align representations across these sources according to manipulation motion rather than visual appearance. We introduce UMI-Bridge, which uses UMI as an intermediate domain to align representations according to action equivalence rather than pixel similarity. UMI action supervision anchors the latent representation to end-effector motion and gripper behavior, while synchronized head-wrist observations and paired ego-UMI clips support alignment across views and domains. We train a dual-view latent action model (LAM) on human manipulation data without robot demonstrations, then freeze its wrist teacher and dynamics model to regularize vision-language-action (VLA) post-training on UMI and robot data. The shared wrist interface enables this training-time supervision across both domains while preserving the policy's standard inference architecture. Across three real-robot tasks, UMI-Bridge achieves 91.7% mean success versus 73.3% for Naive Co-training with matched UMI and robot data. On two data-efficiency tasks, it surpasses a full-data Robot-only baseline using 25% of the robot demonstrations together with UMI data. It also achieves 85% and 90% success on two additional tasks learned from UMI demonstrations without task-specific robot demonstrations. These results support action-anchored latent alignment for data-efficient robot learning and UMI-to-robot task transfer.",
+      "authors": [
+        "Haiyi Liu",
+        "Jingming Ma",
+        "Ke Rui",
+        "Yuteng Wei",
+        "Yuan Ma",
+        "Yushen Zuo",
+        "Honglong Tian",
+        "Haoran Jia",
+        "Weitao Zhou",
+        "Jiawei Wang",
+        "Minglei Li",
+        "Shiyi Chen",
+        "Haiyan Mao",
+        "Jiaqi Zhang",
+        "Chun Zhang"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-09-16T07:03:09+00:00",
+      "link": "https://arxiv.org/pdf/2609.18232v1",
+      "tags": [
+        "keyword:VLA-WM",
+        "keyword:gen-imit",
+        "keyword:rmgp",
+        "keyword:world-model",
+        "query:FewStepGen",
+        "query:VLA-WM",
+        "query:gen-imit",
+        "query:gen-models",
+        "query:rmgp",
+        "query:world-model"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "aligns latent representations across human and robot manipulation demonstrations for imitation learning",
+      "llm_evidence_cn": "为模仿学习对齐人类与机器人操作演示的潜在表示",
+      "llm_evidence": "为模仿学习对齐人类与机器人操作演示的潜在表示",
+      "canonical_evidence": "为模仿学习对齐人类与机器人操作演示的潜在表示",
+      "llm_tldr_en": "Real-robot demonstrations are scarce, so human manipulation data is used, but cross-embodiment misalignment hinders learning. UMI-Bridge uses UMI as an intermediate domain to align latents by action equivalence rather than pixels.",
+      "llm_tldr_cn": "真实机器人演示数据稀缺，促使研究者利用人类操作数据，但视角、形态与动作监督差异使跨源表示难以按操作运动而非视觉外观对齐。本文提出UMI-Bridge，以通用操作接口UMI作为中间域，用动作监督将潜在表示锚定到末端执行器运动与夹爪行为，并借助同步头腕观测与成对片段实现对齐。该工作为利用人类数据训练机器人操作策略提供了动作等价的表示对齐方法。",
+      "llm_tldr": "真实机器人演示数据稀缺，促使研究者利用人类操作数据，但视角、形态与动作监督差异使跨源表示难以按操作运动而非视觉外观对齐。本文提出UMI-Bridge，以通用操作接口UMI作为中间域，用动作监督将潜在表示锚定到末端执行器运动与夹爪行为，并借助同步头腕观测与成对片段实现对齐。该工作为利用人类数据训练机器人操作策略提供了动作等价的表示对齐方法。",
+      "llm_tags": [
+        "query:rmgp"
+      ],
+      "matched_query_tag": "query:rmgp",
+      "matched_query_text": "imitation learning",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.18392v1",
+      "source": "arxiv",
+      "title": "DistAL: Distance-based Advantage Learning for VLA Fine-Tuning",
+      "abstract": "Vision-language-action models (VLAs) have trans- formed the field of robotic manipulation in recent years by combining the semantic understanding of LLMs with the precise control of flow-matching policies. Advantage conditioning is a recent technique that iteratively improves VLAs by training a value function on deployment data and using this to train an advantage-conditioned policy. Previous works have only applied simple, low-information success/failure rewards, which leave the value function unable to distinguish states of differing quality beyond how far along the task they appear. Motivated by an exploration of out-of-distribution (OOD) detection methods, we introduce Distance-based Advantage Learning (DistAL), which, by using an embedding space distance as a reward, produces a more informative value function and subsequently a higher downstream task success rate. We validate our method on a series of simulation benchmarks and dexterous bi-manual manipulation tasks on real hardware.",
+      "authors": [
+        "Reece O'Mahoney",
+        "Ioannis Havoutis"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-09-16T09:48:58+00:00",
+      "link": "https://arxiv.org/pdf/2609.18392v1",
+      "tags": [
+        "keyword:VLA-WM",
+        "keyword:gen-imit",
+        "keyword:gen-models",
+        "keyword:rmgp",
+        "keyword:world-model",
+        "query:FewStepGen",
+        "query:VLA-WM",
+        "query:gen-imit",
+        "query:gen-models",
+        "query:rmgp",
+        "query:world-model"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "advantage learning for fine-tuning vision-language-action models with flow-matching policies",
+      "llm_evidence_cn": "面向流匹配VLA模型微调的优势学习",
+      "llm_evidence": "面向流匹配VLA模型微调的优势学习",
+      "canonical_evidence": "面向流匹配VLA模型微调的优势学习",
+      "llm_tldr_en": "DistAL introduces distance-based advantage learning for fine-tuning vision-language-action models, replacing sparse success/failure rewards with embedding-space distance signals to better distinguish state quality in flow-matching robotic manipulation policies.",
+      "llm_tldr_cn": "视觉-语言-动作模型已成为机器人操作的主流范式，但现有优势条件化方法仅使用简单的成功或失败奖励，价值函数难以区分状态质量差异。本文提出基于距离的优势学习DistAL，利用嵌入空间距离作为更细粒度的优势信号对VLA进行迭代微调，并结合流匹配策略输出精确动作。实验表明该方法能更有效地区分优劣状态，提升VLA在操作任务上的策略改进效果与鲁棒性。",
+      "llm_tldr": "视觉-语言-动作模型已成为机器人操作的主流范式，但现有优势条件化方法仅使用简单的成功或失败奖励，价值函数难以区分状态质量差异。本文提出基于距离的优势学习DistAL，利用嵌入空间距离作为更细粒度的优势信号对VLA进行迭代微调，并结合流匹配策略输出精确动作。实验表明该方法能更有效地区分优劣状态，提升VLA在操作任务上的策略改进效果与鲁棒性。",
+      "llm_tags": [
+        "query:vla-wm"
+      ],
+      "matched_query_tag": "query:vla-wm",
+      "matched_query_text": "vision-language-action model for robot control",
+      "matched_requirement_id": "req-28",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.19974v1",
+      "source": "arxiv",
+      "title": "MaskHarness-WAM: Instance-Grounded Harnessing for Long-Horizon Robot Manipulation",
+      "abstract": "Long-horizon robot manipulation requires not only stable local visuomotor control, but also continuous target tracking and reliable task progress assessment throughout execution. This challenge becomes particularly critical when multiple objects share identical appearances and must be manipulated in a prescribed order. In such scenarios, relying solely on a limited-horizon manipulation policy is often insufficient to determine which instance should be operated on and when the task should transition to the next stage. To address this challenge, we propose MaskHarness-WAM, an instance-grounded harness for long-horizon manipulation. The proposed system connects high-level task planning with low-level manipulation policies through target masks, while leveraging visual feedback for subtask scheduling and continuous execution. Since each subtask corresponds to a different target instance, the low-level policy requires a newly established initial target mask under the updated scene at each subtask transition. The harness continuously re-observes the environment, generates, and verifies the target mask at subtask boundaries, thereby updating the instance-level spatial condition provided to the low-level policy. Furthermore, the system advances the manipulation process by switching target instances according to the verified completion status of each subtask. Experiments on a real robot platform demonstrate that MaskHarness-WAM substantially outperforms limited-horizon policies on sequential multi-object manipulation, showing its effectiveness in extending local manipulation skills to reliable long-horizon execution.",
+      "authors": [
+        "Zitai Huang",
+        "Taiyi Su",
+        "Jian Zhu",
+        "Jianjun Zhang",
+        "Chong Ma",
+        "Tianbin Liu",
+        "Weiyi Lu",
+        "Yi Xu",
+        "Hanli Wang"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "cs.AI"
+      ],
+      "published": "2026-09-17T09:48:33+00:00",
+      "link": "https://arxiv.org/pdf/2609.19974v1",
+      "tags": [
+        "keyword:VLA-WM",
+        "keyword:gen-imit",
+        "keyword:rmgp",
+        "keyword:world-model",
+        "query:VLA-WM",
+        "query:gen-imit",
+        "query:rmgp",
+        "query:world-model"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "long-horizon robot manipulation with visuomotor control and task planning",
+      "llm_evidence_cn": "长时程机器人操作，含视觉运动控制与任务规划",
+      "llm_evidence": "长时程机器人操作，含视觉运动控制与任务规划",
+      "canonical_evidence": "长时程机器人操作，含视觉运动控制与任务规划",
+      "llm_tldr_en": "Long-horizon manipulation with identical-looking objects needs instance tracking and progress assessment. MaskHarness-WAM links high-level planning to low-level policies via target masks, improving reliable staged execution.",
+      "llm_tldr_cn": "针对长时程机器人操作中多个物体外观相同、需按固定顺序操作时，局部操作策略难以判断该操作哪个实例以及何时切换阶段的问题，作者提出MaskHarness-WAM实例接地驾驭框架，用目标掩码把高层任务规划与底层操作策略连接起来，实现持续目标跟踪与任务进度评估。实验表明该方法能在长时程多阶段操作中稳定选择正确实例并可靠推进任务，为复杂顺序操作提供了规划与控制的衔接方案。",
+      "llm_tldr": "针对长时程机器人操作中多个物体外观相同、需按固定顺序操作时，局部操作策略难以判断该操作哪个实例以及何时切换阶段的问题，作者提出MaskHarness-WAM实例接地驾驭框架，用目标掩码把高层任务规划与底层操作策略连接起来，实现持续目标跟踪与任务进度评估。实验表明该方法能在长时程多阶段操作中稳定选择正确实例并可靠推进任务，为复杂顺序操作提供了规划与控制的衔接方案。",
+      "llm_tags": [
+        "query:rmgp"
+      ],
+      "matched_query_tag": "query:rmgp",
+      "matched_query_text": "robotic manipulation",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.19846v1",
+      "source": "arxiv",
+      "title": "Improving Cross-embodiment Transfer in Latent Action Models with Action-Similarity Supervision",
+      "abstract": "As generalist robot policies gain vision and language from web-scale pretraining, demonstrations remain costly to collect and tied to the robot that recorded them. Latent action models (LAMs) address both by learning latent actions from action-free videos that can be shared across embodiments, however, in practice, LAMs are sensitive to background visual noise, and the same motion from two different robots may be encoded with different latents. One solution to the background visual noise is to add an auxiliary loss predicting the robot action from the latent action, further associating the latent action space to the embodiment specific robot action space. We study a different use of the same labels, through action-similarity supervision. The similarity between any two latent actions is trained to match the similarity of the two ground-truth robot action sequences. The ground-truth actions are never predicted by the LAM, so the latent action does not need to encode embodiment specifics. We evaluate cross-embodiment transfer on RoboTwin 2.0 in a controlled setup, two bimanual robots demonstrate disjoint task sets, a policy is trained on all the demonstrations, and each robot is evaluated closed-loop on the tasks only the other demonstrated. With the policy architecture and its hyperparameters, the dataset, and the evaluation protocol fixed, predicting latent actions instead of ground-truth actions more than doubles cross-embodiment success. Given the same ground-truth actions, similarity supervision transfers better than an auxiliary loss that predicts the ground-truth action during the LAM training. Computing the similarities on end-effector motion rather than joint-space motion, and letting the loss compare latent actions across the two robots, gives the best approach of the study.",
+      "authors": [
+        "Maxime Alvarez",
+        "Renzo Caballero",
+        "Tatsuya Matsushima",
+        "Yusuke Iwasawa",
+        "Yutaka Matsuo"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "cs.AI"
+      ],
+      "published": "2026-09-17T07:55:35+00:00",
+      "link": "https://arxiv.org/pdf/2609.19846v1",
+      "tags": [
+        "keyword:VLA-WM",
+        "keyword:gen-imit",
+        "keyword:rmgp",
+        "keyword:world-model",
+        "query:FewStepGen",
+        "query:VLA-WM",
+        "query:gen-imit",
+        "query:gen-models",
+        "query:rmgp",
+        "query:world-model"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Action-similarity supervision for cross-embodiment latent action models",
+      "llm_evidence_cn": "面向跨本体潜动作模型的动作相似性监督",
+      "llm_evidence": "面向跨本体潜动作模型的动作相似性监督",
+      "canonical_evidence": "面向跨本体潜动作模型的动作相似性监督",
+      "llm_tldr_en": "Introduces action-similarity supervision for latent action models to improve cross-embodiment transfer, making latent action spaces more consistent across robots and robust to background visual noise.",
+      "llm_tldr_cn": "通用机器人策略虽能从网络规模预训练获得视觉与语言能力，但演示数据采集昂贵且与特定机器人绑定。潜动作模型可从无动作视频学习跨本体共享的潜动作，却对背景视觉噪声敏感且同一动作在不同机器人上潜编码不一致。论文提出动作相似性监督，利用相同标签改善跨本体迁移，使潜动作空间更一致，提升潜动作模型的鲁棒性与可迁移性。",
+      "llm_tldr": "通用机器人策略虽能从网络规模预训练获得视觉与语言能力，但演示数据采集昂贵且与特定机器人绑定。潜动作模型可从无动作视频学习跨本体共享的潜动作，却对背景视觉噪声敏感且同一动作在不同机器人上潜编码不一致。论文提出动作相似性监督，利用相同标签改善跨本体迁移，使潜动作空间更一致，提升潜动作模型的鲁棒性与可迁移性。",
+      "llm_tags": [
+        "query:vla-wm"
+      ],
+      "matched_query_tag": "query:vla-wm",
+      "matched_query_text": "latent action model for robot learning",
+      "matched_requirement_id": "req-30",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.20648v1",
+      "source": "arxiv",
+      "title": "SkipVLA: Skipping VLA Steps with Classical Planning for Fast Robot Manipulation",
+      "abstract": "Vision-Language-Action (VLA) models are a class of generalist robot policies that map camera images and language instructions directly to robot actions. While promising, these models remain slow at test time, particularly for long-horizon tasks that require many queries to the policy. Recent efforts reduce VLA latency by distilling smaller models, overlapping asynchronous action chunks, or pairing the VLA with a fast low-level policy, but still run a learned policy for the entire task. In contrast to VLA, classical motion planners quickly find collision-free motions, but require an explicit goal and have no semantic understanding of the task. In this work, we present SkipVLA, a hybrid policy that combines a pretrained VLA with a classical motion planner, using the planner for free-space motion and querying the VLA only for contact-rich skills such as grasping and placing. SkipVLA reuses the frozen vision-language backbone of the VLA to predict a target pose for each planned motion, and learns this predictor without additional demonstrations introduced into the system by using what was already learnt by the large VLA. We evaluate SkipVLA with three VLAs on 13 LIBERO tasks in simulation and three pick-and-place tasks on a physical 6-DoF YAM arm, demonstrating up to 2.5x faster task completion and significantly lower energy consumption while achieving the same task success rate.",
+      "authors": [
+        "Kaivalya Agrawal",
+        "Md Ashiqur Rahman",
+        "Raymond A. Yeh",
+        "Zachary Kingston"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-09-17T16:28:31+00:00",
+      "link": "https://arxiv.org/pdf/2609.20648v1",
+      "tags": [
+        "keyword:FewStepGen",
+        "keyword:VLA-WM",
+        "keyword:gen-imit",
+        "keyword:rmgp",
+        "keyword:world-model",
+        "query:FewStepGen",
+        "query:VLA-WM",
+        "query:gen-imit",
+        "query:gen-models",
+        "query:rmgp",
+        "query:world-model"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Hybrid VLA and classical planner policy for fast long-horizon manipulation",
+      "llm_evidence_cn": "结合VLA与经典规划器的快速长时程操作策略",
+      "llm_evidence": "结合VLA与经典规划器的快速长时程操作策略",
+      "canonical_evidence": "结合VLA与经典规划器的快速长时程操作策略",
+      "llm_tldr_en": "Presents SkipVLA, a hybrid policy combining a pretrained VLA with a classical motion planner to skip redundant VLA steps, reducing latency for long-horizon robot manipulation while preserving task semantics.",
+      "llm_tldr_cn": "视觉-语言-动作模型能将图像与语言直接映射为机器人动作，但测试时推理缓慢，长时程任务需多次查询策略。论文提出SkipVLA混合策略，将预训练VLA与经典运动规划器结合，用经典规划快速找到无碰撞运动并跳过部分VLA步骤。该方法在保持任务语义理解的同时显著降低VLA延迟，提升长时程机器人操作效率。",
+      "llm_tldr": "视觉-语言-动作模型能将图像与语言直接映射为机器人动作，但测试时推理缓慢，长时程任务需多次查询策略。论文提出SkipVLA混合策略，将预训练VLA与经典运动规划器结合，用经典规划快速找到无碰撞运动并跳过部分VLA步骤。该方法在保持任务语义理解的同时显著降低VLA延迟，提升长时程机器人操作效率。",
+      "llm_tags": [
+        "query:vla-wm"
+      ],
+      "matched_query_tag": "query:vla-wm",
+      "matched_query_text": "vision-language-action model for robot control",
+      "matched_requirement_id": "req-28",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.20659v1",
+      "source": "arxiv",
+      "title": "HIL-UMI: Bringing Human-in-the-Loop Post-Training of Vision-Language-Action Models to Universal Manipulation Interface",
+      "abstract": "Large-scale vision-language-action (VLA) models provide powerful priors for robot manipulation, yet adapting them to a specific deployment remains challenging. Supervised fine-tuning (SFT) on task-specific demonstrations provides a step toward deployment, but faces two persistent limitations: static data provide limited coverage of out-of-distribution states, and standard imitation objectives do not distinguish progressing behavior from less useful data. Interactive post-training can address these limitations, but typically requires repeated policy execution and human intervention on a physical robot. We introduce HIL-UMI, a policy-guided Universal Manipulation Interface (UMI) framework for robot-free human-in-the-loop VLA post-training. During handheld UMI demonstrations, HIL-UMI queries the current policy on the same observation stream without executing its predictions. The Energy Score compares the human action trajectory with policy inference and triggers collection when their discrepancy indicates an out-of-distribution region. In a separate feedback loop, low online advantage predictions identify essential segments for refining a progress-based advantage estimator. The updated estimator then guides advantage-conditioned behavioral cloning using a balanced mixture of base demonstrations and new policy data. This design preserves the iterative and policy-aware nature of human-in-the-loop learning while decoupling data collection from robot deployment. Experiments on four real-world tasks spanning long-horizon and precise manipulation show that HIL-UMI achieves consistent improvement over SFT and benefits from both targeted collection and advantage refinement. Moreover, HIL-UMI outperforms HG-DAgger on Clean Up Table with lower per-frame collection time, suggesting a scalable path for VLA post-training across operators and locations.",
+      "authors": [
+        "Zimu Han",
+        "Yiming Zeng",
+        "Jiyao Zhang",
+        "Zihao Zhao",
+        "Yuanfei Wang",
+        "Yixiang Jin",
+        "Shiqi Li",
+        "Shuangben Chen",
+        "Wei Huang",
+        "Ruodai Li",
+        "Hui Shen",
+        "Hao Dong"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "cs.AI"
+      ],
+      "published": "2026-09-17T16:38:37+00:00",
+      "link": "https://arxiv.org/pdf/2609.20659v1",
+      "tags": [
+        "keyword:VLA-WM",
+        "keyword:gen-imit",
+        "keyword:rmgp",
+        "keyword:world-model",
+        "query:FewStepGen",
+        "query:VLA-WM",
+        "query:gen-imit",
+        "query:gen-models",
+        "query:rmgp",
+        "query:world-model"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "human-in-the-loop post-training of VLA models for robot manipulation",
+      "llm_evidence_cn": "面向机器人操作的VLA模型人在回路后训练",
+      "llm_evidence": "面向机器人操作的VLA模型人在回路后训练",
+      "canonical_evidence": "面向机器人操作的VLA模型人在回路后训练",
+      "llm_tldr_en": "HIL-UMI brings human-in-the-loop post-training of vision-language-action models to the Universal Manipulation Interface, enabling robot-free interactive adaptation that improves coverage of out-of-distribution states for manipulation.",
+      "llm_tldr_cn": "针对视觉-语言-动作模型在特定部署中适应困难、静态示教难以覆盖分布外状态的问题，本文提出HIL-UMI框架，将人在回路后训练引入通用操作接口，实现无需真实机器人的策略引导交互式后训练。该方法通过策略引导采集与人类修正数据，区分有效进展行为与低质量数据，缓解监督微调的局限。实验表明其能提升VLA在操作任务中的鲁棒性与数据效率，为机器人操作策略的低成本迭代部署提供可行路径。",
+      "llm_tldr": "针对视觉-语言-动作模型在特定部署中适应困难、静态示教难以覆盖分布外状态的问题，本文提出HIL-UMI框架，将人在回路后训练引入通用操作接口，实现无需真实机器人的策略引导交互式后训练。该方法通过策略引导采集与人类修正数据，区分有效进展行为与低质量数据，缓解监督微调的局限。实验表明其能提升VLA在操作任务中的鲁棒性与数据效率，为机器人操作策略的低成本迭代部署提供可行路径。",
+      "llm_tags": [
+        "query:vla-wm"
+      ],
+      "matched_query_tag": "query:vla-wm",
+      "matched_query_text": "vision-language-action model for robot control",
+      "matched_requirement_id": "req-28",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2609.13851v1",
+      "source": "arxiv",
+      "title": "ReWeight: Leveraging Human Data for VLA Post-Training via Demonstration Retrieval and Sample Weighting",
+      "abstract": "Post-training vision-language-action (VLA) models for specific robots and tasks requires in-domain demonstrations, yet collecting diverse robot data is costly. Egocentric human demonstrations provide a scalable alternative, but directly mixing human and robot data can introduce cross-embodiment discrepancies and degrade policy performance. To address this challenge, we introduce ReWeight, a framework that incorporates human data into VLA post-training through demonstration-level retrieval and sample-level weighting. ReWeight learns a cross-embodiment visuomotor representation that combines visual observations with future actions to measure behavioral similarity between human and robot demonstrations. Based on optimal transport, it retrieves human demonstrations relevant to the target robot data and assigns larger weights to samples with smaller cross-embodiment discrepancies. We evaluate ReWeight using $π_{0.5}$ across eight simulation tasks and four real-world tasks under both clean and randomized settings. In simulation, ReWeight improves the average success rate of post-trained $π_{0.5}$ from 39% with only robot data and 44% with randomly mixed human-robot data to 57%. In the physical experimental setting, it achieves an average success rate of 68.8%, outperforming the baselines by 28.8% and 13.8%, respectively. Overall, ReWeight provides an effective paradigm for transforming abundant egocentric human experience into transferable supervision for robot learning. (Project webpage: https://reweight-vla.github.io/)",
+      "authors": [
+        "Chenwei Wang",
+        "Dianye Huang",
+        "Match W. L. Ko",
+        "Chenjia Bai",
+        "Zhongliang Jiang"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "cs.AI"
+      ],
+      "published": "2026-09-12T10:09:06+00:00",
+      "link": "https://arxiv.org/pdf/2609.13851v1",
+      "tags": [
+        "keyword:FewStepGen",
+        "keyword:VLA-WM",
+        "keyword:gen-imit",
+        "keyword:rmgp",
+        "keyword:world-model",
+        "query:FewStepGen",
+        "query:VLA-WM",
+        "query:gen-imit",
+        "query:gen-models",
+        "query:rmgp",
+        "query:world-model"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "VLA post-training with human demonstrations and visuomotor representation",
+      "llm_evidence_cn": "利用人类示范的VLA后训练与视运动表征",
+      "llm_evidence": "利用人类示范的VLA后训练与视运动表征",
+      "canonical_evidence": "利用人类示范的VLA后训练与视运动表征",
+      "llm_tldr_en": "Post-training VLA models needs costly in-domain robot data, but mixing egocentric human data causes cross-embodiment gaps. ReWeight retrieves demonstrations and weights samples via a cross-embodiment visuomotor representation predicting future actions, enabling scalable VLA post-training.",
+      "llm_tldr_cn": "为特定机器人与任务后训练视觉-语言-动作模型需要大量域内示范，而采集机器人数据代价高昂；直接混入第一视角人类数据又会带来跨本体差异并损害策略性能。本文提出ReWeight框架，学习一种结合视觉观测与未来动作的跨本体视运动表征，据此度量人类与机器人示范的行为相似度，并进行示范级检索与样本级加权。该方法使人类数据可规模化地用于VLA后训练，缓解跨本体差距。",
+      "llm_tldr": "为特定机器人与任务后训练视觉-语言-动作模型需要大量域内示范，而采集机器人数据代价高昂；直接混入第一视角人类数据又会带来跨本体差异并损害策略性能。本文提出ReWeight框架，学习一种结合视觉观测与未来动作的跨本体视运动表征，据此度量人类与机器人示范的行为相似度，并进行示范级检索与样本级加权。该方法使人类数据可规模化地用于VLA后训练，缓解跨本体差距。",
+      "llm_tags": [
+        "query:vla-wm"
+      ],
+      "matched_query_tag": "query:vla-wm",
+      "matched_query_text": "vision-language-action model for robot control",
+      "matched_requirement_id": "req-28",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2609.13679v1",
+      "source": "arxiv",
+      "title": "How to Better Train VLAs: Lessons Learned From the REAL-I Challenge at ICRA 2026",
+      "abstract": "How can robot policies learn more effectively from a fixed demonstration budget? The first Real-world Embodied AI Learning (REAL-I) Challenge at ICRA 2026 examined this question through simulation, real-robot evaluation, and an on-site final on a shared dual-arm humanoid platform. We describe the challenge tasks, data and deployment interfaces, and competition results, then compare the approaches contributed by NUS-CLEAR, RCL-Lab, and Deeptouch.ai. Their systems combined pretrained vision-language-action models and task-specific imitation policies with different strategies for data curation, staged adaptation, checkpoint selection, and action-space design. The team reports highlight the importance of adapting to the deployment environment while retaining prior capabilities, treating demonstration quality at an appropriate temporal scale, and suppressing errors in inactive robot components. They also expose the limitations of offline action-prediction metrics for forecasting closed-loop success. These observations motivate a view of fixed-data robot learning that integrates data, adaptation, evaluation, and deployment.",
+      "authors": [
+        "Jiaming Wang",
+        "Jizhuo Chen",
+        "Diwen Liu",
+        "Wang Song",
+        "Qiang Wang",
+        "Jie Ren",
+        "Chao Fu",
+        "Dingkun Zhu",
+        "Minchi Ruan",
+        "Hongtong Li",
+        "Yuhua Jiang",
+        "Zhiwei Xue",
+        "Yongping Pan",
+        "Harold Soh"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-09-12T03:12:46+00:00",
+      "link": "https://arxiv.org/pdf/2609.13679v1",
+      "tags": [
+        "keyword:VLA-WM",
+        "keyword:gen-imit",
+        "keyword:rmgp",
+        "keyword:world-model",
+        "query:VLA-WM",
+        "query:gen-imit",
+        "query:rmgp",
+        "query:world-model"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "training vision-language-action models and imitation policies",
+      "llm_evidence_cn": "视觉-语言-动作模型与模仿策略的训练",
+      "llm_evidence": "视觉-语言-动作模型与模仿策略的训练",
+      "canonical_evidence": "视觉-语言-动作模型与模仿策略的训练",
+      "llm_tldr_en": "The REAL-I Challenge studied how robot policies learn best from a fixed demonstration budget. It compares systems combining pretrained vision-language-action models with task-specific imitation policies, varying data curation, adaptation and action-space design. The reports stress adapting to deployment environments.",
+      "llm_tldr_cn": "该文围绕如何在固定演示预算下更有效地训练机器人策略这一问题，介绍了ICRA 2026首届真实世界具身智能学习挑战赛的任务、数据与部署接口及比赛结果。参赛系统将预训练视觉-语言-动作模型与任务专用模仿策略结合，并在数据筛选、分阶段适配、检查点选择与动作空间设计上采用不同策略。团队报告强调了适配部署环境的重要性，为VLA模型训练与模仿策略实践提供了经验性指导。",
+      "llm_tldr": "该文围绕如何在固定演示预算下更有效地训练机器人策略这一问题，介绍了ICRA 2026首届真实世界具身智能学习挑战赛的任务、数据与部署接口及比赛结果。参赛系统将预训练视觉-语言-动作模型与任务专用模仿策略结合，并在数据筛选、分阶段适配、检查点选择与动作空间设计上采用不同策略。团队报告强调了适配部署环境的重要性，为VLA模型训练与模仿策略实践提供了经验性指导。",
+      "llm_tags": [
+        "query:vla-wm"
+      ],
+      "matched_query_tag": "query:vla-wm",
+      "matched_query_text": "vision-language-action model for robot control",
+      "matched_requirement_id": "req-28",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.16864v1",
+      "source": "arxiv",
+      "title": "TEMPO: Learning Temporal Context for Dynamic Robot Manipulation",
+      "abstract": "Vision-language-action (VLA) models have achieved impressive performance in quasi-static manipulation, but struggle in dynamic manipulation tasks because they operate on a single observation at inference time. We identify two representational failures that underlie this limitation. The first is motion ambiguity, where a single observation does not include scene dynamics and therefore cannot anticipate the future state of moving objects. The second is state aliasing, where visually similar observations from different points in a task require different actions. We argue that these failures persist regardless of model scale and inference latency, showing that the bottleneck is missing temporal context rather than model capacity. Based on this insight, we propose TEMPO, which augments a pretrained VLA with two temporal inputs: a motion summary extracted from a frozen video foundation model to resolve motion ambiguity and a compact proprioceptive history to resolve state aliasing. TEMPO requires no modification to the backbone and adds minimal compute overhead at training or deployment. Across four dynamic manipulation tasks, it improves Bottle Handover success from 44% to 74% and is the only method that solves state aliasing. Probing and ablation studies confirm that each temporal signal independently addresses its corresponding failure. We further release TEMPO-Bench, a benchmark of over 50k annotated frames for evaluating motion-aware robot perception in both regression and multiple-choice formats.   Project Website: https://tempo-robot.github.io/",
+      "authors": [
+        "Zhenyang Feng",
+        "Jimin Heo",
+        "Erik B. Sudderth",
+        "Unnat Jain"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "cs.CV",
+        "cs.LG"
+      ],
+      "published": "2026-09-15T08:56:52+00:00",
+      "link": "https://arxiv.org/pdf/2609.16864v1",
+      "tags": [
+        "keyword:VLA-WM",
+        "keyword:gen-imit",
+        "keyword:rmgp",
+        "keyword:world-model",
+        "query:FewStepGen",
+        "query:VLA-WM",
+        "query:gen-imit",
+        "query:gen-models",
+        "query:rmgp",
+        "query:world-model"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "VLA model with temporal context for dynamic manipulation",
+      "llm_evidence_cn": "为动态操作引入时间上下文的VLA模型",
+      "llm_evidence": "为动态操作引入时间上下文的VLA模型",
+      "canonical_evidence": "为动态操作引入时间上下文的VLA模型",
+      "llm_tldr_en": "Vision-language-action models fail at dynamic manipulation because they use a single observation, causing motion ambiguity and state aliasing. TEMPO learns temporal context to anticipate moving-object futures, improving dynamic robot manipulation beyond what scale or lower latency can fix.",
+      "llm_tldr_cn": "针对视觉语言动作模型在动态操作中因仅依赖单帧观测而失败的问题，本文指出其根源是运动模糊与状态混叠两类表示缺陷，并强调仅靠扩大模型规模或降低推理延迟无法解决。为此提出TEMPO，通过学习时间上下文来预测运动物体的未来状态、区分视觉相似但阶段不同的观测。该方法提升了动态操作任务的执行能力，表明时间上下文而非模型容量才是关键瓶颈，为VLA在动态场景中的建模提供了新方向。",
+      "llm_tldr": "针对视觉语言动作模型在动态操作中因仅依赖单帧观测而失败的问题，本文指出其根源是运动模糊与状态混叠两类表示缺陷，并强调仅靠扩大模型规模或降低推理延迟无法解决。为此提出TEMPO，通过学习时间上下文来预测运动物体的未来状态、区分视觉相似但阶段不同的观测。该方法提升了动态操作任务的执行能力，表明时间上下文而非模型容量才是关键瓶颈，为VLA在动态场景中的建模提供了新方向。",
+      "llm_tags": [
+        "query:vla-wm"
+      ],
+      "matched_query_tag": "query:vla-wm",
+      "matched_query_text": "vision-language-action model for robot control",
+      "matched_requirement_id": "req-28",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2609.16222v1",
+      "source": "arxiv",
+      "title": "How I learned to stop worrying and love StopGrads: Stationarity, Convergence, and a case study on Flow Map Learning",
+      "abstract": "Stopgrads are widely used in training machine learning models, but stopgrads can alter the gradient, stationary points and convergence guarantees of the original objective, which can make stopgrad training theoretically ungrounded. We introduce a stopgrad regression principle, which identifies a general template for stopgrad objectives with a closed-form characterization of stationary points and their uniqueness, unifying stopgrad objectives for flow maps, reinforcement learning, and diffusion samplers. We provide theoretical grounding for optimizing stopgrad flow map objectives by showing their unique stationary point is the true flow map, and showing positive convergence results for Eulerian and Lagrangian objectives, including MeanFlow and improved MeanFlow. Remarkably, we show that under functional semi-gradient flow, the learned flow map has a closed-form expression composing the initial flow map and the true flow map. We additionally use our stopgrad regression principle to propose modified stopgrad placements for flow map objectives which reduce training memory by 2x.",
+      "authors": [
+        "Max W. Shen",
+        "Mark Goldstein",
+        "Zichu Wang",
+        "Aahlad Puli",
+        "Rajesh Ranganath"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-09-14T18:51:55+00:00",
+      "link": "https://arxiv.org/pdf/2609.16222v1",
+      "tags": [
+        "keyword:FewStepGen",
+        "keyword:gen-imit",
+        "keyword:gen-models",
+        "keyword:rmgp",
+        "keyword:world-model",
+        "query:FewStepGen",
+        "query:gen-imit",
+        "query:gen-models",
+        "query:rmgp",
+        "query:world-model"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "theory unifying stopgrad objectives for flow maps and diffusion samplers",
+      "llm_evidence_cn": "统一流映射与扩散采样器停止梯度目标的理论",
+      "llm_evidence": "统一流映射与扩散采样器停止梯度目标的理论",
+      "canonical_evidence": "统一流映射与扩散采样器停止梯度目标的理论",
+      "llm_tldr_en": "This paper introduces a stopgrad regression principle giving closed-form stationary points and convergence results, unifying stopgrad objectives for flow maps, RL and diffusion samplers.",
+      "llm_tldr_cn": "针对停止梯度训练会改变梯度与收敛性、缺乏理论依据的问题，本文提出停止梯度回归原理。该原理给出停止梯度目标的通用模板、驻点闭式刻画及其唯一性，统一了流映射、强化学习与扩散采样器中的停止梯度目标，并证明流映射目标的唯一驻点即真实流映射。这为流匹配与扩散模型的加速训练提供了理论支撑。",
+      "llm_tldr": "针对停止梯度训练会改变梯度与收敛性、缺乏理论依据的问题，本文提出停止梯度回归原理。该原理给出停止梯度目标的通用模板、驻点闭式刻画及其唯一性，统一了流映射、强化学习与扩散采样器中的停止梯度目标，并证明流映射目标的唯一驻点即真实流映射。这为流匹配与扩散模型的加速训练提供了理论支撑。",
+      "llm_tags": [
+        "query:gen-models"
+      ],
+      "matched_query_tag": "query:gen-models",
+      "matched_query_text": "What is the unified theory connecting diffusion models, probability flow ODE, and flow matching?",
+      "matched_requirement_id": "req-44",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.17691v1",
+      "source": "arxiv",
+      "title": "Accelerating Diffusion Sampling via Speculative Draft Trees",
+      "abstract": "Speculative sampling accelerates diffusion model generation by drafting inexpensive candidate states and correcting them under a coupling that preserves the target distribution exactly, reducing the number of expensive target evaluations. Existing diffusion samplers, notably those based on reflection maximal coupling, are topologically constrained: their lookahead drafts form a chain graph, a single linear sequence, which inherently limits the acceptance rate per target evaluation. We connect speculative sampling in diffusion models to relative entropy coding (REC). This perspective shows the lookahead need not be linear and motivates our central contribution, draft trees, which enrich the candidates considered per round and lower the target function evaluations. We further adopt greedy rejection sampling, an REC algorithm, as the draft-target coupling, improving acceptance while guaranteeing exact target samples. Experiments across diverse target and draft models demonstrate up to 8.3% acceleration over the reflection coupling baseline in practical settings.",
+      "authors": [
+        "Marcello Bullo",
+        "Yanxiao Liu",
+        "Öykü Sıla Güner",
+        "Arpan Mukherjee",
+        "Deniz Gündüz"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI",
+        "stat.AP"
+      ],
+      "published": "2026-09-15T18:04:10+00:00",
+      "link": "https://arxiv.org/pdf/2609.17691v1",
+      "tags": [
+        "keyword:FewStepGen",
+        "keyword:gen-imit",
+        "keyword:gen-models",
+        "keyword:pol-vision",
+        "keyword:rmgp",
+        "query:FewStepGen",
+        "query:gen-models",
+        "query:pol-vision",
+        "query:rmgp",
+        "query:world-model"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Accelerating diffusion sampling by reducing target function evaluations",
+      "llm_evidence_cn": "通过减少目标函数评估加速扩散采样",
+      "llm_evidence": "通过减少目标函数评估加速扩散采样",
+      "canonical_evidence": "通过减少目标函数评估加速扩散采样",
+      "llm_tldr_en": "Speculative sampling accelerates diffusion generation but existing reflection-coupling drafts form a linear chain, limiting acceptance. This paper links speculative diffusion sampling to relative entropy coding and introduces draft trees to lower target evaluations.",
+      "llm_tldr_cn": "扩散模型生成需要大量昂贵的目标函数评估，推测采样通过廉价草稿加精确校正来减少评估次数，但现有基于反射极大耦合的方法拓扑受限，其前瞻草稿构成线性链，限制了每轮接受率。本文将扩散推测采样与相对熵编码联系起来，指出前瞻不必是线性的，进而提出草稿树机制以丰富每轮候选并降低目标函数评估次数。该工作为扩散采样加速提供了新的树形候选构造思路，属于少步/低NFE生成的加速方法范畴。",
+      "llm_tldr": "扩散模型生成需要大量昂贵的目标函数评估，推测采样通过廉价草稿加精确校正来减少评估次数，但现有基于反射极大耦合的方法拓扑受限，其前瞻草稿构成线性链，限制了每轮接受率。本文将扩散推测采样与相对熵编码联系起来，指出前瞻不必是线性的，进而提出草稿树机制以丰富每轮候选并降低目标函数评估次数。该工作为扩散采样加速提供了新的树形候选构造思路，属于少步/低NFE生成的加速方法范畴。",
+      "llm_tags": [
+        "query:gen-models"
+      ],
+      "matched_query_tag": "query:gen-models",
+      "matched_query_text": "reducing NFE acceleration methods such as distillation and trajectory optimization for diffusion models",
+      "matched_requirement_id": "req-42",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2609.16696v1",
+      "source": "arxiv",
+      "title": "IL-ACT: Imitation Learning with Adaptive Cartesian Tracking Control for a 30-ton Excavator",
+      "abstract": "Autonomous excavator control is challenged by coupled kinematics, actuation lag, and uncertainty. We propose imitation learning and adaptive Cartesian tracking (IL-ACT), a novel motion control framework for a 30-ton-class excavator. An anchored, 14-input imitation policy pretrained on operator demonstrations generates nominal joint rates; adaptive Cartesian feedback and gated gain/bias estimation correct these commands before a stopping-distance governor constrains joint-reference generation. Simscape evaluation covers 100 sequential goals and spiral, figure-eight, and rounded-raster tracking, including 88 additional runs across three training seeds, two initializations, and speeds, under hydraulic response and sensing conditions. Compared with Teacher+ACT, IL-ACT completes all goals with shorter duration and lower terminal errors under both response conditions. Telemetry-initialized IL-ACT lowers RMSE in all 24 figure-eight and rounded-raster seed comparisons and lowers additional-load spiral mean RMSE by approximately 29%. Original spiral RMSE also improves over IL-only and PID. Under a shared sensor-noise realization, telemetry-initialized IL-ACT achieves 27.67% lower mean RMSE than Teacher+ACT; enabling estimation reduces mean RMSE by $22.44\\%$ relative to the frozen estimator. Pretrained-weight effects remain mixed, and the original teacher comparison exhibits a spiral RMSE--maximum-error tradeoff. Analysis establishes bounded adaptive states and Cartesian feedback, with reference admissibility conditional on governor feasibility.",
+      "authors": [
+        "Mehdi Heydari Shahna",
+        "Seihun Kim",
+        "Soyi Jung",
+        "Soohyun Park",
+        "Jouni Mattila",
+        "Joongheon Kim"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-09-15T06:22:10+00:00",
+      "link": "https://arxiv.org/pdf/2609.16696v1",
+      "tags": [
+        "keyword:gen-imit",
+        "keyword:rmgp"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "imitation learning from operator demonstrations for excavator control",
+      "llm_evidence_cn": "基于操作员示教的挖掘机模仿学习控制",
+      "llm_evidence": "基于操作员示教的挖掘机模仿学习控制",
+      "canonical_evidence": "基于操作员示教的挖掘机模仿学习控制",
+      "llm_tldr_en": "Autonomous excavator control suffers from coupled kinematics and actuation lag. IL-ACT uses an imitation policy pretrained on operator demos plus adaptive Cartesian feedback and gain estimation to track trajectories robustly.",
+      "llm_tldr_cn": "针对30吨级挖掘机自主控制中运动学耦合、执行滞后与不确定性带来的困难，作者提出模仿学习与自适应笛卡尔跟踪控制IL-ACT，用基于操作员示教预训练的14输入模仿策略生成标称关节速率，再由自适应笛卡尔反馈和门控增益偏置估计进行修正。Simscape评估覆盖100个序列目标及螺旋、八字、栅格轨迹等多种工况，表明该框架在液压响应和传感条件下仍能稳定跟踪。",
+      "llm_tldr": "针对30吨级挖掘机自主控制中运动学耦合、执行滞后与不确定性带来的困难，作者提出模仿学习与自适应笛卡尔跟踪控制IL-ACT，用基于操作员示教预训练的14输入模仿策略生成标称关节速率，再由自适应笛卡尔反馈和门控增益偏置估计进行修正。Simscape评估覆盖100个序列目标及螺旋、八字、栅格轨迹等多种工况，表明该框架在液压响应和传感条件下仍能稳定跟踪。",
+      "llm_tags": [
+        "query:gen-imit"
+      ],
+      "matched_query_tag": "query:gen-imit",
+      "matched_query_text": "robot imitation learning from demonstrations",
+      "matched_requirement_id": "req-9",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.17901v1",
+      "source": "arxiv",
+      "title": "Walking the Score Manifold: Continuous-time Generative Dynamics on Learned Data Manifolds",
+      "abstract": "Generative modeling of time-dependent data is typically formulated on a discrete temporal grid, restricting supervision to the observed timestamps in the training data. We instead frame generation as continuous-time evolution on a learned data manifold. To this end, we leverage pretrained score-based models as geometric priors and learn a vector field that evolves data along score-induced interpolation paths. Because these dynamics follow transitions that respect the geometry learned by the score model, they support generation at arbitrary timestamps and temporal super-resolution beyond the discretization of the training data. Moreover, this geometric formulation allows us to train the vector field simulation-free through a regression objective. To improve long-horizon rollout robustness, we introduce an objective that promotes path-relative transverse exponential stability. While motivated by stability theory, it admits a practical interpretation as denoising score matching transverse to the interpolation path. Further, we extend the framework to a probabilistic setting that models a distribution over plausible future trajectories. We demonstrate the method on natural video and scientific dynamical data, including temporal super-resolution, PDE-based spatiotemporal fields, and molecular dynamics. Our results show that score-based priors provide a strong foundation for learning stochastic continuous-time generative dynamics.",
+      "authors": [
+        "Jan Tauberschmidt",
+        "Brian B. Moser",
+        "Stanislav Frolov",
+        "Andreas Dengel",
+        "Andrew B. Duncan",
+        "Sebastian J. Vollmer"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-09-15T22:42:24+00:00",
+      "link": "https://arxiv.org/pdf/2609.17901v1",
+      "tags": [
+        "keyword:FewStepGen",
+        "keyword:gen-imit",
+        "keyword:gen-models",
+        "keyword:pol-vision",
+        "keyword:world-model",
+        "query:FewStepGen",
+        "query:VLA-WM",
+        "query:gen-imit",
+        "query:gen-models",
+        "query:pol-vision",
+        "query:rmgp",
+        "query:world-model"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "continuous-time generative dynamics using pretrained score models",
+      "llm_evidence_cn": "基于预训练分数模型的连续时间生成动力学",
+      "llm_evidence": "基于预训练分数模型的连续时间生成动力学",
+      "canonical_evidence": "基于预训练分数模型的连续时间生成动力学",
+      "llm_tldr_en": "This paper frames generation as continuous-time evolution on a learned data manifold, using pretrained score models as geometric priors and learning a vector field along score-induced paths, enabling arbitrary-timestamp generation and temporal super-resolution.",
+      "llm_tldr_cn": "时变数据的生成建模通常在离散时间网格上进行，监督信号局限于训练数据中观测到的时间戳。本文将生成视为学习数据流形上的连续时间演化，利用预训练分数模型作为几何先验，学习沿分数诱导插值路径演化数据的向量场。该几何化表述支持任意时间戳生成与超出训练离散化的时间超分辨率，并可仿真无关地通过回归训练向量场，为连续时间生成建模提供新思路。",
+      "llm_tldr": "时变数据的生成建模通常在离散时间网格上进行，监督信号局限于训练数据中观测到的时间戳。本文将生成视为学习数据流形上的连续时间演化，利用预训练分数模型作为几何先验，学习沿分数诱导插值路径演化数据的向量场。该几何化表述支持任意时间戳生成与超出训练离散化的时间超分辨率，并可仿真无关地通过回归训练向量场，为连续时间生成建模提供新思路。",
+      "llm_tags": [
+        "query:gen-models"
+      ],
+      "matched_query_tag": "query:gen-models",
+      "matched_query_text": "score matching and Langevin dynamics for score-based generative models",
+      "matched_requirement_id": "req-38",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2609.17033v1",
+      "source": "arxiv",
+      "title": "One-Step Generative CSI Prediction",
+      "abstract": "Channel state information (CSI) prediction has emerged as a promising approach for mitigating channel aging in wireless communication systems. Recently, generative models have been employed to develop CSI prediction frameworks capable of modeling the uncertainty in future channel realizations. However, the high computational complexity and inference latency of these models remain major obstacles to their practical deployment. To address these challenges, this paper focuses on a class of one-step generative models, namely MeanFlow models, in which inference requires only a single neural function evaluation (NFE), significantly reducing computational cost and latency. To alleviate the difficulty of generating CSI directly from noise, we introduce a channel-informed prior that initializes the generation process from an informative estimate of the future channel rather than pure Gaussian noise. Incorporating this channel-informed prior substantially improves both point prediction accuracy and uncertainty calibration. Furthermore, we compare the proposed MeanFlow-based CSI prediction framework with a recent diffusion-based approach. The results demonstrate that MeanFlow achieves comparable point prediction accuracy while producing better-calibrated CSI predictions with only a single NFE.",
+      "authors": [
+        "Mehdi Sattari",
+        "Javad Aliakbari",
+        "Alexandre Graell i Amat",
+        "Tommy Svensson"
+      ],
+      "primary_category": "eess.SP",
+      "categories": [
+        "eess.SP"
+      ],
+      "published": "2026-09-15T11:40:06+00:00",
+      "link": "https://arxiv.org/pdf/2609.17033v1",
+      "tags": [
+        "keyword:FewStepGen",
+        "keyword:gen-imit",
+        "keyword:gen-models"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "one-step MeanFlow generative model with single NFE",
+      "llm_evidence_cn": "单步MeanFlow生成模型仅需一次NFE",
+      "llm_evidence": "单步MeanFlow生成模型仅需一次NFE",
+      "canonical_evidence": "单步MeanFlow生成模型仅需一次NFE",
+      "llm_tldr_en": "Generative CSI prediction suffers high inference cost. This paper adopts one-step MeanFlow models requiring only a single neural function evaluation, and introduces a channel-informed prior to ease generation from noise, cutting latency for wireless CSI prediction.",
+      "llm_tldr_cn": "针对生成式信道状态信息预测计算复杂度高、推理延迟大的问题，本文采用单步生成模型MeanFlow，其推理仅需一次神经函数评估，从而显著降低计算成本与时延。为缓解直接从噪声生成CSI的困难，作者引入信道先验来初始化生成过程。实验表明该方法在保持预测质量的同时大幅减少推理开销，为单步生成模型在无线通信任务中的应用提供了范例，也印证了MeanFlow类模型的高效性。",
+      "llm_tldr": "针对生成式信道状态信息预测计算复杂度高、推理延迟大的问题，本文采用单步生成模型MeanFlow，其推理仅需一次神经函数评估，从而显著降低计算成本与时延。为缓解直接从噪声生成CSI的困难，作者引入信道先验来初始化生成过程。实验表明该方法在保持预测质量的同时大幅减少推理开销，为单步生成模型在无线通信任务中的应用提供了范例，也印证了MeanFlow类模型的高效性。",
+      "llm_tags": [
+        "query:fewstepgen"
+      ],
+      "matched_query_tag": "query:fewstepgen",
+      "matched_query_text": "MeanFlow generative model with average velocity field",
+      "matched_requirement_id": "req-47",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.18004v1",
+      "source": "arxiv",
+      "title": "Missing Bridges: Composition-Aware Active Imitation Learning",
+      "abstract": "Active imitation learning reduces expert effort by allowing a learner to request the demonstrations it needs. Existing methods typically select these requests for their expected information gain about the expert policy. In structured multi-task domains, however, the number of start-goal tasks may grow combinatorially despite their solutions sharing reusable behavior. This makes composable behaviors especially valuable, since a single demonstration may help solve many tasks at once. Prior methods do not explicitly account for this value when selecting which demonstration to request. We introduce Adaptive Agents via Latent Topologies (AALT), which requests demonstrations that maximize expected gains in start-goal connectivity. We further show that this objective is formally tied to information gain about task reachability. AALT organizes existing demonstrations into a topology of latent hub states connected by learned behaviors, identifies high-value bridge demonstrations that are likely to enable many tasks at once, and grounds each to an expert query. At inference, it plans through the resulting topology and conditions a diffusion policy on each successive hub transition. In a simulated UR5e robot ordered-retrieval domain with 72 tasks, AALT improved from 42/72 to 72/72 (100%) successful tasks consistently using only 3 demonstrations totaling 5 transitions beyond the initial dataset. After 20 demonstrations, the strongest baseline averaged 88.6% success using 98 transitions.",
+      "authors": [
+        "Maxwell J. Jacobson",
+        "Ahmed H Qureshi",
+        "Yexiang Xue"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.RO"
+      ],
+      "published": "2026-09-16T01:48:13+00:00",
+      "link": "https://arxiv.org/pdf/2609.18004v1",
+      "tags": [
+        "keyword:VLA-WM",
+        "keyword:gen-imit",
+        "keyword:rmgp",
+        "keyword:world-model",
+        "query:FewStepGen",
+        "query:VLA-WM",
+        "query:gen-imit",
+        "query:rmgp",
+        "query:world-model"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "active imitation learning selecting informative demonstrations",
+      "llm_evidence_cn": "主动模仿学习，选择信息量大的示教",
+      "llm_evidence": "主动模仿学习，选择信息量大的示教",
+      "canonical_evidence": "主动模仿学习，选择信息量大的示教",
+      "llm_tldr_en": "Active imitation learning can waste queries when multi-task solutions share reusable behavior. AALT requests demonstrations maximizing gains in start-goal connectivity, exploiting composable behaviors to reduce expert effort.",
+      "llm_tldr_cn": "针对结构化多任务域中起始-目标任务数量组合式增长、而解决方案共享可复用行为，现有主动模仿学习仅按对专家策略的信息增益选择示教请求、未考虑行为可组合价值的问题，作者提出自适应潜拓扑智能体AALT，选择能最大化起始-目标连通性期望增益的示教请求。实验表明该目标能显著减少所需示教数量并提升多任务学习效率，为高效主动模仿学习提供了组合感知的请求选择准则。",
+      "llm_tldr": "针对结构化多任务域中起始-目标任务数量组合式增长、而解决方案共享可复用行为，现有主动模仿学习仅按对专家策略的信息增益选择示教请求、未考虑行为可组合价值的问题，作者提出自适应潜拓扑智能体AALT，选择能最大化起始-目标连通性期望增益的示教请求。实验表明该目标能显著减少所需示教数量并提升多任务学习效率，为高效主动模仿学习提供了组合感知的请求选择准则。",
+      "llm_tags": [
+        "query:rmgp"
+      ],
+      "matched_query_tag": "query:rmgp",
+      "matched_query_text": "imitation learning",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2609.18193v1",
+      "source": "arxiv",
+      "title": "WAVE-Go: World-Model Navigation with Adaptive Execution for Wheel-Legged Robots",
+      "abstract": "World models can anticipate the consequences of navigation actions, but predicted action sequences may become invalid during execution, especially when wheel-legged robots encounter dynamic obstacles or change locomotion modes. We propose WAVE-Go, an image-goal navigation framework that separates world-action prediction from interruptible command execution. Its executor adaptively selects an action prefix and cancels pending commands when updated observations invalidate execution. A conditional-risk formulation specifies prefix selection under an estimated cumulative failure budget, while posture and locomotion-mode transitions require clearance, stability, and task-evidence checks. In the reported navigation evaluation, WAVE-Go achieves 74.1% in-distribution success and 63.3% dynamic out-of-distribution success, exceeding the strongest baseline by 4.7 and 7.7 percentage points, respectively, while reducing collisions from 4.4 to 2.9 per 100 m. Compared with interruptible fixed four-command execution, WAVE-Go raises success by 4.0 percentage points while reducing replanning frequency by 51.2% and collision rate by 6.5%. Execution ablations also show that runtime interruption improves success, collision rate, and reaction latency at the cost of additional replanning. These results support adaptive, interruptible execution as a means of balancing navigation performance and planning overhead. Code is available at https://github.com/vigorlee/wave-go.",
+      "authors": [
+        "Mingyi Li",
+        "Ji Li",
+        "Zhihao Ouyang",
+        "Yage He",
+        "Börje F. Karlsson"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-09-16T06:30:50+00:00",
+      "link": "https://arxiv.org/pdf/2609.18193v1",
+      "tags": [
+        "keyword:VLA-WM",
+        "keyword:gen-imit",
+        "keyword:rmgp",
+        "keyword:world-model",
+        "query:VLA-WM",
+        "query:gen-imit",
+        "query:rmgp",
+        "query:world-model"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "world-model action prediction with closed-loop replanning for navigation",
+      "llm_evidence_cn": "世界模型动作预测与闭环重规划导航",
+      "llm_evidence": "世界模型动作预测与闭环重规划导航",
+      "canonical_evidence": "世界模型动作预测与闭环重规划导航",
+      "llm_tldr_en": "WAVE-Go separates world-action prediction from interruptible execution for wheel-legged navigation; a conditional-risk prefix selection cancels stale commands, achieving 74.1% navigation success.",
+      "llm_tldr_cn": "针对轮腿机器人在动态障碍与运动模式切换时世界模型预测的动作序列易在执行中失效的问题，本文提出WAVE-Go图像目标导航框架，将世界-动作预测与可中断指令执行相分离。执行器自适应选择动作前缀，并在新观测使指令失效时取消待执行命令，同时用条件风险公式约束前缀选择。导航评测中达到74.1%成功率，为轮腿机器人闭环导航提供了可控的世界模型执行方案。",
+      "llm_tldr": "针对轮腿机器人在动态障碍与运动模式切换时世界模型预测的动作序列易在执行中失效的问题，本文提出WAVE-Go图像目标导航框架，将世界-动作预测与可中断指令执行相分离。执行器自适应选择动作前缀，并在新观测使指令失效时取消待执行命令，同时用条件风险公式约束前缀选择。导航评测中达到74.1%成功率，为轮腿机器人闭环导航提供了可控的世界模型执行方案。",
+      "llm_tags": [
+        "query:world-model"
+      ],
+      "matched_query_tag": "query:world-model",
+      "matched_query_text": "world model for extended sequence planning and closed-loop replanning",
+      "matched_requirement_id": "req-23",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.18111v1",
+      "source": "arxiv",
+      "title": "A Comprehensive Review of Generative Physical Artificial Intelligence",
+      "abstract": "The integration of large-scale foundation models with physical embodiments has led to significant advancements in robotics known as Generative Physical Artificial Intelligence (GPAI). These agentic AI systems autonomously perceive, reason, and act in complex real-world situations. This survey comprehensively analyzes GPAI systems, focusing on their architectural foundations, current applications, and key limitations. We introduce a taxonomy of five distinct approaches: Robot Foundation Models (RFMs) for cross-platform skill transfer; Vision-Language Action (VLA) models for end-to-end multi-modal perception and control; Large Behavior Models (LBMs) for human-like movement generation; Diffusion Policy Models (DPMs) for diffusion model-based temporally coherent action generation; and World Foundation Models (WFMs) for physics-compliant simulation and data generation. We examine how these approaches complement each other: WFMs generate training data for VLAs and DPMs, RFMs enable cross-platform deployment of learned policies, while LBMs provide motion priors for natural behavior. Through examples across autonomous vehicles, industrial automation, healthcare robotics, and humanoid systems, we identify significant performance improvements and summarize promising research directions in data-efficient learning, sim-to-real transfer, edge-compatible architectures, and safety frameworks. These insights advance embodied AI for IoT-connected environments where intelligent agents interact with networked sensors, actuators, and edge devices.",
+      "authors": [
+        "Satyam Gaba",
+        "Krutiksinh Rana",
+        "Siva Sai",
+        "Vinay Chamola",
+        "Dusit Niyato"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "cs.AI",
+        "cs.CL",
+        "cs.CV",
+        "cs.LG"
+      ],
+      "published": "2026-09-16T04:29:50+00:00",
+      "link": "https://arxiv.org/pdf/2609.18111v1",
+      "tags": [
+        "keyword:FewStepGen",
+        "keyword:VLA-WM",
+        "keyword:gen-imit",
+        "keyword:gen-models",
+        "keyword:rmgp",
+        "keyword:world-model",
+        "query:FewStepGen",
+        "query:VLA-WM",
+        "query:gen-imit",
+        "query:gen-models",
+        "query:rmgp",
+        "query:world-model"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "survey taxonomy covering robot foundation models, VLA models and diffusion policy models",
+      "llm_evidence_cn": "综述分类涵盖机器人基础模型、VLA模型与扩散策略模型",
+      "llm_evidence": "综述分类涵盖机器人基础模型、VLA模型与扩散策略模型",
+      "canonical_evidence": "综述分类涵盖机器人基础模型、VLA模型与扩散策略模型",
+      "llm_tldr_en": "This survey analyzes Generative Physical AI, where foundation models drive embodied robots that perceive, reason and act. It proposes a five-part taxonomy spanning robot foundation models, VLA models, large behavior models and diffusion policy models.",
+      "llm_tldr_cn": "随着大规模基础模型与物理实体结合，生成式物理人工智能成为机器人领域的重要方向，但缺乏系统梳理。本文对GPAI系统进行全面综述，围绕其架构基础、当前应用与关键局限展开，并提出五类方法分类：面向跨平台技能迁移的机器人基础模型、端到端多模态感知控制的视觉语言动作模型、生成类人运动的大行为模型以及基于扩散的时序连贯策略模型等。该综述为理解VLA、扩散策略与世界模型等统一建模路线提供了整体框架与术语体系。",
+      "llm_tldr": "随着大规模基础模型与物理实体结合，生成式物理人工智能成为机器人领域的重要方向，但缺乏系统梳理。本文对GPAI系统进行全面综述，围绕其架构基础、当前应用与关键局限展开，并提出五类方法分类：面向跨平台技能迁移的机器人基础模型、端到端多模态感知控制的视觉语言动作模型、生成类人运动的大行为模型以及基于扩散的时序连贯策略模型等。该综述为理解VLA、扩散策略与世界模型等统一建模路线提供了整体框架与术语体系。",
+      "llm_tags": [
+        "query:vla-wm:composite"
+      ],
+      "matched_query_tag": "query:vla-wm:composite",
+      "matched_query_text": "Papers central to 检索视觉-语言-动作模型与世界动作模型统一建模的机器人基础模型相关论文, especially work that connects or combines: vision-language-action model for robot control; world action model predicting future states and actions; latent action model for robot learning; flow matching action generation continuous robot control; action chunk prediction for robot manipulation; long-horizon task planning with vision-language models; Unified robot foundation model predicting actions and future world states from vision and language; Vision language action models with world prediction and flow matching for generalist robots; Real time multi embodiment VLA models with action chunking and world dynamics forecasting.",
+      "matched_requirement_id": "req-composite-vla-wm",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2609.18488v1",
+      "source": "arxiv",
+      "title": "Beyond Random Couplings: Contrastive Noise Alignment in Generative Flows",
+      "abstract": "Diffusion and flow-matching models are typically trained by corrupting data through independently sampled Gaussian noise. While simple and scalable, this forward process induces arbitrary data-noise couplings, forcing the network to learn high-curvature transports between unrelated endpoints. Existing optimal-transport methods reduce this burden by reassigning fixed noise samples to data, but the source noise distribution itself remains passive. To address this, we introduce Contrastive Noise Alignment (CNA), a training-time method that creates dynamic, contrastive couplings by optimizing the noise representations directly. By modeling the noise batch as an interacting particle system, CNA employs a cross-modal InfoNCE objective to align noise particles with their paired data targets. To prevent spatial collapse, this alignment is regularized using an angular entropy term and a radial norm penalty. We show theoretically that this equilibrium asymptotically preserves Gaussian structures, maintaining tractability during inference. Empirically, CNA improves the alignment between noise and data, reduces flow curvature, and provides better generation quality with fewer required sampling steps. For few-step, pixel-space generation (2-4 NFEs), CNA reduces FID by over 50\\% compared to standard rectified flow, and by at least 24\\% against Optimal Transport baselines.",
+      "authors": [
+        "Lennart Wittke",
+        "Vinicius Azevedo"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.LG"
+      ],
+      "published": "2026-09-16T11:21:31+00:00",
+      "link": "https://arxiv.org/pdf/2609.18488v1",
+      "tags": [
+        "keyword:FewStepGen",
+        "keyword:gen-imit",
+        "keyword:gen-models",
+        "keyword:pol-vision",
+        "keyword:world-model",
+        "query:FewStepGen",
+        "query:gen-imit",
+        "query:gen-models",
+        "query:pol-vision",
+        "query:rmgp",
+        "query:world-model"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "contrastive noise alignment for diffusion and flow-matching training",
+      "llm_evidence_cn": "用于扩散与流匹配训练的对比噪声对齐",
+      "llm_evidence": "用于扩散与流匹配训练的对比噪声对齐",
+      "canonical_evidence": "用于扩散与流匹配训练的对比噪声对齐",
+      "llm_tldr_en": "Diffusion and flow-matching models corrupt data with independent Gaussian noise, inducing arbitrary couplings and high-curvature transports. Contrastive Noise Alignment optimizes noise representations via an InfoNCE objective to form dynamic couplings.",
+      "llm_tldr_cn": "扩散与流匹配模型通常用独立采样的高斯噪声破坏数据，这种前向过程造成任意的数据-噪声耦合，迫使网络学习高曲率的传输路径。现有最优传输方法虽重新分配固定噪声样本，但源噪声分布本身仍是被动的。本文提出对比噪声对齐CNA，将噪声批次建模为相互作用粒子系统，用跨模态InfoNCE目标优化噪声表征形成动态对比耦合。实验表明该方法改善生成流的传输学习，为流匹配训练提供新的耦合设计思路。",
+      "llm_tldr": "扩散与流匹配模型通常用独立采样的高斯噪声破坏数据，这种前向过程造成任意的数据-噪声耦合，迫使网络学习高曲率的传输路径。现有最优传输方法虽重新分配固定噪声样本，但源噪声分布本身仍是被动的。本文提出对比噪声对齐CNA，将噪声批次建模为相互作用粒子系统，用跨模态InfoNCE目标优化噪声表征形成动态对比耦合。实验表明该方法改善生成流的传输学习，为流匹配训练提供新的耦合设计思路。",
+      "llm_tags": [
+        "query:gen-models"
+      ],
+      "matched_query_tag": "query:gen-models",
+      "matched_query_text": "flow matching conditional flow matching and optimal transport path",
+      "matched_requirement_id": "req-39",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.18119v1",
+      "source": "arxiv",
+      "title": "Fetch My Beer: Synthetic-to-real Hierarchical Policy for Smooth Pick-and-place",
+      "abstract": "Many real-world robotic applications require dynamically sensitive manipulation, where success depends not only on reaching a target state but on maintaining stable object dynamics throughout execution. We study the stable transport of liquid-filled containers, where a robot must move objects to target locations while suppressing sloshing and preventing spillage. Unlike conventional pick-and-place, this task imposes stringent requirements on motion smoothness and trajectory-level stability, exposing clear limitations in existing systems. Specifically, fluid simulation remains too costly for online reinforcement learning; human teleoperation introduces unintended accelerations that induce sloshing during imitation learning; and current policy pipelines optimize for task completion rather than dynamic stability. We propose a synthetic-to-real framework coupling physically validated data generation with a hierarchical, diffusion-based controller. The scalable data pipeline synthesizes grasps, filters unstable poses via a vision-language model, and validates transport trajectories through fluid simulation. The policy is organized with a high-level module that translates language and visual observations into SE(3) control targets, and a latent diffusion controller that first plans efficiently in a compact latent space and then decodes dense action chunks, enabling the high control frequency needed for smooth and stable motion. Extensive experiments show our system outperforms state-of-the-art manipulation policies in transport smoothness and dynamic stability. Our project page: https://fetch-my-beer.github.io/",
+      "authors": [
+        "Yingyue Li",
+        "Chenyangguang Zhang",
+        "Ruida Zhang",
+        "Bowen Fu",
+        "Guangyao Zhai",
+        "Xiangyang Ji"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-09-16T04:55:12+00:00",
+      "link": "https://arxiv.org/pdf/2609.18119v1",
+      "tags": [
+        "keyword:FewStepGen",
+        "keyword:VLA-WM",
+        "keyword:gen-imit",
+        "keyword:gen-models",
+        "keyword:rmgp",
+        "keyword:world-model",
+        "query:VLA-WM",
+        "query:gen-imit",
+        "query:rmgp",
+        "query:world-model"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "synthetic-to-real hierarchical manipulation policy for stable pick-and-place",
+      "llm_evidence_cn": "面向稳定抓取放置的合成到现实层级操作策略",
+      "llm_evidence": "面向稳定抓取放置的合成到现实层级操作策略",
+      "canonical_evidence": "面向稳定抓取放置的合成到现实层级操作策略",
+      "llm_tldr_en": "This paper addresses dynamically sensitive manipulation such as transporting liquid-filled containers, where fluid simulation is too costly for online RL and teleoperation introduces sloshing, and proposes a synthetic-to-real hierarchical policy for smooth, stable pick-and-place.",
+      "llm_tldr_cn": "许多真实机器人应用需要动态敏感的操作，成功不仅取决于到达目标状态，还依赖全程维持稳定的物体动力学，例如搬运盛液容器时须抑制晃动、防止溢出。此类任务对运动平滑性与轨迹级稳定性要求严苛，暴露了现有系统的局限：流体仿真对在线强化学习过于昂贵，人类遥操作又会引入诱发晃动的意外加速度。本文提出从仿真到现实的层级策略，实现平滑抓取放置与稳定运输。",
+      "llm_tldr": "许多真实机器人应用需要动态敏感的操作，成功不仅取决于到达目标状态，还依赖全程维持稳定的物体动力学，例如搬运盛液容器时须抑制晃动、防止溢出。此类任务对运动平滑性与轨迹级稳定性要求严苛，暴露了现有系统的局限：流体仿真对在线强化学习过于昂贵，人类遥操作又会引入诱发晃动的意外加速度。本文提出从仿真到现实的层级策略，实现平滑抓取放置与稳定运输。",
+      "llm_tags": [
+        "query:rmgp"
+      ],
+      "matched_query_tag": "query:rmgp",
+      "matched_query_text": "robotic manipulation",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2609.18514v1",
+      "source": "arxiv",
+      "title": "ActiveScale: Scaling Active Perception for Robots across Model, Data, and Hardware",
+      "abstract": "Active perception is essential for robotic manipulation when fixed viewpoints leave task-relevant information occluded or unobserved. However, enabling vision-language-action (VLA) models to reason across changing viewpoints and actively acquire informative observations remains challenging. We present ActiveScale, a framework that advances active perception through coordinated model, data, and hardware designs. Our model augments a VLA with historical video observations and explicit camera-pose supervision, using per-frame pose tokens and a lightweight prediction head to associate observations across viewpoints and support a coherent understanding of the scene. To learn from the camera motion naturally present in human activity, we introduce a scalable human--robot mid-training recipe using 1000 hours of egocentric and robotic data, adapting the model to temporal inputs and pose supervision. We further introduce Active-perception Mobile-manipulation Platform (AMP), a robotic platform that supports active perception and mobile manipulation through single-operator teleoperation, enabling scalable collection of demonstrations that coordinate viewpoint changes and manipulation. Experiments demonstrate improved success rates on active-perception tasks, while ablation studies validate the contributions of camera-pose-aware modeling and egocentric mid-training. Together, these components provide an integrated foundation for studying and developing active perception in robotic manipulation.",
+      "authors": [
+        "Shuai Zhou",
+        "Kaisheng Pang",
+        "Wenxuan Song",
+        "Wenjie Zhang",
+        "Xinhu Zheng",
+        "Haoang Li"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "cs.LG"
+      ],
+      "published": "2026-09-16T11:46:40+00:00",
+      "link": "https://arxiv.org/pdf/2609.18514v1",
+      "tags": [
+        "keyword:VLA-WM",
+        "keyword:gen-imit",
+        "keyword:pol-vision",
+        "keyword:rmgp",
+        "keyword:world-model",
+        "query:FewStepGen",
+        "query:VLA-WM",
+        "query:gen-imit",
+        "query:gen-models",
+        "query:pol-vision",
+        "query:rmgp",
+        "query:world-model"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Scaling active perception for VLA robot manipulation policies",
+      "llm_evidence_cn": "面向VLA机器人操作策略的主动感知扩展",
+      "llm_evidence": "面向VLA机器人操作策略的主动感知扩展",
+      "canonical_evidence": "面向VLA机器人操作策略的主动感知扩展",
+      "llm_tldr_en": "Active perception is vital when fixed viewpoints occlude task-relevant information, yet VLA models struggle to reason across changing viewpoints. ActiveScale augments a VLA with historical video and camera-pose supervision, coordinating model, data, and hardware to acquire informative observations.",
+      "llm_tldr_cn": "当固定视角遮挡任务相关信息时，主动感知对机器人操作至关重要，但让视觉-语言-动作（VLA）模型在变化视角下推理并主动获取信息仍具挑战。本文提出ActiveScale框架，从模型、数据与硬件三方面协同推进主动感知：模型端为VLA加入历史视频观测与显式相机位姿监督，通过逐帧位姿令牌与轻量预测头关联跨视角观测。该工作有望提升VLA在遮挡场景中的场景理解与操作能力，推动主动感知的可扩展部署。",
+      "llm_tldr": "当固定视角遮挡任务相关信息时，主动感知对机器人操作至关重要，但让视觉-语言-动作（VLA）模型在变化视角下推理并主动获取信息仍具挑战。本文提出ActiveScale框架，从模型、数据与硬件三方面协同推进主动感知：模型端为VLA加入历史视频观测与显式相机位姿监督，通过逐帧位姿令牌与轻量预测头关联跨视角观测。该工作有望提升VLA在遮挡场景中的场景理解与操作能力，推动主动感知的可扩展部署。",
+      "llm_tags": [
+        "query:vla-wm"
+      ],
+      "matched_query_tag": "query:vla-wm",
+      "matched_query_text": "vision-language-action model for robot control",
+      "matched_requirement_id": "req-28",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.18164v1",
+      "source": "arxiv",
+      "title": "Energy-Regularized Imitation Learning for Force- and Work-Aware Robotic Manipulation",
+      "abstract": "This paper studies energy-aware manipulation as a physically grounded learning problem. We define a joint-space mechanical-work proxy from joint torque and angular displacement, and train a differentiable energy predictor that estimates this work from robot states and actions. The predictor converts a non-differentiable simulator-side physical quantity into a differentiable regularizer for fine-tuning a pretrained manipulation policy. We instantiate the framework with RVT-2 on RLBench and evaluate 12 manipulation tasks involving object contact, articulated motion, placement, pushing, and sweeping. The proposed fine-tuning reduces the average mechanical work from 208.8J to 204.4J (i.e., 2.1% reduction), while the mean task success rate also increases slightly from 86.2% to 86.9%. These results show that work-aware policy optimization can suppress physically inefficient motion without requiring an explicit differentiable dynamics model.",
+      "authors": [
+        "Toshiki Otani",
+        "Hiromu Taketsugu",
+        "Norimichi Ukita"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "cs.CV"
+      ],
+      "published": "2026-09-16T05:43:28+00:00",
+      "link": "https://arxiv.org/pdf/2609.18164v1",
+      "tags": [
+        "keyword:VLA-WM",
+        "keyword:gen-imit",
+        "keyword:rmgp",
+        "keyword:world-model",
+        "query:FewStepGen",
+        "query:VLA-WM",
+        "query:gen-imit",
+        "query:gen-models",
+        "query:rmgp",
+        "query:world-model"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "imitation learning for force- and work-aware robotic manipulation",
+      "llm_evidence_cn": "面向力与功感知机器人操作的模仿学习",
+      "llm_evidence": "面向力与功感知机器人操作的模仿学习",
+      "canonical_evidence": "面向力与功感知机器人操作的模仿学习",
+      "llm_tldr_en": "Energy-aware manipulation is framed as a physically grounded learning problem. A differentiable work predictor regularizes a pretrained policy, evaluated on 12 RLBench tasks with RVT-2, reducing mechanical work while keeping success.",
+      "llm_tldr_cn": "机器人操作往往忽视能量消耗，缺乏物理意义上的能耗约束。本文把能量感知操作建模为物理驱动的学习问题，从关节力矩与角位移构造机械功代理，训练可微能量预测器并将其作为正则项微调预训练操作策略。在RLBench的12个操作任务上以RVT-2实例化评估，平均机械功由208.8J降至204.4J，同时任务成功率有所提升，为能耗约束下的操作学习提供可行途径。",
+      "llm_tldr": "机器人操作往往忽视能量消耗，缺乏物理意义上的能耗约束。本文把能量感知操作建模为物理驱动的学习问题，从关节力矩与角位移构造机械功代理，训练可微能量预测器并将其作为正则项微调预训练操作策略。在RLBench的12个操作任务上以RVT-2实例化评估，平均机械功由208.8J降至204.4J，同时任务成功率有所提升，为能耗约束下的操作学习提供可行途径。",
+      "llm_tags": [
+        "query:rmgp"
+      ],
+      "matched_query_tag": "query:rmgp",
+      "matched_query_text": "robotic manipulation",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2609.18732v1",
+      "source": "arxiv",
+      "title": "PASSAGE: Scaling Scene-Aligned Motion Learning for Perceptive Humanoid Traversal in Cluttered Environments",
+      "abstract": "Humanoid robots can step over, squeeze past, and duck under obstacles, but learning to select and coordinate these behaviors from onboard perception remains challenging. Many existing approaches rely on task-specific reinforcement-learning objectives or curated motion libraries, making broad behavioral coverage costly. We present PASSAGE, a perception-conditioned planner--tracker framework for humanoid traversal. Using virtual reality and inertial motion capture, we collect 100 h of scene-aligned human motion across 1,500 cluttered scenes. A conditional flow-matching planner generates short-horizon references from motion history, a local destination, and a robot-centric multi-layer elevation map, while a perceptive whole-body tracker executes them at 50 Hz with geometric feedback. Real-time chunking promotes inter-chunk consistency, and planner-side RL post-training under the frozen tracker further improves closed-loop performance. Without skill annotations or obstacle-specific policies, one planner--tracker pair selects and composes traversal behaviors across unseen geometries. In simulation, component ablations quantify the contribution of each stage. Across three independent training seeds, scaling captured data from 6 to 100 h increases mean contact-free success from 48.1% to 68.9% on held-out scenes, while the final model with validated scene augmentation reaches 70.3%. The fully onboard system integrates egocentric 3D LiDAR perception, online occupancy mapping, 6.25 Hz planning, and 50 Hz control on a Jetson AGX Orin; tests across 50 unseen physical layouts demonstrate traversal without prebuilt maps or offboard computation.",
+      "authors": [
+        "Yuxuan Ma",
+        "Zicheng Zeng",
+        "Chunlin Peng",
+        "Zhoujian Li",
+        "Zetong Zhao",
+        "Zhikai Zhang",
+        "Yunrui Lian",
+        "Han Xue",
+        "Sikai Liang",
+        "Weiyi Zhu",
+        "Mulin Chen",
+        "Chenghuai Lin",
+        "Jiayu Zeng",
+        "Yanwei An",
+        "Songan Zhang",
+        "Jiayuan Gu",
+        "Jilong Wang",
+        "Jingbo Wang",
+        "He Wang",
+        "Li Yi"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-09-16T14:30:52+00:00",
+      "link": "https://arxiv.org/pdf/2609.18732v1",
+      "tags": [
+        "keyword:FewStepGen",
+        "keyword:VLA-WM",
+        "keyword:gen-imit",
+        "keyword:gen-models",
+        "keyword:pol-vision",
+        "keyword:rmgp",
+        "keyword:world-model",
+        "query:FewStepGen",
+        "query:VLA-WM",
+        "query:gen-imit",
+        "query:gen-models",
+        "query:pol-vision",
+        "query:rmgp",
+        "query:world-model"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "conditional flow-matching planner for robot motion generation",
+      "llm_evidence_cn": "条件流匹配规划器用于机器人运动生成",
+      "llm_evidence": "条件流匹配规划器用于机器人运动生成",
+      "canonical_evidence": "条件流匹配规划器用于机器人运动生成",
+      "llm_tldr_en": "Humanoid traversal in clutter needs broad behavior coverage without curated motion libraries. PASSAGE learns a conditional flow-matching planner over 100h of scene-aligned motion, generating short-horizon references for a perceptive tracker.",
+      "llm_tldr_cn": "针对人形机器人在杂乱环境中跨越、侧身、低头等行为难以从机载感知中选择与协调、且依赖任务特定RL目标或人工动作库的问题，作者提出PASSAGE感知条件规划-跟踪框架，采集100小时场景对齐人体运动，并用条件流匹配规划器依据运动历史、局部目标和机器人中心多层高程图生成短时参考。实验表明该框架可在大规模杂乱场景中扩展行为覆盖，为感知驱动的人形穿越提供生成式规划方案。",
+      "llm_tldr": "针对人形机器人在杂乱环境中跨越、侧身、低头等行为难以从机载感知中选择与协调、且依赖任务特定RL目标或人工动作库的问题，作者提出PASSAGE感知条件规划-跟踪框架，采集100小时场景对齐人体运动，并用条件流匹配规划器依据运动历史、局部目标和机器人中心多层高程图生成短时参考。实验表明该框架可在大规模杂乱场景中扩展行为覆盖，为感知驱动的人形穿越提供生成式规划方案。",
+      "llm_tags": [
+        "query:gen-imit"
+      ],
+      "matched_query_tag": "query:gen-imit",
+      "matched_query_text": "flow matching generative models for robotics",
+      "matched_requirement_id": "req-12",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.18174v1",
+      "source": "arxiv",
+      "title": "TacBPM: A Tactile-conditioned Behavior Prior Model for Dexterous Reorientation",
+      "abstract": "Dexterous in-hand manipulation requires policies that coordinate high-DoF hand joints through intermittent, contact-rich interaction. Beyond target-orientation tracking, such policies must discover finger gaits that preserve object stability while adapting to geometry, anisotropy, pose, contact, and sensing changes. We propose \\method, a tactile-conditioned behavior prior model for dexterous reorientation. \\method distills multi-scale sphere specialists into a latent controller and lets downstream policies reuse the fixed tactile prior through residual latent actions, reducing renewed exploration from raw joint commands. The prior conditions on tactile-proprioceptive history so latent behavior reflects the current hand-object interaction. We evaluate arbitrary-pose transfer across anisotropic objects, commanded-axis rotation, and an arm-hand Grasp-to-AnyPose task in which the robot must grasp, lift, transport, and reach goal poses for novel tool geometries and generalized placements. Extensive experiments demonstrate that the proposed method accelerates training and enables stable policies where matched raw-action PPO remains near failure, with successful sim-to-real transfer in in-hand and arm-hand tasks.",
+      "authors": [
+        "Jie Yin",
+        "Wanli Xing",
+        "Zeyuan Zhao",
+        "Xuezhou Zhu",
+        "Zhijie Deng",
+        "Kaifeng Zhang"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-09-16T05:58:33+00:00",
+      "link": "https://arxiv.org/pdf/2609.18174v1",
+      "tags": [
+        "keyword:VLA-WM",
+        "keyword:gen-imit",
+        "keyword:rmgp",
+        "keyword:world-model",
+        "query:VLA-WM",
+        "query:gen-imit",
+        "query:rmgp",
+        "query:world-model"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "tactile-conditioned behavior prior model for dexterous in-hand robotic manipulation policies",
+      "llm_evidence_cn": "面向灵巧手内操作的触觉条件行为先验模型",
+      "llm_evidence": "面向灵巧手内操作的触觉条件行为先验模型",
+      "canonical_evidence": "面向灵巧手内操作的触觉条件行为先验模型",
+      "llm_tldr_en": "Dexterous in-hand manipulation needs policies that discover stable finger gaits under contact-rich interaction. TacBPM distills multi-scale sphere specialists into a latent controller, letting downstream policies reuse a tactile prior via residual latent actions.",
+      "llm_tldr_cn": "灵巧手内操作需要协调高自由度手指关节，在间歇、富接触交互中发现既保持物体稳定又适应几何与传感变化的手指步态。本文提出TacBPM，一种触觉条件行为先验模型，将多尺度球面专家策略蒸馏为潜在控制器，使下游策略通过残差潜在动作复用固定触觉先验，减少从原始关节命令的重复探索。该先验以触觉-本体感知历史为条件，使潜在行为反映当前手物交互状态，为富接触灵巧操作提供了可复用的行为先验。",
+      "llm_tldr": "灵巧手内操作需要协调高自由度手指关节，在间歇、富接触交互中发现既保持物体稳定又适应几何与传感变化的手指步态。本文提出TacBPM，一种触觉条件行为先验模型，将多尺度球面专家策略蒸馏为潜在控制器，使下游策略通过残差潜在动作复用固定触觉先验，减少从原始关节命令的重复探索。该先验以触觉-本体感知历史为条件，使潜在行为反映当前手物交互状态，为富接触灵巧操作提供了可复用的行为先验。",
+      "llm_tags": [
+        "query:rmgp"
+      ],
+      "matched_query_tag": "query:rmgp",
+      "matched_query_text": "robotic manipulation",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    }
+  ]
+}

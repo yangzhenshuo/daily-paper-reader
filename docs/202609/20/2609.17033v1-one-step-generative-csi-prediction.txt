@@ -1,0 +1,454 @@
+Title: One-Step Generative CSI Prediction
+
+URL Source: https://arxiv.org/pdf/2609.17033v1
+
+Published Time: Wed, 16 Sep 2026 01:07:03 GMT
+
+Number of Pages: 6
+
+Markdown Content:
+# One-Step Generative CSI Prediction 
+
+Mehdi Sattari, Javad Aliakbari, Alexandre Graell i Amat, and Tommy Svensson 
+
+Department of Electrical Engineering, Chalmers University of Technology, Gothenburg, Sweden Email: {mehdi.sattari, javada, alexandre.graell, tommy.svensson }@chalmers.se 
+
+Abstract —Channel state information (CSI) prediction has emerged as a promising approach for mitigating channel aging in wireless communication systems. Recently, generative models have been employed to develop CSI prediction frameworks capable of modeling the uncertainty in future channel realiza-tions. However, the high computational complexity and inference latency of these models remain major obstacles to their practical deployment. To address these challenges, this paper focuses on a class of one-step generative models, namely MeanFlow models, in which inference requires only a single neural function evaluation (NFE), significantly reducing computational cost and latency. To alleviate the difficulty of generating CSI directly from noise, we introduce a channel-informed prior that initializes the generation process from an informative estimate of the future channel rather than pure Gaussian noise. Incorporating this channel-informed prior substantially improves both point prediction accuracy and uncertainty calibration. Furthermore, we compare the proposed MeanFlow-based CSI prediction framework with a recent diffusion-based approach. The results demonstrate that MeanFlow achieves comparable point prediction accuracy while producing better-calibrated CSI predictions with only a single NFE. 
+
+Index Terms —CSI prediction, generative models, flow match-ing, MIMO. 
+
+I. I NTRODUCTION 
+
+Massive multiple-input multiple-output (MIMO) systems rely on accurate channel state information (CSI) for precod-ing and link adaptation. However, channel aging and pilot overhead remain major bottlenecks that limit the efficient utilization of wireless channels [1]. CSI prediction, which forecasts future CSI from past observations, has emerged as a promising approach to mitigate these challenges. Classical prediction techniques, including Kalman filtering [2], Prony’s method [3], and autoregressive (AR) models [4], have been extensively studied. However, these methods typically rely on restrictive and often unrealistic assumptions about channel dynamics, limiting their performance in practical wireless environments. More recently, deep learning models have been proposed to approximate the optimal predictor directly from data, resulting in substantial improvements in CSI prediction accuracy [5]– [8]. However, most existing approaches are deterministic and 
+
+> This work was supported in part by the Swedish Research Council (VR) through the 6G-NTN-E Research Environment under Grant 2024-06645. This work was also partially supported by the Swedish Research Council (VR) under Grant 2023-05065; in part by the Wallenberg Artificial Intelligence (AI), Autonomous Systems and Software Program (WASP) funded by the Knut and Alice Wallenberg Foundation. The computations were enabled by resources provided by the National Academic Infrastructure for Supercom-puting in Sweden (NAISS), partially funded by the Swedish Research Council through grant agreement No. 2022-06725.
+
+produce only a single estimate of the future channel. They therefore provide no direct measure of predictive uncertainty, making it difficult to assess prediction reliability and support risk-aware link adaptation. Additionally, they struggle to capture the stochastic and potentially multimodal nature of channel evolution [9], [10]. Generative models address these limitations by learning the full conditional distribution of future CSI. Among them, diffusion-based CSI prediction frameworks have demon-strated strong predictive performance [9]–[11]. However, their inference procedure relies on an iterative multi-step reverse denoising process, resulting in high computational complexity and inference latency. Flow matching and its one-step variant, MeanFlow [12], [13], offer efficient alternatives for generative modeling. By learning an average velocity field, MeanFlow generates samples using only a single neural function evalua-tion (NFE), making it particularly attractive for real-time CSI prediction. Despite its low inference complexity, MeanFlow has not yet been investigated for CSI prediction. Motivated by its potential for practical, low-latency inference, we propose a one-step generative CSI prediction framework based on MeanFlow. Conventional MeanFlow initializes the generation process with zero-mean white Gaussian noise. However, this uninformative source distribution does not reflect the sta-tistical or temporal structure of CSI and can be far from the distribution of future CSI, making an accurate one-step transformation challenging. We therefore adapt MeanFlow to CSI prediction by introducing a channel-informed source distribution centered on a coarse point estimate of the future CSI. We compare the proposed MeanFlow framework with the diffusion-based CSI prediction scheme in [9] and evaluate both point prediction accuracy, measured by the normalized mean squared error (NMSE), and predictive uncertainty using calibration metrics, including prediction interval coverage probability (PICP) and continuous ranked probability score (CRPS). Our results demonstrate that incorporating the in-formative prior significantly improves the point prediction accuracy of both diffusion- and MeanFlow-based genera-tors. Furthermore, despite requiring only a single NFE, the MeanFlow generator produces substantially better-calibrated predictive distributions than the multi-step diffusion generator while maintaining comparable point prediction accuracy. We further show that point prediction accuracy can be improved beyond that of multi-step diffusion by increasing the capacity of the MeanFlow generator, with only a modest increase in arXiv:2609.17033v1 [eess.SP] 15 Sep 2026 inference latency. Finally, we demonstrate that MeanFlow’s improved calibration translates into more accurate achievable-rate prediction, as measured by CRPS-rate. II. P ROBLEM FORMULATION AND PRELIMINARIES 
+
+A. Problem Formulation 
+
+We consider a MIMO system in which a base station (BS) equipped with a uniform linear array (ULA) of Nt
+
+antennas serves single-antenna users over Nc orthogonal frequency division multiplexing (OFDM) subcarriers. The spatial–frequency CSI at time index n is denoted by Hn ∈
+
+CNt×Nc . Given a sequence of past CSI observations, 
+
+Hp = Hn−Np+1 , . . . , Hn , (1) the objective is to predict the future CSI sequence 
+
+Hf = Hn+1 , . . . , Hn+Nf . (2) Under the mean squared error (MSE) criterion, the optimal predictor is the conditional mean, 
+
+f ∗(Hp) = E[Hf | Hp]=
+
+Z
+
+Hf p(Hf | Hp) dHf . (3) Equivalently, the conditional mean is the minimum mean squared error (MMSE) predictor, 
+
+f ∗(Hp) = arg min  
+
+> f
+
+E
+
+h
+
+∥Hf − f (Hp)∥2i
+
+. (4) Computing the MMSE predictor is generally intractable because the conditional distribution p(Hf | Hp) is unknown and the underlying wireless channel dynamics are highly nonlinear and stochastic. Consequently, data-driven methods, particularly deep learning models, have been widely adopted to approximate the conditional mean directly from data. 
+
+B. MeanFlow Models 
+
+MeanFlow [13] is a flow-matching-based generative model that directly estimates the average transport velocity between a source distribution and the target data distribution. Unlike diffusion models or conventional flow matching, which re-quire multiple numerical integration steps during inference, MeanFlow generates samples with a single network evalua-tion. Given a data sample Y and a source sample S, MeanFlow defines the interpolation 
+
+Ht = (1 − t)Y + tS, t ∈ [0 , 1] , (5) where t denotes the interpolation time. During training, an additional time variable r ∈ [0 , t ] is sampled to define the averaging interval [r, t ] over which the transport velocity is estimated. Instead of learning the instantaneous velocity v =
+
+S − Y, MeanFlow learns the average transport velocity 
+
+uθ (Ht, r, t ), (6)         
+
+> HpTemporal Encoder MeanFlow Generator ˆHn+1
+> source
+> S=μ+σϵ
+> z
+> μ
+> Fig. 1. One-step generative CSI predictor using MeanFlow generator.
+
+which is trained using the objective proposed in [13]. Once trained, the prediction is obtained by 
+
+ˆY = S − uθ , (7) requiring only a single network evaluation. III. O NE -S TEP GENERATIVE CSI P REDICTION 
+
+Fig. 1 illustrates the overall framework of the proposed one-step generative CSI prediction method. While MeanFlow was originally proposed for image generation, we adapt it to conditional CSI prediction by conditioning the genera-tive process on temporal features extracted from historical CSI. The framework consists of a temporal encoder and a MeanFlow generator. The temporal encoder learns latent representations that capture the channel dynamics, and the MeanFlow generator uses these representations to generate future CSI in a single network evaluation. 
+
+A. MeanFlow Training 
+
+Given the historical CSI sequence Hp, the temporal en-coder extracts a latent representation z together with a deter-ministic prediction 
+
+μ ≈ E[Y | Hp], (8) where Y denotes the ground-truth future CSI. The latent representation z captures the temporal channel dynamics and conditions the MeanFlow generator, while μ provides an informative prior for the source distribution. Instead of sampling the source point from a zero-mean Gaussian distribution as in the original MeanFlow formula-tion, we center the source around the encoder prediction, 
+
+S = sg( μ) + ϵ, ϵ ∼ N (0, σ 2I), (9) where sg( ·) denotes the stop-gradient operator. By centering the source on μ, the predictable component is provided directly to the generator, allowing it to focus primarily on the remaining prediction residual. This places the source distribution closer to the conditional distribution of the future CSI and reduces the transport distance that MeanFlow must learn, which is particularly important for one-step generation. Meanwhile, the Gaussian perturbation ϵ preserves the stochas-ticity required to represent multiple possible future channel realizations. The interpolated state defined in (5) is provided to the MeanFlow generator together with the conditioning latent rep-resentation z. The target average velocity is computed using Algorithm 1 MeanFlow Training 
+
+Input: Dataset D = {(X, Y)}; parameters θ = [ θTE , θG];source scale σ; loss weights λ, c, p ; SNR range [ρmin , ρ max ].
+
+Output: θ∗. 
+
+> 1:
+
+for epoch = 1 , . . . , N epochs do  
+
+> 2:
+
+for each batch (X, Y) ∈ D do  
+
+> 3:
+
+ρ ∼ U [ρmin , ρ max ] 
+
+> 4:
+
+˜X ← X + σρN, N ∼ N (0, I), σ2 
+
+> ρ
+
+= PX/10 ρ/ 10  
+
+> 5:
+
+(Z, μ) ← fθTE ( ˜X) 
+
+> 6:
+
+Sample t, r ∈ [0 , 1] with t ≥ r 
+
+> 7:
+
+ϵ ∼ N (0, σ 2I) 
+
+> 8:
+
+S ← sg( μ) + ϵ 
+
+> 9:
+
+Ht ← (1 − t)Y + tS, v ← S − Y 
+
+> 10:
+
+uθ ← fθG (Concat( Ht, Z), r, t ) 
+
+> 11:
+
+duθ
+
+dt ← v ∂Ht uθ + ∂tuθ 
+
+> 12:
+
+utgt ← v − (t − r) duθ
+
+dt  
+
+> 13:
+
+w ←  ∥uθ − utgt ∥22 + c−p 
+
+> 14:
+
+L(θ) ← sg( w) uθ − sg( utgt ) 22 + λ ∥μ − Y∥22 
+
+> 15:
+
+Update θ using ∇θ L(θ) 
+
+> 16:
+
+end for  
+
+> 17:
+
+end for  
+
+> 18:
+
+Return θ∗
+
+the MeanFlow identity and a Jacobian–vector product (JVP), following the original MeanFlow formulation. As in [13], the target velocity is detached from gradient propagation, and adaptive loss weighting is employed to improve optimization stability. The complete training procedure is summarized in Algorithm 1. In addition to the MeanFlow objective, the temporal encoder is optimized using an auxiliary MSE loss on the deterministic prediction μ.
+
+B. One-Step AR Inference 
+
+During inference, the temporal encoder first processes the available CSI history to produce the conditioning latent z
+
+and the deterministic prediction μ. A source sample is then generated by perturbing the informative prior, 
+
+H1 = μ + σϵ, ϵ ∼ N (0, I). (10) Unlike diffusion models or conventional flow matching, no iterative denoising or ordinary differential equation (ODE) integration is required. The MeanFlow generator is evaluated only once to estimate the average transport velocity between the source and target distributions, 
+
+uθ = fθG
+
+ Concat( H1, z), 0, 1, (11) and the next CSI frame is recovered by 
+
+ˆHn = H1 − uθ . (12) The predicted frame is appended to the history and used as input for the next prediction step. This AR procedure is repeated until the desired prediction horizon is reached, as 
+
+Algorithm 2 MeanFlow AR Inference 
+
+Input: History Hp; trained θ∗ = [ θ∗
+
+> TE
+
+, θ∗
+
+> G
+
+]; horizon Nf ;source scale σ.
+
+Output: { ˆHn}Nf
+
+> n=1
+
+. 
+
+> 1:
+
+Hc ← Hp 
+
+> 2:
+
+for n = 1 to Nf do  
+
+> 3:
+
+(Z, μ) ← fθ∗ 
+
+> TE
+
+(Hc) 
+
+> 4:
+
+H1 ← μ + σϵ, ϵ ∼ N (0, I) 
+
+> 5:
+
+uθ∗ ← fθ∗ 
+
+> G
+
+(Concat( H1, Z), 0, 1)  
+
+> 6:
+
+ˆHn ← H1 − uθ∗ 
+
+> 7:
+
+Hc ← Concat( Hc, ˆHn) 
+
+> 8:
+
+end for  
+
+> 9:
+
+Return { ˆHn}Nf                       
+
+> n=1
+> TABLE I DATASET PARAMETERS
+> Parameter Value
+> Carrier frequency fc28 GHz Channel model 3GPP CDL-A –E(randomly selected) Number of BS antennas Nt16 Resource blocks 25 (300 subcarriers) Subcarrier spacing 30 kHz Used subcarriers Nc16 (evenly spaced) Symbol duration ≈33 .3μsUser velocity 30–120 km/h (uniform) Delay spread 50–400 ns (uniform) Past / future length Np= 30 /Nf= 10
+
+summarized in Algorithm 2. Since each prediction requires only a single evaluation of the MeanFlow generator, the proposed method requires 1-NFE per predicted CSI frame, resulting in substantially lower inference complexity than iterative generative models. IV. S IMULATION RESULTS 
+
+A. Dataset Setup 
+
+We generate CSI on the fly using the 3GPP CDL channel model using Sionna channel generator [14]. Each sample is a tensor of shape [T × 2 × Nt × Nc], where T = Np + Nf
+
+is the number of OFDM symbols, followed by real/imaginary parts, Nt transmit antennas, and Nc subcarriers. Each sample is split into past CSI X = Hp (Np = 30 ) and future CSI 
+
+Y = Hf (Nf = 10 ), giving T = 40 . Samples are standardized to zero mean and unit variance. Table I summarizes the dataset parameters. 
+
+B. Network Architecture and Training 
+
+To ensure a controlled comparison, the diffusion and Mean-Flow models share the same backbone and differ only in their training objective. A single-layer ConvLSTM temporal encoder ( 128 hidden channels) maps the history to a 128 -channel conditioning latent Z and a 2-channel point estimate 
+
+μ. The generator is a 2D U-Net (base width 32 , one down-sampling stage to 64 channels, two residual blocks per stage, single-head self-attention at the bottleneck) that takes the noisy CSI frame concatenated with Z and is conditioned on the time pair (r, t ) or the diffusion step t through a sinusoidal FiLM embedding. Diffusion predicts the clean frame under a cosine noise schedule and samples with 3-step DDIM, whereas MeanFlow learns the average velocity and samples in a single NFE. The encoder and generator together comprise 
+
+≈2.2 M parameters. All models are trained identically with Adam (learning rate 
+
+2×10 −4, cosine schedule with warmup), batch size 256 , for 
+
+50 k steps, with gradient clipping and an exponential moving average of the weights used at evaluation. The history is augmented with additive noise at a random SNR to emulate imperfect CSI. Full model and training configurations are available in our GitHub implementation. 1
+
+C. Evaluation Metrics 
+
+We assess both the accuracy of the point prediction and the quality of the predictive distribution obtained from K=30 
+
+samples { ˆH(k)}Kk=1 . All metrics are computed in the physical (denormalized) channel space. For a single real-valued coef-ficient, let {xk}Kk=1 be the ensemble values, x(1) ≤ · · · ≤ x(K)
+
+their order statistics, ¯x = 1
+
+> K
+
+P 
+
+> k
+
+xk the ensemble mean, and y the corresponding ground-truth value; expectations 
+
+E[·] denote averaging over coefficients (antennas, subcarriers, and real/imaginary parts) and the batch. For evaluations, we consider the following metrics:  
+
+> •
+
+NMSE. NMSE is computed using the ensemble mean 
+
+¯H = 1
+
+> K
+
+PKk=1 ˆH(k),
+
+NMSE n = E∥ ¯Hn − Hn∥22
+
+
+
+E[∥Hn∥22] . (13)  
+
+> •
+
+PICP. PICP measures how often the true value falls within a prediction interval. For a nominal confidence level p, it is defined as 
+
+PICP( p) = E
+
+h
+
+1
+
+n
+
+q 1−p
+
+> 2
+
+≤ y ≤ q 1+ p
+
+> 2
+
+oi 
+
+, (14) where qα is the empirical α-quantile of the gener-ated samples. A well-calibrated model should satisfy 
+
+PICP( p) ≈ p. 
+
+> •
+
+CRPS. CRPS evaluates the quality of the entire predic-tive distribution by considering both accuracy and sharp-ness. For a predictive cumulative distribution function (CDF) F and a true value y, it is defined as 
+
+CRPS( F, y ) = 
+
+Z ∞−∞ 
+
+(F (x) − 1{x ≥ y})2 dx. (15) A lower CRPS indicates a better probabilistic prediction.  
+
+> •
+
+Achievable-rate CRPS. To assess predictive uncertainty from a communication perspective, we evaluate the pre-dicted distribution of the maximum-ratio achievable rate. For a channel realization h and operating SNR γ, the rate is 
+
+C(h) = log 2
+
+ 1 + γ∥h∥22
+
+ . (16)     
+
+> 1https://github.com/MehdiSattari/meanflow-csi-prediction
+> 246810
+> −20
+> −10 0
+
+prediction step NMSE (dB)         
+
+> μ-MeanFlow
+> μ-Diffusion MeanFlow Diffusion
+> Fig. 2. Per-step NMSE at an inference SNR of 20 dB.
+> 00.20.40.60.8100.20.40.60.81
+
+nominal coverage empirical coverage    
+
+> ideal
+> μ-MeanFlow MeanFlow
+> μ-Diffusion Diffusion
+> Fig. 3. Reliability at an inference SNR of 20 dB.
+
+Each generated CSI sample ˆh(k) is mapped to its corre-sponding rate C(ˆh(k)). The achievable-rate CRPS is then computed by comparing the resulting rate distribution with the true rate C(h).All metrics are reported per prediction step and as horizon averages. 
+
+D. Numerical Results 
+
+Fig. 2 shows the NMSE versus the prediction horizon. For both Diffusion and MeanFlow, we compare the conven-tional Gaussian source distribution with the channel-informed prior, denoted by μ-Diffusion and μ-MeanFlow. Incorporating the informative prior improves the average NMSE of both models by approximately 5 dB, with μ-Diffusion and μ-MeanFlow achieving nearly identical performance. This result confirms that centering the MeanFlow source distribution or the diffusion target around μ replaces the challenging task of generating CSI directly from noise with the simpler task of modeling a zero-mean residual. Without the informative prior 
+
+μ, MeanFlow achieves better NMSE than Diffusion despite requiring fewer NFEs. Figure 3 compares the calibration of the predictive distri-butions using reliability diagrams. MeanFlow closely follows TABLE II PREDICTION ACCURACY AND CALIBRATION AT INFERENCE SNR S OF                                                                                
+
+> 20 dB AND 5dB.
+> 20 dB 5dB Model NMSE CRPS cov 90 NMSE CRPS cov 90
+> μ-MeanFlow −10 .60.10 0.73 −9.80.12 0.59
+> μ-Diffusion −11 .00.11 0.18 −10 .00.14 0.31
+> MeanFlow −6.70.17 0.55 −7.10.17 0.49
+> Diffusion −4.50.28 0.10 −5.50.25 0.19
+> TABLE III ACHIEVABLE -RATE CRPS AND 90% COVERAGE ACROSS VARIOUS INFERENCE SNR S.Inference SNR (dB) Model 0510 20
+> CRPS of achievable rate
+> μ-MeanFlow 0.16 0.14 0.13 0.17
+> μ-Diffusion 0.21 0.18 0.16 0.16
+> MeanFlow 0.20 0.21 0.25 0.30
+> Diffusion 0.76 0.77 0.76 0.71
+> Coverage @ 0.90
+> μ-MeanFlow 0.57 0.59 0.63 0.72
+> μ-Diffusion 0.36 0.31 0.24 0.18
+> MeanFlow 0.49 0.49 0.51 0.55
+> Diffusion 0.24 0.18 0.13 0.10
+
+the ideal diagonal, achieving a coverage of 0.73 at the nominal 
+
+0.90 confidence level, whereas diffusion is overconfident with a coverage of 0.18 , indicating that the true CSI frequently lies outside the predicted ensemble. Consistent with this observation, Table II shows that MeanFlow also achieves the lowest CRPS while maintaining nearly identical NMSE to diffusion. Moreover, this calibration advantage persists both with and without the informative prior, suggesting that it primarily originates from the flow-matching formulation rather than the informative prior itself. Next, Table III evaluates probabilistic predictions across inference SNRs. All models under-cover relative to the nom-inal 0.90 level. μ-MeanFlow achieves the closest coverage, ranging from 0.57 at 0 dB to 0.72 at 20 dB, although its intervals become less reliable as the input SNR decreases. Conversely, μ-Diffusion coverage improves from 0.18 at 
+
+20 dB to 0.36 at 0 dB but remains far below the nominal level. μ-MeanFlow also achieves the lowest achievable-rate CRPS at 0–10 dB. At 20 dB, μ-Diffusion has a marginally lower CRPS ( 0.16 versus 0.17 ) but much lower coverage (0.18 versus 0.72 ). Overall, μ-MeanFlow provides the best balance between CRPS and coverage. To assess whether improved calibration translates into bet-ter communication performance, we report the achievable-rate CRPS in Table III. MeanFlow with prior achieves the lowest achievable-rate CRPS in the low- and moderate-SNR regime (0–10 dB), outperforming few-step diffusion. At 20 dB, the performance of the two generative models becomes compara-ble because the achievable rate approaches saturation. These results demonstrate that the superior calibration of MeanFlow               
+
+> TABLE IV EFFECT OF THE NUMBER OF DDIM SAMPLING STEPS ON DIFFUSION ACCURACY AND RELIABILITY .Model (NFE/frame) NMSE cov 90
+> μ-Diffusion ( 3)−11 .20.19
+> μ-Diffusion ( 10 )−11 .10.37
+> μ-Diffusion ( 20 )−10 .90.47
+> μ-Diffusion ( 50 )−10 .70.54
+> μ-MeanFlow ( 1)−10 .50.72
+
+translates into measurable downstream performance gains precisely in the regime where predictive uncertainty is most pronounced. Finally, Table IV investigates whether diffusion’s overconfi-dence is primarily caused by using only three DDIM sampling steps. Increasing the number of sampling steps consistently improves calibration, with the 90% coverage increasing from 
+
+0.19 to 0.54 . This improvement, however, comes at a slight cost in ensemble NMSE ( −11 .2 to −10 .7 dB), since a more faithful sampler yields a more diverse ensemble whose mean is a slightly noisier point estimate. Despite this trade-off, diffusion remains less calibrated than one-step μ-MeanFlow even after 50 DDIM steps, achieving a coverage of only 0.54 
+
+versus 0.72 . These results indicate that increasing the number of DDIM steps alleviates, but does not eliminate, diffusion’s overconfidence. 
+
+E. Inference Complexity and Latency 
+
+Since MeanFlow and diffusion share the same temporal encoder and generator, they have identical parameter counts (2.2 M); their inference costs differ only in the number of generator evaluations (NFE). We analyze the cost of a single prediction step for a single user, which is the latency-critical operating point for real-time CSI prediction. Because the tem-poral encoder is a recurrent ConvLSTM, each autoregressive step advances its hidden state by one frame. The per-step cost is therefore 
+
+Cstep = Cenc + NNFE Cgen , (17) where Cenc is one recurrent encoder step and Cgen is one gen-erator (U-Net) evaluation; MeanFlow uses NNFE =1 , while diffusion uses NNFE ≥ 3.Table V reports these quantities measured on an NVIDIA A40. Notably, the recurrent encoder step costs only 0.35 ms, making the temporal encoder a negligible fixed per-step cost. MeanFlow completes a prediction step in 6.8 ms, whereas diffusion requires 19 .8 ms with 3 NFE and up to 324 .7 ms with 50 NFE, corresponding to 2.9× to 47 .5× higher latency. Because the encoder cost is negligible, the latency ratio is largely determined by NNFE and is therefore largely inde-pendent of the hardware. The same ordering is observed in terms of FLOPs. Finally, because the per-step latency is dominated by the generator evaluations, MeanFlow can scale its generator for higher accuracy at almost no latency cost. Fig. 4 plots NMSE against per-step latency for MeanFlow across generator sizes TABLE V INFERENCE COMPLEXITY .Model (NFE) latency (ms) FLOPs (M) MeanFlow ( 1) 6.8 561 
+
+Diffusion ( 3) 19 .8 917 
+
+Diffusion ( 10 ) 65 .2 2162 
+
+Diffusion ( 20 ) 130 .1 3941 
+
+Diffusion ( 50 ) 324 .7 9278     
+
+> 10 110 2
+> −11
+> −10
+> small medium large
+> 310 20 50
+
+latency (ms) NMSE (dB) 
+
+> MeanFlow (size sweep) Diffusion (NFE sweep)
+
+Fig. 4. Accuracy versus per-step latency. 
+
+and for diffusion across NFE (at the default backbone). The three MeanFlow variants scale only the shared U-Net generator—small, medium, and large use base widths of 24 ,
+
+32 , and 48 channels, respectively, resulting in 1.7, 2.2, and 
+
+3.8 M total parameters. The medium model is the default used elsewhere in the paper. The MeanFlow frontier lies entirely below and to the left of diffusion’s: increasing the generator size drives NMSE down along a nearly vertical, low-latency line. In particular, the largest MeanFlow model attains a lower NMSE ( −11 .67 dB) than the best diffusion configuration ( −11 .15 dB) at roughly half the per-step latency (8.1 vs. 19 .8 ms). Thus, for CSI prediction, spending compute on a larger one-step generator is far more effective than spending it on additional sampling steps for diffusion. V. C ONCLUSION 
+
+This paper proposed a one-step generative CSI predic-tion framework based on MeanFlow to reduce the inference complexity and latency associated with generative models in real-time wireless applications. To alleviate the difficulty of generating future CSI from pure random noise, we in-troduced a channel-informed prior that initializes the gen-eration process from an informative estimate of the future channel, substantially improving both point prediction ac-curacy and uncertainty calibration. We conducted evaluation using metrics that assess both point prediction accuracy and predictive distribution quality, and compared the proposed MeanFlow framework with state-of-the-art diffusion-based CSI prediction models under a controlled setting with identi-cal encoder and generator architectures. The results show that one-step MeanFlow achieves point prediction accuracy com-parable to few-step diffusion while providing substantially better-calibrated predictive uncertainty and downstream per-formance. Moreover, MeanFlow offers a favorable accuracy– latency scaling: increasing the one-step generator size im-proves NMSE with only a minor latency increase, highlighting the advantage of investing compute in a larger one-step generator rather than in additional diffusion sampling steps. As future work, we will investigate channel-shaped source priors that exploit the structured sparsity of wireless residuals in the angle–delay domain to further improve the quality of CSI generation and uncertainty estimation. REFERENCES [1] E. G. Larsson, O. Edfors, F. Tufvesson, and T. L. Marzetta, “Massive MIMO for next generation wireless systems,” IEEE Commun. Mag. ,vol. 52, no. 2, pp. 186–195, 2014. [2] H. Kim, S. Kim, H. Lee, C. Jang, Y. Choi, and J. Choi, “Massive MIMO channel prediction: Kalman filtering vs. machine learning,” IEEE Trans. Commun. , vol. 69, no. 1, pp. 518–528, 2021. [3] H. Yin, H. Wang, Y. Liu, and D. Gesbert, “Addressing the curse of mobility in massive MIMO with Prony-based angular-delay domain channel predictions,” IEEE J. Sel. Areas Commun. , vol. 38, no. 12, pp. 2903–2917, 2020. [4] K. E. Baddour and N. C. Beaulieu, “Autoregressive modeling for fading channel simulation,” IEEE Trans. Wireless Commun. , vol. 4, no. 4, pp. 1650–1662, 2005. [5] W. Jiang and H. D. Schotten, “Deep learning for fading channel prediction,” IEEE Open J. Commun. Soc. , vol. 1, pp. 320–332, 2020. [6] H. Jiang, M. Cui, D. W. K. Ng, and L. Dai, “Accurate channel prediction based on transformer: Making mobility negligible,” IEEE J. Sel. Areas Commun. , vol. 40, no. 9, pp. 2717–2732, 2022. [7] Y. Jin, Y. Wu, Y. Gao, S. Zhang, S. Xu, and C.-X. Wang, “Linformer: A linear-based lightweight transformer architecture for time-aware MIMO channel prediction,” IEEE Trans. Wireless Commun. , pp. 1–1, 2025. [8] S. Fan, Z. Liu, X. Gu, and H. Li, “CSI-LLM: A novel downlink channel prediction method aligned with LLM pre-training,” in Proc. IEEE Wireless Commun. Netw. Conf. (WCNC) , 2025, pp. 1–6. [9] M. Sattari, J. Aliakbari, A. G. i Amat, and T. Svensson, “CSI prediction using diffusion models,” IEEE Trans. Wireless Commun. , vol. 25, pp. 21 418–21 432, 2026. [10] M. Sattari, J. Aliakbari, A. G. I. Amat, and T. Svensson, “CSI prediction using autoregressive conditional diffusion models,” in Proc. IEEE Int. Conf. Commun. (ICC) , 2026, pp. 1–6. [11] J. Ho, A. Jain, and P. Abbeel, “Denoising diffusion probabilistic models,” in Adv. Neural Inf. Process. Syst. (NeurIPS) , vol. 33, 2020, pp. 6840–6851. [12] Y. Lipman, R. T. Q. Chen, H. Ben-Hamu, M. Nickel, and M. Le, “Flow matching for generative modeling,” 2023. [Online]. Available: https://arxiv.org/abs/2210.02747 [13] Z. Geng, M. Deng, X. Bai, J. Z. Kolter, and K. He, “Mean flows for one-step generative modeling,” 2025. [Online]. Available: https://arxiv.org/abs/2505.13447 [14] J. Hoydis, S. Cammerer, F. A. Aoudia, A. Vem, N. Binder, G. Marcus, and A. Keller, “Sionna: An open-source library for next-generation physical layer research,” 2023. [Online]. Available: https://arxiv.org/abs/2203.11854
