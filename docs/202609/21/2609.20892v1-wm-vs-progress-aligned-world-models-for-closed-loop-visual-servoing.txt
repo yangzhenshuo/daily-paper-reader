@@ -1,0 +1,345 @@
+Title: WM-VS: Progress-Aligned World Models for Closed-Loop Visual Servoing
+
+URL Source: https://arxiv.org/pdf/2609.20892v1
+
+Published Time: Mon, 21 Sep 2026 00:03:03 GMT
+
+Number of Pages: 8
+
+Markdown Content:
+# WM-VS: Progress-Aligned World Models for Closed-Loop Visual Servoing 
+
+Guanzhong Sun 1, Junyi Ma 2, Yixuan Zhou 3, Yuxuan Wu 2,4, Yanzi Miao 1, and Hesheng Wang 2,5
+
+Abstract — Closed-loop visual servoing requires predictions that indicate whether an action reduces task error, not only whether the action is plausible. We call this gap the prediction– control mismatch and introduce WM-VS, a target-centric progress-aligned world-model framework for closed-loop visual servoing. Offline target-region DINOv2 correspondences define a signed four-dimensional servo coordinate for translation, scale, and in-plane rotation. Stage 1 aligns action-conditioned latent transitions with this coordinate; Stage 2 freezes the world model and trains a reactive joint-velocity policy with action imitation, consequence supervision, and short imagined rollouts that favor error contraction. Deployment is RGB-only and reactive, without online trajectory optimization. On a real 7-DoF eye-to-hand system, WM-VS reaches a corner RMSE no larger than 10% of its initial value in 30/30 trials and retains this criterion at the final valid frame in 25/30 (83.33%). Removing future-error alignment reduces retention to 26.67%. The learned progress signal agrees with an external AprilTag corner error not used for training or control (mean Spearman 
+
+ρ = 0.8778 ). Without retraining, two unseen 3D targets achieve translation-error reductions of 86.48% and 90.27% and rotation-error reductions of 70.01% and 65.70%. These results link progress-aligned action consequences to repeated closed-loop correction and transfer. Code and data will be released as open source. 
+
+I. INTRODUCTION A learned visual servo controller must support repeated correction rather than only reproduce actions associated with individual observations. Each command changes the next observation, and the controller uses the updated feedback to compute the next command. Therefore, an action that appears plausible from the current observation may still produce drift if its consequence does not reduce the task-relevant visual error. The controller needs to evaluate not only what action is associated with an observation, but also whether the pre-dicted consequence of that action moves the system toward the goal. We call the gap between action prediction and control-relevant progress the prediction–control mismatch .Classical VS resolves this issue explicitly. Image-based and position-based controllers define a task error and an  
+
+> 1School of Information and Control Engineering, China University of Mining and Technology, Xuzhou, China.
+
+tb22060026a41@cumt.edu.cn; myz@cumt.edu.cn            
+
+> 2School of Automation and Intelligent Sensing, Shanghai Jiao Tong University, Shanghai, China.
+
+junyi.ma@sjtu.edu.cn; furrygreen@sjtu.edu.cn; yunji.feng@sjtu.edu.cn; wanghesh-eng@sjtu.edu.cn 
+
+> 3SJTU Global College, Shanghai Jiao Tong University, Shanghai, China.
+
+yixuanzhou@sjtu.edu.cn 
+
+> 4Shanghai Innovation Institute, Shanghai, China.
+> 5Shanghai Key Laboratory of Navigation and Location Based Services, Shanghai Jiao Tong University, Shanghai, China. Corresponding author: Hesheng Wang.
+
+interaction model that turns visual discrepancy into correc-tive motion [1]–[3]. Direct and predictive variants broaden the usable measurements and horizons [4], [5]. Learning-based VS reduces dependence on hand-designed features by estimating pose, actions, or servoable representations from data [6]–[10]. However, many learned formulations primarily optimize state estimation or action prediction objectives, which indicate what action is associated with an observation but do not explicitly characterize how that action changes the task-relevant visual error under closed-loop execution. This question becomes central with latent world models, which make action conditioned imagination a reusable ab-straction for robot learning [11]–[14]. At the same time, self-supervised vision transformer (ViT) features provide dense spatial correspondences that transfer across appearance changes [15]–[17], and ViT-VS shows that such features can support explicit image-based servoing [18]. Together, these developments motivate a different perspective: latent predic-tions should not only describe future states, but also organize candidate actions according to whether their consequences generate meaningful task progress in the closed loop. WM-VS implements this idea by introducing a target-centric directional servo coordinate derived offline from target-region DINOv2 correspondences. The coordinate records signed image translation, relative scale, and in-plane rotation with respect to the desired visual goal, providing an explicit measure of object-relative progress. In Stage 1, the model learns action-conditioned latent transitions and aligns their predicted consequences with this directional servo coor-dinate. In Stage 2, the aligned world model is frozen and used to evaluate whether policy actions are expected to reduce target-centric visual error. Behavior cloning provides a data-supported action prior, while consequence supervision and short imagined rollouts encourage actions whose predicted outcomes contract the visual task error. The learned policy is then executed in closed loop and recomputes its command from current feedback at every control cycle. This closed-loop perspective also changes evaluation. A controller may reach an accurate configuration while still producing actions that gradually increase error under con-tinued feedback. We therefore distinguish reaching preci-sion from retaining precision . Retention measures whether repeated feedback preserves the achieved accuracy and pro-vides a direct behavioral evaluation of whether action con-sequences remain aligned with task progress. Our contributions are threefold.  
+
+> •
+
+We formulate the prediction–control mismatch in learned visual servoing and introduce a target-centric arXiv:2609.20892v1 [cs.RO] 17 Sep 2026 Fig. 1. Overview of WM-VS. Frozen DINOv2 spatial features are focused on the task target and fused with robot history. Stage 1 aligns action-conditioned latent transitions with a target-centric directional servo coordinate whose normalized reduction defines visual task progress. Stage 2 freezes the aligned model and uses imagined action consequences to train a reactive goal-conditioned joint-velocity policy toward error contraction. 
+
+progress-aligned world model that evaluates predicted action consequences according to their effect on visual goal error.  
+
+> •
+
+We use the frozen world model to train a reactive closed-loop policy that combines action imitation with consequence-aware supervision and short imagined roll-outs, enabling goal-directed correction without online planning.  
+
+> •
+
+We validate the representation to control link on a real 7-DoF system. WM-VS reaches the 10% error region in 30/30 trials and retains it at the final valid frame in 25/30 trials. Future error alignment is directly tied to retention, the learned progress ordering agrees with an independent AprilTag signal, and zero shot tests on two new 3D targets show large TCP translation and rotation error reductions. II. RELATED WORK 
+
+A. Classical and Learning-Based Visual Servoing 
+
+Classical VS maps visual error to corrective motion through interaction models [1]–[3]. Variants use image mo-ments [19], direct photometric objectives [4], [20], or pre-dictive horizons [5], [21]. ViSP provides a generic software platform spanning a broad class of visual-servo control skills [22], while learning-based VS surveys cover neural-network, reinforcement-learning, and MPC-based formulations [23]. Learning-based VS regresses relative pose or actions [6]– [8], [24], [25], learns servoable representations [9], [10], [26], or incorporates learned features and flow into geometric or predictive control [27]–[31]. DeepMPCVS further cou-ples learned optical-flow prediction with model-predictive control to optimize future motion [31]. WM-VS instead learns explicit task-progress structure and requires neither an online interaction matrix nor deployment-time trajectory optimization. 
+
+B. World Models for Control 
+
+DINO/DINOv2 provide transferable dense descriptors for semantic correspondence [15]–[17]. More broadly, Vi-sion Transformers establish patch-token visual representa-tions [32]; Mask2Former and SAM provide general image-segmentation mechanisms for extracting object regions [33], [34], while Best-Buddies provides a robust criterion for tem-plate matching and correspondence selection [35]. Together, these representation and matching tools support object-region extraction and correspondence, but do not themselves encode whether a candidate robot action produces progress toward the servo goal. ViT-VS uses DINOv2 correspondences online in an IBVS controller [18], whereas WM-VS uses them offline to supervise task progress. World-model methods exploit action-conditioned prediction through visual foresight [11], policy distillation [12], latent imagination [13], or predictive motion representations [14]. These works establish the value of prediction for control but do not explicitly orga-nize transitions by visual-goal progress. WM-VS therefore uses its world model as a training-time consequence model rather than a deployment-time planner. III. METHOD 
+
+A. Problem Formulation and Target-Aware Representation 
+
+We consider a fixed eye-to-hand camera observing a robot whose end-effector carries the task target. At time t, the controller receives an RGB image It, joint state qt, recent joint and action history, and a desired RGB image Ig , and outputs a seven-joint velocity command ˙qt. At every control cycle WM-VS refreshes the observation and robot state and recomputes the command, so it operates as a reactive closed-loop servo controller rather than replaying an open-loop action sequence. Semantic object proposals from Mask2Former [33] iden-tify the task target in the initial and desired observations, and DINOv2 descriptors associate it across the two endpoints before causal tracking. We use a frozen DINOv2 ViT-S/14 backbone with 448 × 448 input; normalized 384-D patch tokens from its final (12th) Transformer block form a 32 ×32 
+
+grid with patch size 14. The implementation maps these descriptors to 32 visual channels and concatenates one target-mask channel, yielding a 32 × 32 × 33 adapter input. The adapter produces a 256-D visual embedding vt, with full-frame fallback for unreliable masks. A causal temporal encoder fuses recent visual embeddings, joint states, previous actions, and control intervals into zt, while the desired image produces zg through the same pathway. The selected target regions are also used offline to con-struct task-error supervision. Within current and goal target masks, normalized DINOv2 patch descriptors are matched with a mutual-nearest-neighbor test related to best-buddy matching [35], low-similarity and ambiguous matches are rejected, and a random sample consensus (RANSAC) sim-ilarity transformation is estimated from the survivors. No AprilTag measurement enters this offline supervision. 
+
+B. Directional Servo Coordinate 
+
+From robust target correspondences we define 
+
+et = [∆ xt, ∆yt, ∆ log st, ∆θt]⊤, (1) where ∆x and ∆y are current-minus-goal matched-centroid offsets in normalized image coordinates, ∆ log s =log( st/s g ), and ∆θ is the wrapped current-minus-goal in-plane rotation. Because the four components have different natural scales, we compute a fixed component-wise scale vector σ on the training split and define 
+
+˜e = e ⊘ σ, d(e) = 
+
+r 14 ∥˜e∥22, (2) where ⊘ denotes element-wise division, so that d(e) is the root-mean-square magnitude of the normalized components. We refer to et as a directional servo coordinate . The co-ordinate preserves translation, scale, and in-plane rotation differences that a scalar distance-to-goal would discard. It remains low-dimensional and is used only to organize task progress rather than as the controller state. A decrease in d(e)
+
+defines progress, while the policy itself continues to act on the richer spatial latent together with joint and action history. Thus, the coordinate structures latent transitions without restricting the policy state to four dimensions. 
+
+C. Progress-Aligned Latent Dynamics 
+
+The purpose of the world model is not only to predict the next latent state, but also to make the consequence of an action measurable in the servo coordinate. Given the current latent state and the executed robot action, the dynamics model predicts 
+
+ˆzt+1 = fθ (zt, qt, ˙qt∆t, ∆t), (3) and a shared task-error head maps current and goal latents to the directional coordinate, 
+
+ˆet = gθ (zt, zg ), ˆet+1 = gθ (ˆ zt+1 , zg ). (4) The second relation is the key alignment constraint: the predicted next latent state must decode to the directional error induced by the action. Consequently, latent transitions are organized not only by next-state prediction but also by whether their consequences represent progress, stagnation, or  
+
+> Fig. 2. Directional servo coordinate for action-consequence learning.
+> The goal-conditioned policy predicts a joint action from the current and goal latents together with robot history. The aligned predictive representation maps the imagined consequence to the four-dimensional error coordinate. Action imitation constrains the policy near the data distribution, while the servo terms regularize local consequences and encourage short-horizon error contraction.
+
+regression relative to the visual goal. The Stage 1 objective is 
+
+LWM = Lz + λeLe(ˆ et, et) + λf Le(ˆ et+1 , et+1 ), (5) where Lz combines smooth-L1 next-latent regression and co-sine consistency, and Le is smooth-L1 regression in the fixed normalized coordinates of (2). We use λe = 1 and λf = 0 .5.This objective turns predictive latent dynamics into a servo-centric world model: the latent retains appearance and robot-history information, while action-conditioned transitions are explicitly ordered by task progress. The model is therefore optimized for control-relevant consequence structure rather than image synthesis. 
+
+D. Action-Consequence-Aware Policy Learning 
+
+After Stage 1, the aligned world model is frozen; we denote its fixed parameters by ¯θ and reuse it as a differ-entiable model of action consequences. A goal-conditioned Transformer receives the current latent, goal latent, their latent difference, and recent joint history, and predicts 
+
+˙qπt = πψ (zt, zg , qt−h:t). (6) Fig. 2 shows how the directional servo coordinate links a policy action to its predicted visual consequence. Let ˙qDt denote the logged joint-velocity action and eDt+1 
+
+the error observed after its execution. The imitation term is 
+
+LBC = ℓa( ˙ qπt , ˙qDt ). (7) The policy action is propagated through the frozen world model and locally aligned with the demonstrated conse-quence, 
+
+ˆzπt+1 = f¯θ (zt, qt, ˙qπt ∆tt, ∆tt) ,
+
+ˆeπt+1 = g¯θ
+
+ ˆzπt+1 , zg
+
+ ,
+
+Lnext = MaskedMean 
+
+h
+
+SmoothL1  ˆeπt+1 ⊘ σ, eDt+1 ⊘ σ ; mtmt+1 
+
+i
+
+.
+
+(8) where mt ∈ { 0, 1} denotes the validity of the directional-error target at step t, so mtmt+1 retains only transitions with valid supervision at both steps. Because ˙qπt need not equal the demonstrated action ˙qDt ,
+
+eDt+1 is not an exact on-policy outcome target. Under the behavior-cloning constraint, Lnext instead provides local consequence alignment around demonstrated actions; policy-specific error reduction is encouraged by Lcontract through imagined rollouts. The aligned world model also allows the policy’s own actions to be evaluated. Because the predicted next latent states carry the servo coordinate, short policy-induced roll-outs can be regularized according to whether they reduce task error. Starting from zt, the policy and frozen world model are recursively applied for a short horizon K, and for the imagined policy-induced task errors ˆeπt+k we penalize 
+
+Lcontract = 1
+
+K
+
+> K
+
+X
+
+> k=1
+
+d(ˆ eπt+k) −  ρkd(et) + ϵ  
+
+> +
+
+, (9) where [x]+ = max(0 , x ). This term needs no observed next-state target for the policy’s imagined action; it directly asks the policy-induced rollout to reduce task error. A small near-goal action penalty Lnear suppresses unnecessary motion close to the target, and the complete policy objective is 
+
+Lπ = LBC + λnLnext + λcLcontract + λ0Lnear . (10) We use λn = 1, λc = 1, and λ0 = 0.05 . The three terms are complementary: LBC anchors demonstrated ac-tions, Lnext supervises local consequences, and Lcontract 
+
+rewards predicted error reduction. Stage 2 thus trains for error-contracting closed-loop behavior rather than one-step action accuracy alone. 
+
+E. Training and Deployment 
+
+The visual adapter produces 256-D embeddings by sum-ming a fixed anchor branch ( 8 × 8 adaptive pooling and fixed random projection) and a trainable residual branch (depthwise/pointwise convolutions with GroupNorm/GELU, reducing 32 × 32 to 8 × 8, followed by a linear projection), then applying LayerNorm. The temporal encoder and Stage 2 policy each use 8 Transformer layers, 8 heads, and a 512-D feed-forward width; the latent dimension is 256 and h = 10 
+
+previous macro-keyframes. We use K = 3 , ρ = 0 .9, and ϵ = 0 .02 . All normalization statistics in (2) are computed from the training split and then fixed. Both stages are trained for at most 5000 epochs with early-stopping patience 200. At deployment, the learned policy is updated at approx-imately 5 Hz from the latest RGB observation and robot feedback. Each policy output is interpolated by the low-level interface into smooth joint commands sent at up to 
+
+30 Hz . A bounded gain derived from predicted error atten-uates command magnitude near the goal. Perception uses causal target tracking with fallback handling. The controller uses no depth, AprilTag measurement, future observation, online explicit feature geometry, latent-rollout optimization, or trajectory planning. IV. EXPERIMENTS 
+
+A. Platform, Data, and Evaluation Protocol 
+
+We use the suffix E2H to denote the fixed-camera eye-to-hand adaptations of the corresponding methods. Experiments use a fixed eye-to-hand Gemini 2 RGB-D camera and a seven-axis RealMan RMC-DA robot. The RGB stream is 
+
+640 × 480 (4:3), with horizontal, vertical, and diagonal fields of view of 63 .55 ◦, 49 .82 ◦, and 75 .49 ◦, respectively. A custom-designed, 3D-printed end-effector is rigidly bolted to the robot flange and carries the task target. Although the sensor provides RGB-D, WM-VS consumes RGB only; registered depth is used only by the ViT-VS-E2H baseline. For each data-collection trajectory, two joint configura-tions are randomly sampled within a predefined safe joint-space region and retained only when all AprilTag corners are detectable at both endpoints. One endpoint is randomly selected as the goal; after a 3-s settling period, the desired image Ig is captured. The robot then moves to the other endpoint, settles for another 3 s, and captures the initial image. During the subsequent trajectory, RGB images, joint positions, and joint velocities are logged at 5 Hz .The resulting dataset contains 1000 trajectories and is split 
+
+by trajectory into training, validation, and test partitions in a 70:15:15 ratio (700/150/150 trajectories). This prevents temporally adjacent frames from the same trajectory from crossing partitions, and all normalization statistics used by the directional servo coordinate are estimated from the train-ing partition. Real-robot evaluation uses 30 independently executed trials per method or ablation. Test trials start with large displacements relative to the desired pose: the initial corner RMSE is approximately 400–500 px, translation dis-crepancy is 300–400 mm, and rotation discrepancy spans 
+
+19 ◦–61 ◦.An OpenCV DICT APRILTAG 36h11 marker [36] (ID 0, side length 0.066125 m), printed on A4 paper, provides the common evaluation signal. For WM-VS, tag detection is used only to screen data-collection endpoints for target visibility and to provide the external evaluator and stopping supervisor; no tag-derived quantity enters the visual encoder, latent dynamics, policy, training losses, or online gain. Moment-VS is the sole controller that uses the detected tag geometry online, as detailed in IV-B. Let the four detected corners in the current image be ci =(ui, v i) and the corresponding corners in the desired image be c∗ 
+
+> i
+
+= ( u∗ 
+
+> i
+
+, v ∗ 
+
+> i
+
+), with consistent corner ordering and i =1, . . . , 4. The image-space evaluation metric is the corner RMSE 
+
+Ecorner (t) = 
+
+vuut 14
+
+> 4
+
+X
+
+> i=1
+
+∥ci − c∗ 
+
+> i
+
+∥22 (11) in pixels, which quantifies image-space deviation between the current and desired tag quadrilaterals. The stopping supervisor and external progress-consistency analysis use a separate, dimensionless normalized corner error. With camera intrinsics (fx, f y , c x, c y ), each detected pixel corner is normalized as 
+
+¯ci =
+
+(ui − cx)/f x
+
+(vi − cy )/f y
+
+
+
+, ¯c∗ 
+
+> i
+
+=
+
+(u∗ 
+
+> i
+
+− cx)/f x
+
+(v∗ 
+
+> i
+
+− cy )/f y
+
+
+
+, (12) and we define 
+
+Etag (t) = 
+
+vuut 4X
+
+> i=1
+
+∥¯ci − ¯c∗ 
+
+> i
+
+∥22. (13) We denote this normalized image-space corner error by Etag ;it is neither a TCP pose error nor a metric in millimeters or degrees. For additional reporting, the known tag size and camera intrinsics are used with perspective-n-point (PnP) to recover current and desired AprilTag poses. Translation error is the Euclidean distance between the two tag translations, reported in millimeters, and rotation error is the geodesic angle of their relative rotation, reported in degrees. These quantities describe AprilTag pose in the camera frame and are kept separate from the normalized image-space metric Etag .Each method and ablation variant is evaluated in 30 real-robot trials. We report whether a run ever reaches 
+
+min  
+
+> t
+
+Ecorner (t) ≤ 0.1 Ecorner (0) (14) and whether the final valid frame satisfies the same 10% 
+
+error criterion. This criterion is defined relative to each trial’s initial error and is used only for evaluation. Thus trajectories are not truncated at first entry and can expose whether subsequent closed-loop feedback preserves or loses the reached precision. All methods share the same external stopping supervisor. A trial terminates when Etag does not decrease for 50 consecutive closed-loop updates or when tag corners are unavailable for 30 consecutive frames, in which case the last valid frame is used. For trials whose final valid frame remains inside the re-porting region, we report the relative post-minimum rebound 
+
+Rrebound = [Ecorner (T ) − Ebest ]/E best , where Ebest =min t Ecorner (t). Let t⋆ denote the best-observed step. Over the first 50 controller updates after t⋆, we additionally report the fractions satisfying Ecorner (t) ≤ Ecorner (t − 1) and 
+
+Ecorner (t) < E corner (t − 1) , denoted non-increase and strict decrease . A step denotes one closed-loop update of the corresponding controller; these update-normalized statistics are scale-free and complement final retention and rebound. 
+
+B. Baselines and Eye-to-Hand Adaptation 
+
+Table I summarizes the online information available to each controller. WM-VS uses RGB observations and robot proprioception without depth, target-pose estimation, an on-line interaction matrix, or trajectory optimization. The geo-metric baselines retain the sensing required by their original control formulations. ViT-VS-E2H. We reproduce the public ViT-VS imple-mentation [18], preserving DINOv2 feature extraction, local correspondence matching, interaction-matrix construction, and visual-servo gain computation. The original method is eye-in-hand, so we adapt only the sensing and coordinate interfaces: fixed-camera RGB and registered depth are pro-vided to the original visual-servo computation, the resulting camera-frame velocity is transformed to the robot base using     
+
+> (a) WM-VS (Ours) (b) VSNet-E2H
+> (c) Moment-VS (d) ViT-VS-E2H
+> Fig. 3. Best-observed real-robot precision. (a) WM-VS, (b) VSNet-E2H, (c) Moment-VS, and (d) ViT-VS-E2H under identical initial/desired configurations. Blue/red quadrilaterals mark initial/desired AprilTag corners.
+
+the eye-to-hand calibration, and the robot spatial Jacobian pseudoinverse maps end-effector velocity to joint velocity. Moment-VS. We implement image-moment visual servo-ing with ViSP [19], [22]. At each trial, desired moment features are initialized from the AprilTag corners and PnP pose at the goal configuration. During servoing, detected corners define the normalized tag polygon and the moment features (xg , y g , a n, s x, s y , α ). AprilTag PnP provides the online plane model 1/Z = Ax + By + C, whose parameters are recomputed every frame. ViSP uses gain λ = 0 .4; the resulting camera velocity is transformed to the robot base and mapped to joint velocity through the robot Jacobian. VSNet-E2H. We reproduce the VSNet design [7], retain-ing the Siamese AlexNet architecture, paired current and desired RGB input, and joint translation and quaternion regression, with training labels from RealMan forward kine-matics rather than AprilTag PnP. At runtime, the predicted relative TCP pose becomes a bounded SE(3) increment and a proportional end-effector command that is mapped to joint motion through the Jacobian, with all predicted quantities and per-step joint increments bounded before execution. 
+
+C. Reaching the Goal Neighborhood 
+
+We first ask whether each controller can reach a precise configuration at least once. Fig. 3 shows best-observed frames under identical initial and desired joint configurations, and Table II summarizes 30-trial convergence and best-observed errors. WM-VS reaches the 10% region in all 30 trials, with best-observed errors of 10 .20 ± 2.30 px, 13 .21 ± 2.32 mm, and 
+
+5.78 ± 2.55 ◦ in corner RMSE, translation, and rotation, re-spectively. VSNet-E2H also reaches the region in every trial but with markedly larger rotation error; Moment-VS and ViT-VS-E2H converge in 66 .67% and 60 .00% . Thus, progress-aligned training preserves strong initial convergence. The remaining question is whether this precision is maintained TABLE I COMPARED METHODS AND ONLINE INFORMATION USED BY THE CONTROLLER .
+
+Method Task-specific training RGB Depth Online explicit features WM-VS (Ours) ✓ ✓ – –WM-VS w/o Future-Error Alignment ✓ ✓ – –WM-VS w/o Error Guidance ✓ ✓ – –WM-VS (BC-only) ✓ ✓ – –VSNet-E2H ✓ ✓ – –Moment-VS – ✓ – ✓†
+
+ViT-VS-E2H – ✓ ✓‡ ✓
+
+> †
+
+Plane parameters (A, B, C ) of the model 1/Z = Ax + By + C obtained online from the marker pose. 
+
+> ‡
+
+Registered depth from the RGB-D sensor. TABLE II TRANSIENT ACCURACY , FINAL RETENTION , AND POST -MINIMUM LOCAL BEHAVIOR OVER 30 REAL -ROBOT TRIALS .                                                                                                    
+
+> Method Conv. †Best RMSE (px) §Best trans. (mm) §Best rot. ( ◦)§Final ret. ‡Post-min. 50-step non-inc./dec. (%) WM-VS (Ours) 100.00% 10 .20 ±2.30 13 .21 ±2.32 5.78 ±2.55 83.33% 63 .3/34 .0
+> WM-VS w/o Future-Error Alignment 86.67% 12 .16 ±6.51 20 .78 ±9.51 6.49 ±3.82 26.67% 65 .6/26 .3
+> WM-VS w/o Error Guidance 36.67% 13 .51 ±5.16 23 .06 ±14 .05 9.09 ±4.53 23.33% 40 .3/16 .7
+> WM-VS (BC-only) 90.00% 11 .44 ±8.42 12 .86 ±3.55 6.61 ±3.25 50.00% 68 .8/20 .8
+> VSNet-E2H 100.00% 13 .18 ±2.17 14 .55 ±4.12 27 .11 ±4.31 0.00% 2.5/2.0
+> Moment-VS 66.67% 20 .47 ±11 .55 25 .52 ±15 .93 18 .11 ±7.29 56.67% 49 .3/39 .8
+> ViT-VS-E2H 60.00% 29 .64 ±3.12 79 .24 ±65 .40 48 .10 ±7.96 60.00% 62 .4/33 .2
+> †Best corner RMSE ≤0.1Ecorner (0) .‡Final valid frame satisfies the same criterion. §Best-observed errors are computed over converged trials. Post-min. reports, over the first 50 closed-loop updates after each trajectory minimum, the percentages with Et≤Et−1/Et< E t−1.
+
+Fig. 4. Representative closed-loop corner-RMSE trajectories. Trajec-tories continue beyond their minima to the final valid step, exposing post-minimum rebound that best error alone does not capture. 
+
+after the controller first reaches the goal region. 
+
+D. Retaining Precision Under Continued Feedback 
+
+Best-observed accuracy can hide a controller that reaches the goal neighborhood and then drifts away. We therefore plot trajectories through the final valid step in Fig. 4 and evaluate both final retention and scale-free local behavior after the trajectory minimum. WM-VS satisfies the 10% error criterion at the final valid frame in 25/30 (83.33%) trials. Across these 25 trials, the final corner RMSE is 10 .36 ± 2.38 px, and the mean relative rebound from the trajectory minimum is only 0.0870 ±
+
+0.0936 . The comparison with VSNet-E2H shows why final retention is a closed-loop measure rather than a best-frame measure. Both methods reach the 10% criterion in all 30 trials, but VSNet-E2H satisfies it at the final valid frame in 0/30 trials, with every trajectory ending at least four times above its own best corner RMSE. Moment-VS and ViT-VS-E2H satisfy the final criterion in 56.67% and 60.00% of trials, respectively. In the evaluated RGB-only eye-to-hand setting, WM-VS therefore provides the strongest combina-tion of reaching performance and near-goal retention. 
+
+E. What Creates the Retention Advantage? 
+
+Three ablations isolate the progress-alignment pathway. w/o Future-Error Alignment sets λf = 0 while retaining current-error supervision and all Stage 2 objectives. BC-only retains the full Stage 1 model but removes Lnext , Lcontract ,and Lnear . w/o Error Guidance removes current/future error supervision, all servo-aware Stage 2 losses, and predicted-error gain scaling while retaining latent prediction and be-havior cloning. Removing only future-error alignment preserves 86 .67% 
+
+convergence but drops final retention from 83 .33% to 
+
+26 .67% . BC-only reaches the region in 90 .00% of trials and retains it in 50 .00% . The post-minimum sign statis-tics provide complementary evidence: the full model has the highest strict-decrease rate among the WM-VS variants (34 .00% ), while BC-only has a higher non-increase rate (68 .80% ) but substantially fewer strictly decreasing steps (20 .80% ). We therefore treat these sign statistics as a lo-cal feedback diagnostic rather than a standalone stability score. Because w/o Future-Error Alignment and BC-only retain the same online gain rule as the full model, the retention gap cannot be attributed to gain scaling alone. Removing the entire error-guidance pathway reduces conver-gence/retention to 36 .67% /23 .33% . These ablations support distinct roles for the two forms of guidance: current-error guidance mainly supports reaching, whereas future-error alignment and action-consequence learning improve behavior after entering the goal neighborhood. 
+
+F. External Progress Consistency 
+
+We next test whether the learned progress ordering agrees with the external normalized AprilTag corner error Etag in (13), which is never used as a WM-VS training target or controller input. For this analysis only, both sequences are smoothed with the same five-frame moving average. Fig. 5. Consistency between learned progress and an external normalized AprilTag corner error. One example WM-VS trajectory is shown. The red curve is the model-predicted visual error and the blue curve is Etag , the external normalized AprilTag corner error in (13). The reported correlations are mean per-trajectory statistics over 30 real-robot trials. 
+
+(a) Static black background (b) Dynamic background   
+
+> Fig. 6. Background interference evaluation. Representative best observed frames are shown for (a) a static black background and (b) a moving bag. The blue and red quadrilaterals mark the AprilTag corner detections at the initial and desired configurations.
+
+Across 30 trajectories, the learned signal achieves mean Pearson r = 0 .9911 and mean Spearman ρ = 0 .8778 with 
+
+Etag . Spearman correlation is more relevant here because it measures progress ordering. The result indicates that the learned servo coordinate preserves the monotonic structure of the external image-space error without receiving that signal during training or control. Together, the correlation, ablation, and retention results link the Stage 1 representation to the closed-loop behavior of the final policy. 
+
+G. Background Interference Evaluation 
+
+We also test background variation while keeping the servo target unchanged. A black wall gives the static condition and a patterned bag moving through the background gives the dynamic condition. Across 10 trial groups, convergence and final precision remain close to the nominal setting without a consistent degradation trend. Fig. 6 shows representative best observed frames under both conditions. 
+
+H. Zero Shot Transfer to New 3D Targets 
+
+We further test zero shot transfer on two 3D targets with different shapes and materials. The first is a silicone gripper finger and the second is a plastic hemisphere, shown in Fig. 7. The trained WM-VS controller is applied without additional task specific training. At the best observed frame, the TCP translation and 
+
+(a) Silicone gripper finger (b) Plastic hemisphere                               
+
+> Fig. 7. Zero shot transfer to new 3D targets. The two targets differ in shape and surface material. TABLE III ZERO SHOT TRANSFER RESULTS .
+> Target Etrans Erot Trans. red. Rot. red. (mm) (deg) (%) (%) Silicone finger 45 .66 ±19 .46 10 .34 ±10 .27 86 .48 ±5.85 70 .01 ±23 .83
+> Plastic hemisphere 31 .88 ±13 .72 9.76 ±5.89 90 .27 ±4.34 65 .70 ±20 .03
+
+rotation errors are 
+
+Etrans = ∥pbest − pg ∥2 ,Erot = cos −1 tr  R⊤ 
+
+> g
+
+Rbest 
+
+ − 12
+
+!
+
+180 
+
+π . (15) The translation and rotation reduction columns in Table III report the percentage decrease from the initial TCP error to the best observed TCP error. Both targets show clear closed-loop error reduction. Trans-lation is reduced by 86 .48 ±5.85% and 90 .27 ±4.34% , while rotation is reduced by 70 .01 ± 23 .83% and 65 .70 ± 20 .03% 
+
+for the silicone finger and plastic hemisphere, respectively. Interestingly, RANSAC retains an average of 11 .5 correspon-dences on these unseen targets, compared with 8.0 on the AprilTag target. The reduced zero-shot precision is there-fore not explained simply by correspondence scarcity; the spatial conditioning and rotational informativeness of those correspondences can remain target dependent, particularly for smooth or nearly symmetric geometry. V. DISCUSSION WM-VS makes predicted action consequences measurable in target-relative progress rather than relying on action imitation alone. The ablations show that removing future-error alignment or Stage 2 consequence objectives preserves much of the reaching ability but sharply reduces final retention, linking progress alignment to post-convergence behavior. The external AprilTag correlation and background tests provide complementary checks. Unseen targets yield more surviving RANSAC correspondences than the AprilTag target, suggesting that transfer is limited by correspondence geometry and observability rather than count alone; broader target diversity is therefore a motivated direction for improv-ing transfer. VI. CONCLUSION We presented WM-VS for closed-loop visual servoing. It aligns predicted action consequences with a directional servo coordinate and trains a reactive policy for repeated feedback. WM-VS reaches the 10% region in 30/30 trials and retains it in 25/30, while removing future error alignment lowers retention to 26 .67% . Zero shot tests also reduce TCP translation and rotation error on two new 3D targets. REFERENCES [1] S. Hutchinson, G. Hager, and P. Corke, “A tutorial on visual servo control,” IEEE Transactions on Robotics and Automation , vol. 12, no. 5, pp. 651–670, 1996. [2] F. Chaumette and S. Hutchinson, “Visual servo control. i. basic approaches,” IEEE Robotics & Automation Magazine , vol. 13, no. 4, pp. 82–90, 2006. [3] F. Chaumette and S. Hutchinson, “Visual servo control. ii. ad-vanced approaches [tutorial],” IEEE Robotics & Automation Magazine ,vol. 14, no. 1, pp. 109–118, 2007. [4] C. Collewet and E. Marchand, “Photometric visual servoing,” IEEE Transactions on Robotics , vol. 27, no. 4, pp. 828–834, 2011. [5] G. Allibert, E. Courtial, and F. Chaumette, “Predictive control for con-strained image-based visual servoing,” IEEE Transactions on Robotics ,vol. 26, no. 5, pp. 933–939, 2010. [6] Q. Bateux, E. Marchand, J. Leitner, F. Chaumette, and P. Corke, “Training deep neural networks for visual servoing,” in 2018 IEEE International Conference on Robotics and Automation (ICRA) , 2018, pp. 3307–3314. [7] C. Yu, Z. Cai, H. Pham, and Q.-C. Pham, “Siamese convolutional neural network for sub-millimeter-accurate camera pose estimation and visual servoing,” in 2019 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS) , 2019, pp. 935–941. [8] G. Allibert, E. Courtial, and F. Chaumette, “Siame-se(3): regression in se(3) for end-to-end visual servoing,” in 2021 IEEE International Conference on Robotics and Automation (ICRA) , 2021, pp. 14 454– 14 460. [9] S. Felton, P. Brault, E. Fromont, and E. Marchand, “Visual servoing in autoencoder latent space,” IEEE Robotics and Automation Letters ,vol. 7, no. 2, pp. 3234–3241, 2022. [10] S. Felton, ´ E. Fromont, and E. Marchand, “Deep metric learning for visual servoing: when pose and image meet in latent space,” in ICRA 2023 - IEEE International Conference on Robotics and Automation .London, United Kingdom: IEEE, May 2023, pp. 741–747. [Online]. Available: https://inria.hal.science/hal-04003126 [11] C. Finn and S. Levine, “Deep visual foresight for planning robot motion,” in 2017 IEEE International Conference on Robotics and Automation (ICRA) , 2017, pp. 2786–2793. [12] N. Hirose, F. Xia, R. Mart´ ın-Mart´ ın, A. Sadeghian, and S. Savarese, “Deep visual mpc-policy learning for navigation,” IEEE Robotics and Automation Letters , vol. 4, no. 4, pp. 3184–3191, 2019. [13] D. Hafner, T. Lillicrap, J. Ba, and M. Norouzi, “Dream to control: Learning behaviors by latent imagination,” 2020. [14] J. Ma, W. Bao, J. Xu, G. Sun, Y. Zheng, E. Zhang, X. Chen, and H. Wang, “Uni-hand: Universal hand motion forecasting in egocentric views,” IEEE Transactions on Pattern Analysis and Machine Intelli-gence , vol. 48, no. 10, pp. 11 758–11 775, 2026. [15] M. Caron, H. Touvron, I. Misra, H. Jegou, J. Mairal, P. Bojanowski, and A. Joulin, “Emerging properties in self-supervised vision trans-formers,” in 2021 IEEE/CVF International Conference on Computer Vision (ICCV) , 2021, pp. 9630–9640. [16] M. Oquab, T. Darcet, T. Moutakanni, H. V. Vo, M. Szafraniec, V. Khalidov, P. Fernandez, D. HAZIZA, F. Massa, A. El-Nouby, M. Assran, N. Ballas, W. Galuba, R. Howes, P.-Y. Huang, S.-W. Li, I. Misra, M. Rabbat, V. Sharma, G. Synnaeve, H. Xu, H. Je-gou, J. Mairal, P. Labatut, A. Joulin, and P. Bojanowski, “DINOv2: Learning robust visual features without supervision,” Transactions on Machine Learning Research , 2024, featured Certification. [17] S. Amir, Y. Gandelsman, S. Bagon, and T. Dekel, “Deep ViT features as dense visual descriptors,” in arXiv preprint , 2022. [Online]. Available: https://arxiv.org/abs/2112.05814 [18] A. Scherl, S. Thalhammer, B. Neuberger, W. W¨ ober, and J. Garc´ ıa-Rodr´ ıguez, “ViT-VS: On the applicability of pretrained vision trans-former features for generalizable visual servoing,” in 2025 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS) ,2025, pp. 17 769–17 776. [19] F. Chaumette, “Image moments: a general and useful set of features for visual servoing,” IEEE Transactions on Robotics , vol. 20, no. 4, pp. 713–723, 2004. [20] C. Collewet, E. Marchand, and F. Chaumette, “Visual servoing set free from image processing,” in 2008 IEEE International Conference on Robotics and Automation , 2008, pp. 81–86. [21] C. Lazar and A. Burlacu, “Visual servoing of robot manipulators using model-based predictive control,” in 2009 7th IEEE International Conference on Industrial Informatics , 2009, pp. 690–695. [22] E. Marchand, F. Spindler, and F. Chaumette, “ViSP for visual servoing: a generic software platform with a wide class of robot control skills,” 
+
+IEEE Robotics & Automation Magazine , vol. 12, no. 4, pp. 40–52, 2005. [23] J. Wu, Z. Jin, A. Liu, L. Yu, and F. Yang, “A survey of learning-based control of robotic visual servoing systems,” Journal of the Franklin Institute , vol. 359, no. 1, pp. 556–577, 2022. [Online]. Available: https: //www.sciencedirect.com/science/article/pii/S0016003221006621 [24] A. Saxena, H. Pandya, G. Kumar, A. Gaud, and K. M. Krishna, “Exploring convolutional networks for end-to-end visual servoing,” in 2017 IEEE International Conference on Robotics and Automation (ICRA) , 2017, pp. 3817–3823. [25] C. Sampedro, A. Rodriguez-Ramos, I. Gil, L. Mejias, and P. Campoy, “Image-based visual servoing controller for multirotor aerial robots using deep reinforcement learning,” in 2018 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS) , 2018, pp. 979– 986. [26] A. X. Lee, S. Levine, and P. Abbeel, “Learning visual servoing with deep features and fitted q-iteration,” in International Conference on Learning Representations , 2017. [27] E. Y. Puang, K. Peng Tee, and W. Jing, “KOVIS: Keypoint-based visual servoing with zero-shot sim-to-real transfer for robotics manip-ulation,” in 2020 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS) , 2020, pp. 7527–7533. [28] N. Adrian, V.-T. Do, and Q.-C. Pham, “DFBVS: Deep feature-based visual servo,” in 2022 IEEE 18th International Conference on Automation Science and Engineering (CASE) , 2022, pp. 1783–1789. [29] R. L. Haugaard, A. Glent Buch, and T. M. Iversen, “Self-supervised deep visual servoing for high precision peg-in-hole insertion,” in 
+
+2022 IEEE 18th International Conference on Automation Science and Engineering (CASE) , 2022, pp. 405–410. [30] Y. V. S. Harish, H. Pandya, A. Gaud, S. Terupally, S. Shankar, and K. M. Krishna, “DFVS: Deep flow guided scene agnostic image based visual servoing,” in 2020 IEEE International Conference on Robotics and Automation (ICRA) , 2020, pp. 9000–9006. [31] P. Katara, H. YVS, H. Pandya, A. Gupta, A. Sanchawala, G. Kumar, B. Bhowmick, and M. Krishna, “DeepMPCVS: Deep model predictive control for visual servoing,” in Proceedings of the 2020 Conference on Robot Learning , ser. Proceedings of Machine Learning Research, J. Kober, F. Ramos, and C. Tomlin, Eds., vol. 155. PMLR, 16–18 Nov 2021, pp. 2006–2015. [Online]. Available: https://proceedings.mlr.press/v155/katara21a.html [32] A. Dosovitskiy, L. Beyer, A. Kolesnikov, D. Weissenborn, X. Zhai, T. Unterthiner, M. Dehghani, M. Minderer, G. Heigold, S. Gelly, J. Uszkoreit, and N. Houlsby, “An image is worth 16x16 words: Transformers for image recognition at scale,” in Proceedings of the International Conference on Learning Representations (ICLR) , 2021. [Online]. Available: https://arxiv.org/abs/2010.11929 [33] B. Cheng, I. Misra, A. G. Schwing, A. Kirillov, and R. Girdhar, “Masked-attention mask transformer for universal image segmenta-tion,” in 2022 IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , 2022, pp. 1280–1289. [34] A. Kirillov, E. Mintun, N. Ravi, H. Mao, C. Rolland, L. Gustafson, T. Xiao, S. Whitehead, A. C. Berg, W.-Y. Lo, P. Doll´ ar, and R. Girshick, “Segment anything,” in 2023 IEEE/CVF International Conference on Computer Vision (ICCV) , 2023, pp. 3992–4003. [35] T. Dekel, S. Oron, M. Rubinstein, S. Avidan, and W. T. Freeman, “Best-buddies similarity for robust template matching,” in Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR) , June 2015. [36] E. Olson, “AprilTag: A robust and flexible visual fiducial system,” in 2011 IEEE International Conference on Robotics and Automation ,2011, pp. 3400–3407.
