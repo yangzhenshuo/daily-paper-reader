@@ -1,40 +1,40 @@
 {
-  "generated_at": "2026-10-01T00:11:20.262741+00:00",
-  "updated_date": "20260930",
+  "generated_at": "2026-10-02T00:40:46.399897+00:00",
+  "updated_date": "20261001",
   "carryover_days": 9,
   "tag_states": {
     "rmgp": {
-      "updated_date": "20260930",
+      "updated_date": "20261001",
       "carryover_days": 9,
       "items": []
     },
     "gen-imit": {
-      "updated_date": "20260930",
+      "updated_date": "20261001",
       "carryover_days": 9,
       "items": []
     },
     "world-model": {
-      "updated_date": "20260930",
+      "updated_date": "20261001",
       "carryover_days": 9,
       "items": []
     },
     "VLA-WM": {
-      "updated_date": "20260930",
+      "updated_date": "20261001",
       "carryover_days": 9,
       "items": []
     },
     "gen-models": {
-      "updated_date": "20260930",
+      "updated_date": "20261001",
       "carryover_days": 9,
       "items": []
     },
     "FewStepGen": {
-      "updated_date": "20260930",
+      "updated_date": "20261001",
       "carryover_days": 9,
       "items": []
     },
     "pol-vision": {
-      "updated_date": "20260930",
+      "updated_date": "20261001",
       "carryover_days": 9,
       "items": []
     }
